@@ -1,6 +1,7 @@
-# from arduino.app_utils import *
+from arduino.app_utils import *
 
 import requests
+from datetime import datetime
  
 
 def get_temperature():
@@ -55,14 +56,48 @@ def get_conditions():
     return condition
 
 
+def get_time():
+    # Get current time in Prague timezone (CET/CEST)
+    # Using API timezone offset from weather data
+    api_key = "033e4af2c403c176f2a262ad63af4565"
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {"q": "Neratovice", "appid": api_key}
+
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as exc:
+        raise RuntimeError(f"Error fetching time data: {exc}") from exc
+
+    # Get timezone offset and calculate local time
+    timezone_offset = data.get("timezone", 0)  # Offset in seconds from UTC
+    utc_now = datetime.utcnow()
+    
+    # Add timezone offset
+    from datetime import timedelta
+    local_time = utc_now + timedelta(seconds=timezone_offset)
+    
+    # Format as HH:MM (24-hour format)
+    time_str = local_time.strftime("%H:%M")
+    
+    print(f"Current time: {time_str}")
+    
+    return time_str
+
+
 if __name__ == "__main__":
     temperature = get_temperature()
     print(f"Temperature in Neratovice: {temperature}°C")
     
     conditions = get_conditions()
     print(f"Weather conditions in Neratovice: {conditions}")
+    
+    current_time = get_time()
+    print(f"Current time in Neratovice: {current_time}")
 
-# Bridge.provide("get_temperature", get_temperature)
-# Bridge.provide("get_conditions", get_conditions)
+Bridge.provide("get_temperature", get_temperature)
+Bridge.provide("get_conditions", get_conditions)
+Bridge.provide("get_time", get_time)
 
-# App.run()
+App.run()
