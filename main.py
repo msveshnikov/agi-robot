@@ -57,21 +57,8 @@ def get_conditions():
 
 
 def get_time():
-    # Get current time in Prague timezone (CET/CEST)
-    # Using API timezone offset from weather data
-    api_key = "033e4af2c403c176f2a262ad63af4565"
-    url = "https://api.openweathermap.org/data/2.5/weather"
-    params = {"q": "Neratovice", "appid": api_key}
-
-    try:
-        resp = requests.get(url, params=params, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as exc:
-        raise RuntimeError(f"Error fetching time data: {exc}") from exc
-
     # Get timezone offset and calculate local time
-    timezone_offset = data.get("timezone", 0)  # Offset in seconds from UTC
+    timezone_offset = 3600
     utc_now = datetime.utcnow()
     
     # Add timezone offset

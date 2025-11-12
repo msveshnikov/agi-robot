@@ -418,6 +418,7 @@ void setup()
 {
     matrixBegin();
     Bridge.begin();
+    Monitor.begin();
 }
 
 void loop()
@@ -453,7 +454,8 @@ void loop()
     // 2. Display temperature for 5 seconds
     int temperature;
     bool tempOk = Bridge.call("get_temperature").result(temperature);
-
+    Monitor.print("Temperature: ");
+    Monitor.println(temperature);
     if (tempOk)
     {
         if (temperature < 0)
