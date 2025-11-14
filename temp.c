@@ -1,6 +1,11 @@
 #include <Arduino_RouterBridge.h>
+#include <Modulino.h>
+
 extern "C" void matrixWrite(const uint32_t *buf);
 extern "C" void matrixBegin();
+
+// Create Modulino Thermo object instance
+ModulinoThermo thermo;
 
 // ========== LARGE DIGIT PATTERNS (for temperature) ==========
 const uint32_t digit0[] = {
@@ -424,6 +429,12 @@ void setup()
     matrixBegin();
     Bridge.begin();
     Monitor.begin();
+
+    // Initialize Modulino I2C communication
+    Modulino.begin(Wire1);
+
+    // Detect and connect to temperature/humidity sensor module
+    thermo.begin();
 }
 
 void loop()
@@ -456,10 +467,32 @@ void loop()
         delay(5000); // If time fetch fails, wait 5 seconds
     }
 
-    // 2. Display temperature for 5 seconds
+    // 2. Display real temperature from Modulino Thermo for 5 seconds
+    float celsius = thermo.getTemperature();
+    int realTemp = (int)celsius;
+    Monitor.print("Inside Temperature: ");
+    Monitor.println(realTemp);
+    if (realTemp < 0)
+        realTemp = 0;
+    displayNumber(realTemp);
+    delay(5000);
+
+    // 3. Display humidity from Modulino Thermo for 5 seconds
+    float humidityFloat = thermo.getHumidity();
+    int humidity = (int)humidityFloat;
+    Monitor.print("Humidity: ");
+    Monitor.println(humidity);
+    if (humidity < 0)
+        humidity = 0;
+    if (humidity > 99)
+        humidity = 99;
+    displayNumber(humidity);
+    delay(5000);
+
+    // 4. Display forecast temperature for 5 seconds
     int temperature;
     bool tempOk = Bridge.call("get_temperature").result(temperature);
-    Monitor.print("Temperature: ");
+    Monitor.print("Outside Temperature: ");
     Monitor.println(temperature);
     if (tempOk)
     {
@@ -473,7 +506,7 @@ void loop()
         delay(5000);
     }
 
-    // 3. Display weather animation for 5 seconds
+    // 5. Display weather animation for 5 seconds
     String weather_forecast;
     bool condOk = Bridge.call("get_conditions").result(weather_forecast);
 
