@@ -84,6 +84,9 @@ graph TD
         Bridge --> ServoL
         Bridge --> ServoR
         Bridge --> Sensor
+        Bridge --> Matrix["LED Matrix (Built-in)"]
+        Bridge --> EyeL["Eye Left (Pin 2)"]
+        Bridge --> EyeR["Eye Right (Pin 3)"]
     end
 
     Python <-->|USB Serial 115200 baud| Bridge
@@ -96,6 +99,9 @@ graph TD
 | **Servo Left**  | D5          | Left Wheel (Continuous Rotation)  |
 | **Servo Right** | D6          | Right Wheel (Continuous Rotation) |
 | **Sensor**      | A0          | Proximity/Distance Analog Input   |
+| **Eye Left**    | D2          | Left Eye LED                      |
+| **Eye Right**   | D3          | Right Eye LED                     |
+| **Matrix**      | Built-in    | 12x8 LED Matrix for Emotions      |
 | **USB**         | USB Port    | Serial Communication with MPU     |
 
 ## Power Distribution
@@ -116,3 +122,5 @@ graph TD
 -   [x] in prompt ask for json output with fixed schema, allowing speaking and moving (we have no head or arms)
 -   [x] speak loudly if returned by model
 -   [x] listen to mic and send transcription to LLM model with USB cam picture and proximity sensor data
+-   [x] show robot current emotion on integrated LED matrix
+-   [x] add two ef LEDs (eyes)
