@@ -48,12 +48,15 @@ class RobotBrain:
         
         self.system_prompt = """
         You are a robot assistant with two wheels (differential drive) and NO arms or head.
+        You have an LED matrix for a face and two extra LEDs for eyes.
         You must respond in valid JSON format ONLY.
         The JSON schema is:
         {
             "speech": "text to speak",
             "left_motor": int (speed -100 to 100),
-            "right_motor": int (speed -100 to 100)
+            "right_motor": int (speed -100 to 100),
+            "emotion": "neutral" | "happy" | "sad" | "angry" | "surprised",
+            "eyes": {"left": bool, "right": bool}
         }
         Positive motor values move forward, negative backward.
         """
@@ -109,8 +112,25 @@ class RobotBrain:
             l_angle = int(90 + (left * 0.9))
             r_angle = int(90 + (right * 0.9)) # Might need to invert one side for differential drive
             
+            # Handle Emotion
+            emotion_map = {
+                "neutral": 0,
+                "happy": 1,
+                "sad": 2,
+                "angry": 3,
+                "surprised": 4
+            }
+            emotion_str = data.get("emotion", "neutral").lower()
+            emotion_id = emotion_map.get(emotion_str, 0)
+            
+            # Handle Eyes
+            eyes = data.get("eyes", {"left": False, "right": False})
+            l_eye = '1' if eyes.get("left", False) else '0'
+            r_eye = '1' if eyes.get("right", False) else '0'
+            eyes_cmd = f"{l_eye}{r_eye}"
+            
             # Queue commands
-            cmd = f"L{l_angle};R{r_angle}"
+            cmd = f"L{l_angle};R{r_angle};E{emotion_id};Y{eyes_cmd}"
             self.queue_command(cmd)
             
         except json.JSONDecodeError:
