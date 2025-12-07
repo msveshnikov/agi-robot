@@ -9,7 +9,7 @@
  */
 
 // --- Chassis Dimensions ---
-chassis_length = 240;  // [mm] Y-axis
+chassis_length = 220;  // [mm] Y-axis
 chassis_width = 120;   // [mm] X-axis
 chassis_height = 40;   // [mm] Z-axis
 wall_thickness = 3;    // [mm]
@@ -51,7 +51,7 @@ servo_horn_hub_diameter = 7;
 servo_horn_arm_width = 6;
 
 // --- Quality ---
-$fn = 100;
+$fn = 30;
 
 /*
  * =====================================================================
@@ -181,7 +181,7 @@ module make_wheel() {
  */
 
 // 1. Render the Chassis
-color("green") 
+color("yellow") 
     make_chassis();
 
 // Calculated Y coordinates
@@ -199,21 +199,21 @@ x_right_wheel = chassis_width + wheel_offset + wheel_thickness;
 // The recess is at the top of the cylinder (Z=thickness).
 
 // Front Left
-translate([x_left_wheel, y_front, cutouts_z_pos])
+*translate([x_left_wheel, y_front, cutouts_z_pos])
     rotate([0, 90, 0]) // Rotate 90 deg so top faces Right (towards chassis)
     color("White") make_wheel();
 
 // Front Right
-translate([x_right_wheel, y_front, cutouts_z_pos])
+*translate([x_right_wheel, y_front, cutouts_z_pos])
     rotate([0, -90, 0]) // Rotate -90 deg so top faces Left (towards chassis)
     color("White") make_wheel();
 
 // Rear Left
-translate([x_left_wheel, y_rear, cutouts_z_pos])
+*translate([x_left_wheel, y_rear, cutouts_z_pos])
     rotate([0, 90, 0])
     color("White") make_wheel();
 
 // Rear Right
-translate([x_right_wheel, y_rear, cutouts_z_pos])
+*translate([x_right_wheel, y_rear, cutouts_z_pos])
     rotate([0, -90, 0])
     color("White") make_wheel();
