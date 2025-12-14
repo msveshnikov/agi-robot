@@ -31,7 +31,8 @@ mount_hole_diameter = 1; // [mm]  <<< ИЗМЕНЕНО: Уменьшено до 
 // Глубина, на которую качалка будет "утоплена" в колесо.
 servo_horn_recess_depth = 2.5; // [mm] 
 // Диаметр центрального отверстия для вала сервопривода.
-servo_spline_hole_diameter = 6;  // [mm] 
+servo_spline_hole_diameter = 2;  // [mm] 
+servo_spline_hole_diameter2 = 6;  // [mm] 
 // Диаметр центральной, круглой части серво-качалки.
 servo_horn_hub_diameter = 8.5;   // [mm] <<< ИЗМЕНЕНО: Увеличено для более свободной посадки.
 // Ширина "руки" серво-качалки.
@@ -101,10 +102,14 @@ module all_holes() {
     // чтобы гарантировать сквозное прохождение.
     hole_h = wheel_thickness + 2;
     
+    cylinder(d = servo_spline_hole_diameter2, h = 1, center = true);
+       
     // Сдвигаем все отверстия в центр толщины колеса по оси Z для вырезания.
+    
     translate([0, 0, wheel_thickness / 2]) {
         // 1. Центральное отверстие для вала сервопривода
-        cylinder(d = servo_spline_hole_diameter, h = hole_h, center = true);
+        cylinder(d = servo_spline_hole_diameter, h = 5, center = true);
+        cylinder(d = servo_spline_hole_diameter2, h = 2, center = true);
         
         // 2. Крепёжное отверстие №1
         translate([mount_hole_distance / 2, 0, 0])
