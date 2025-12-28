@@ -1,0 +1,12 @@
+name: robot
+description: ""
+ports: []
+bricks:
+- arduino:web_ui: {}
+- arduino:arduino_cloud:
+    variables:
+      ARDUINO_DEVICE_ID: 1972122a-7197-42cc-8ccb-1f44e2234cf2
+      ARDUINO_SECRET: "8tMau8RKJMg0a#xxAate2Q9@S"
+- arduino:video_object_detection:
+    model: yolox-object-detection
+icon: 😀
