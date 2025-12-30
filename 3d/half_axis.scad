@@ -47,7 +47,7 @@ difference() {
     
     // 3. Отверстие
     total_length = axle_length + square_head_height;
-    translate([0, 0, -1]) {
+    translate([0, 0, 3+5]) {
         cylinder(d = hole_diameter, h = total_length + 2);
     }
 }
