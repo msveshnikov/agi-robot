@@ -4,6 +4,9 @@ from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from arduino.app_bricks.arduino_cloud import ArduinoCloud
+import urllib.request
+import urllib.parse
+import os
 
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -81,5 +84,19 @@ Bridge.provide("get_back", get_back)
 Bridge.provide("get_left", get_left)
 Bridge.provide("get_right", get_right)
 Bridge.provide("get_forward", get_forward)
+
+try:
+    filename = "~/1.wav"
+    # Attempt to expand user path just in case, but rely on service if needed
+    # filename = os.path.expanduser("~/1.wav") 
+    # Keeping it as literal "~/1.wav" as per user request to let service handling it or system environment resolve it.
+    
+    query = urllib.parse.urlencode({'filename': filename})
+    url = f"http://localhost:5000/play?{query}"
+    # Set a short timeout so we don't block startup too long if service isn't up
+    with urllib.request.urlopen(url, timeout=1) as response:
+        print(f"Sound service called: {response.read().decode()}")
+except Exception as e:
+    print(f"Warning: Could not call sound service: {e}")
 
 App.run()
