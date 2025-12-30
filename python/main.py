@@ -79,11 +79,6 @@ def get_right():
 def get_forward():
     return forward
 
-Bridge.provide("get_speed", get_speed)
-Bridge.provide("get_back", get_back)
-Bridge.provide("get_left", get_left)
-Bridge.provide("get_right", get_right)
-Bridge.provide("get_forward", get_forward)
 
 def play_sound(filename):
     try:
@@ -95,6 +90,11 @@ def play_sound(filename):
         print(f"Warning: Could not call sound service: {e}")
 
 Bridge.provide("play_sound", play_sound)
+Bridge.provide("get_speed", get_speed)
+Bridge.provide("get_back", get_back)
+Bridge.provide("get_left", get_left)
+Bridge.provide("get_right", get_right)
+Bridge.provide("get_forward", get_forward)
 
 play_sound("/home/arduino/1.wav")
 
