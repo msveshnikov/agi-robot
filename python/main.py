@@ -92,7 +92,7 @@ try:
     # Keeping it as literal "~/1.wav" as per user request to let service handling it or system environment resolve it.
     
     query = urllib.parse.urlencode({'filename': filename})
-    url = f"http://localhost:5000/play?{query}"
+    url = f"http://172.17.0.1:5000/play?{query}"
     # Set a short timeout so we don't block startup too long if service isn't up
     with urllib.request.urlopen(url, timeout=1) as response:
         print(f"Sound service called: {response.read().decode()}")
