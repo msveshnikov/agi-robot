@@ -86,7 +86,7 @@ Bridge.provide("get_right", get_right)
 Bridge.provide("get_forward", get_forward)
 
 try:
-    filename = "~/1.wav"
+    filename = "/home/arduino/1.wav"
     # Attempt to expand user path just in case, but rely on service if needed
     # filename = os.path.expanduser("~/1.wav") 
     # Keeping it as literal "~/1.wav" as per user request to let service handling it or system environment resolve it.
