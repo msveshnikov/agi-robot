@@ -62,6 +62,7 @@ void loop() {
     right_servo.write(90 - speed);
     left_servo.write(90 + speed);
   } else {
+    Bridge.call("play_sound", "/home/arduino/2.wav");    
     right_servo.write(90 + speed);
     left_servo.write(90 - speed);
     delay(2000);
