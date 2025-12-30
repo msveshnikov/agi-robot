@@ -23,6 +23,7 @@ float duration, distance = 100;
 
 void setup() {
   Bridge.begin();
+  Monitor.begin();
   pinMode(right_wheel, OUTPUT);
   pinMode(left_wheel, OUTPUT);
   right_servo.attach(right_wheel);
@@ -60,7 +61,14 @@ void loop() {
   } else if (distance > 25) {
     right_servo.write(90 - speed);
     left_servo.write(90 + speed);
-  } 
+  } else {
+    right_servo.write(90 + speed);
+    left_servo.write(90 - speed);
+    delay(2000);
+    right_servo.write(90 - speed);
+    left_servo.write(90 - speed);
+    delay(1000);
+  }
 
   delay(200);
 }
