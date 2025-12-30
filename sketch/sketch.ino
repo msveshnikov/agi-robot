@@ -15,6 +15,9 @@ NewPing sonar(trigPin, echoPin, 1000);
 
 int speed = 0;  //0..90
 boolean back = false;
+boolean left = false;
+boolean right = false;
+boolean forward = false;
 
 float duration, distance = 100;
 
@@ -31,25 +34,32 @@ void setup() {
 void loop() {
   Bridge.call("get_speed").result(speed);
   Bridge.call("get_back").result(back);
-  // if (speed == 0) {
-  //   return;
-  // }
+  Bridge.call("get_left").result(left);
+  Bridge.call("get_right").result(right);
+  Bridge.call("get_forward").result(forward);
+  
   distance = sonar.ping_cm();
-  if (distance > 25 && !back) {
+  
+  if (left) {
+    right_servo.write(90 - 20);
+    left_servo.write(90 - 20);
+    delay(2000);
+  } else if (right) {
+    right_servo.write(90 + 20);
+    left_servo.write(90 + 20);
+    delay(2000);
+  } else if (forward) {
+    right_servo.write(90 - 20);
+    left_servo.write(90 + 20);
+    delay(2000);
+  } else if (back) {
+    right_servo.write(90 + 20);
+    left_servo.write(90 - 20);
+    delay(2000);    
+  } else if (distance > 25) {
     right_servo.write(90 - speed);
     left_servo.write(90 + speed);
-  } else {
-    if (back) {
-      speed=20;
-    }
-    right_servo.write(90 + speed);
-    left_servo.write(90 - speed);
-    delay(2000);
-    right_servo.write(90 - speed);
-    left_servo.write(90 - speed);
-    delay(1000);
-
-  }
+  } 
 
   delay(200);
 }

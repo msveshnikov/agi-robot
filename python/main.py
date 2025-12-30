@@ -18,12 +18,15 @@ def send_detections_to_ui(detections: dict):
       "timestamp": datetime.now(UTC).isoformat()
     }
     ui.send_message("detection", message=entry)
-
+ 
 detection_stream.on_detect_all(send_detections_to_ui)
 
 arduino_cloud = ArduinoCloud()
 speed = 0
 back = False
+left = False
+right = False
+forward = False
 
 def speed_callback(client: object, value: int):
     global speed
@@ -35,9 +38,27 @@ def back_callback(client: object, value: bool):
     print(f"Speed value updated from cloud: {value}")
     back = value
 
+def left_callback(client: object, value: bool):
+    global left
+    print(f"Left value updated from cloud: {value}")
+    left = value
+
+def right_callback(client: object, value: bool):
+    global right
+    print(f"Right value updated from cloud: {value}")
+    right = value
+
+def forward_callback(client: object, value: bool):
+    global forward
+    print(f"Forward value updated from cloud: {value}")
+    forward = value
+
 
 arduino_cloud.register("speed", value=0, on_write=speed_callback)
 arduino_cloud.register("back", value=False, on_write=back_callback)
+arduino_cloud.register("left", value=False, on_write=left_callback)
+arduino_cloud.register("right", value=False, on_write=right_callback)
+arduino_cloud.register("forward", value=False, on_write=forward_callback)
 App.start_brick(arduino_cloud)
 
 def get_speed():
@@ -46,7 +67,19 @@ def get_speed():
 def get_back():
     return back
 
+def get_left():
+    return left
+
+def get_right():
+    return right
+
+def get_forward():
+    return forward
+
 Bridge.provide("get_speed", get_speed)
 Bridge.provide("get_back", get_back)
+Bridge.provide("get_left", get_left)
+Bridge.provide("get_right", get_right)
+Bridge.provide("get_forward", get_forward)
 
 App.run()
