@@ -39,7 +39,8 @@ void loop() {
   Bridge.call("get_forward").result(forward);
   
   distance = sonar.ping_cm();
-  
+  Monitor.println("Distance: " + String(distance));
+
   if (left) {
     right_servo.write(90 - 20);
     left_servo.write(90 - 20);
