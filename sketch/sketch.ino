@@ -14,6 +14,7 @@ const int right_wheel = 10;
 NewPing sonar(trigPin, echoPin, 1000);
 
 int speed = 0;  //0..90
+boolean back = false;
 
 float duration, distance = 100;
 
@@ -29,20 +30,25 @@ void setup() {
 
 void loop() {
   Bridge.call("get_speed").result(speed);
+  Bridge.call("get_back").result(back);
   // if (speed == 0) {
   //   return;
   // }
   distance = sonar.ping_cm();
-  if (distance > 25) {
+  if (distance > 25 && !back) {
     right_servo.write(90 - speed);
     left_servo.write(90 + speed);
   } else {
+    if (back) {
+      speed=20;
+    }
     right_servo.write(90 + speed);
     left_servo.write(90 - speed);
     delay(2000);
     right_servo.write(90 - speed);
     left_servo.write(90 - speed);
     delay(1000);
+
   }
 
   delay(200);
