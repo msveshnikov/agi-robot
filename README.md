@@ -1,10 +1,8 @@
-# First hyper-interactive Robot based on Google Robotics models/gemini-robotics-er-1.5-preview
-
-![alt text](image.png)
-
-## Overview
+# AGI Robot
 
 This project aims to create a highly interactive, autonomous robot utilizing the Google Gemini Robotics ER 1.5 Preview API for decision-making and real-time interaction.
+
+![alt text](image-1.png)
 
 ## Current Prototype Specifications
 
@@ -32,6 +30,7 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 | **Physical Structure** | N/A (Assumed generic) | Custom 3D Printed Chassis                                                        | Modular housing for components, better stability, and improved aesthetics for component housing.          |
 | **Power Management**   | Single PowerBank      | Integrated Power Distribution Board (PDB) with voltage regulation                | Ensure stable power for SBC, motors, and peripherals; implement low-power warning system.                 |
 
+![alt text](image-2.png)
 ### 2. Software Architecture and Code Structure
 
 The project currently uses foundational C code (`music.c`, `starwars.c`, `temp.c`) for low-level tasks, while `main.py` handles high-level logic and API interaction.

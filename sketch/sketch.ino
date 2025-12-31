@@ -1,10 +1,13 @@
 #include <Arduino_RouterBridge.h>
 
+#include <Modulino.h>
 #include <Servo.h>
 #include <NewPing.h>
 
 Servo right_servo;
 Servo left_servo;
+
+ModulinoThermo thermo;
 
 const int trigPin = 8;
 const int echoPin = 9;
@@ -27,6 +30,10 @@ float duration, distance = 100;
 void setup() {
   Bridge.begin();
   Monitor.begin();
+  
+  Modulino.begin(Wire1);
+  thermo.begin();
+
   pinMode(right_wheel, OUTPUT);
   pinMode(left_wheel, OUTPUT);
   right_servo.attach(right_wheel);
@@ -44,6 +51,12 @@ void loop() {
   
   distance = sonar.ping_cm();
   Bridge.call("set_distance", distance);
+  
+  float temperature = thermo.getTemperature();
+  Bridge.call("set_temperature", temperature);
+  
+  float humidity = thermo.getHumidity();
+  Bridge.call("set_humidity", humidity);
 
   if (left) {
     right_servo.write(90 - manual_speed);

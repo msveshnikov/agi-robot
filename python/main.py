@@ -63,6 +63,8 @@ arduino_cloud.register("left", value=False, on_write=left_callback)
 arduino_cloud.register("right", value=False, on_write=right_callback)
 arduino_cloud.register("forward", value=False, on_write=forward_callback)
 arduino_cloud.register("distance")
+arduino_cloud.register("temperature")
+arduino_cloud.register("humidity")
 
 def get_speed():
     return speed
@@ -98,6 +100,15 @@ Bridge.provide("get_left", get_left)
 Bridge.provide("get_right", get_right)
 Bridge.provide("get_forward", get_forward)
 Bridge.provide("set_distance", set_distance)
+
+def set_temperature(t):
+  arduino_cloud.temperature = t
+
+def set_humidity(h):
+  arduino_cloud.humidity = h
+
+Bridge.provide("set_temperature", set_temperature)
+Bridge.provide("set_humidity", set_humidity)
 
 play_sound("/home/arduino/1.wav")
 
