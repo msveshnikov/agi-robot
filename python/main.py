@@ -62,7 +62,7 @@ arduino_cloud.register("back", value=False, on_write=back_callback)
 arduino_cloud.register("left", value=False, on_write=left_callback)
 arduino_cloud.register("right", value=False, on_write=right_callback)
 arduino_cloud.register("forward", value=False, on_write=forward_callback)
-App.start_brick(arduino_cloud)
+arduino_cloud.register("distance")
 
 def get_speed():
     return speed
@@ -79,6 +79,8 @@ def get_right():
 def get_forward():
     return forward
 
+def set_distance(d):
+    arduino_cloud.distance = int(d)
 
 def play_sound(filename):
     try:
@@ -95,7 +97,9 @@ Bridge.provide("get_back", get_back)
 Bridge.provide("get_left", get_left)
 Bridge.provide("get_right", get_right)
 Bridge.provide("get_forward", get_forward)
+Bridge.provide("set_distance", set_distance)
 
 play_sound("/home/arduino/1.wav")
 
+App.start_brick(arduino_cloud)
 App.run()
