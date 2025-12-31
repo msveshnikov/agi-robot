@@ -2,4 +2,3 @@
 *.mp3
 # ignore app cache folder
 .cache/
-*.wav
