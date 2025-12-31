@@ -14,6 +14,7 @@ const int right_wheel = 10;
 NewPing sonar(trigPin, echoPin, 1000);
 
 int speed = 0;  //0..90
+int manual_speed = 30;
 boolean back = false;
 boolean left = false;
 boolean right = false;
@@ -43,20 +44,20 @@ void loop() {
   Monitor.println("Distance: " + String(distance));
 
   if (left) {
-    right_servo.write(90 - 20);
-    left_servo.write(90 - 20);
+    right_servo.write(90 - manual_speed);
+    left_servo.write(90 - manual_speed);
     delay(2000);
   } else if (right) {
-    right_servo.write(90 + 20);
-    left_servo.write(90 + 20);
+    right_servo.write(90 + manual_speed);
+    left_servo.write(90 + manual_speed);
     delay(2000);
   } else if (forward) {
-    right_servo.write(90 - 20);
-    left_servo.write(90 + 20);
+    right_servo.write(90 - manual_speed);
+    left_servo.write(90 + manual_speed);
     delay(2000);
   } else if (back) {
-    right_servo.write(90 + 20);
-    left_servo.write(90 - 20);
+    right_servo.write(90 + manual_speed);
+    left_servo.write(90 - manual_speed);
     delay(2000);    
   } else if (distance > 25) {
     right_servo.write(90 - speed);
