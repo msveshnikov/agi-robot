@@ -45,10 +45,6 @@ void loop() {
   distance = sonar.ping_cm();
   Bridge.call("set_distance", distance);
 
-  if (speed == 0 && previousSpeed == 0) {
-    return;
-  }
-  
   if (left) {
     right_servo.write(90 - manual_speed);
     left_servo.write(90 - manual_speed);
@@ -66,8 +62,8 @@ void loop() {
     left_servo.write(90 - manual_speed);
     delay(2000);    
   } else if (distance > 25 || distance == 0 ) {
-    right_servo.write(90 - speed);
-    left_servo.write(90 + speed);
+      right_servo.write(90 - speed);
+      left_servo.write(90 + speed);
   } else {
     Bridge.call("play_sound", "/home/arduino/2.wav");    
     right_servo.write(90 + speed);
