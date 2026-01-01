@@ -205,9 +205,9 @@ sensor_height = 40;          // [мм] Height from bottom / Высота от н
 
 // --- ROOF CAMERA / КАМЕРА НА КРЫШЕ ---
 camera_hole_dia = 13.5;      // [мм] Camera hole diameter / Диаметр отверстия камеры
-camera_cable_dia = 15;       // [мм] Camera cable hole / Отверстие для шнура камеры
+camera_cable_dia = 20;       // [мм] Camera cable hole / Отверстие для шнура камеры
 camera_position = 30;        // [мм] Distance from front / Расстояние от передней части
-cable_offset = 20;           // [мм] Distance behind camera / Расстояние за камерой
+cable_offset = 25;           // [мм] Distance behind camera / Расстояние за камерой
 
 
 /* =====================================================================

@@ -248,7 +248,7 @@ color("yellow")
 // 2. Render the Platform
 // Placed at Chassis Height (40mm). 
 // The pockets on the bottom of the platform will "swallow" the posts (which stick up to 45mm).
-!color("Cyan")
+color("Cyan")
     translate([0, 0, chassis_height]) 
     make_platform();
 
