@@ -5,6 +5,7 @@ import urllib.parse
 import tempfile
 import base64
 import os
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 try:
     from googleapiclient.discovery import build
 except ImportError:
