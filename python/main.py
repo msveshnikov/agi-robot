@@ -93,7 +93,17 @@ def play_sound(filename):
     except Exception as e:
         print(f"Warning: Could not call sound service: {e}")
 
+def speak(text):
+    try:
+        query = urllib.parse.urlencode({'text': text})
+        url = f"http://172.17.0.1:5000/speak?{query}"
+        with urllib.request.urlopen(url, timeout=5) as response: # Increased timeout for TTS generation
+            print(f"Speak service called: {response.read().decode()}")
+    except Exception as e:
+        print(f"Warning: Could not call speak service: {e}")
+
 Bridge.provide("play_sound", play_sound)
+Bridge.provide("speak", speak)
 Bridge.provide("get_speed", get_speed)
 Bridge.provide("get_back", get_back)
 Bridge.provide("get_left", get_left)

@@ -128,9 +128,9 @@ The following variables are synchronized with the Arduino Cloud:
 
 ## MPU Requirements
 
--   **OS**: Linux Debian
--   **Python**: 3.12+
--   **Ports**: 1x USB for Arduino, 1x USB for Webcam, 1x USB for Audio (or 3.5mm jacks).
+-   **OS**: Linux Debian 13
+-   **Python**: 3.13
+-   **Ports**: 1x USB-C host for Arduino, 1x USB-A for Webcam with mic.
 
 # TODO
 
