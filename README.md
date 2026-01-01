@@ -7,9 +7,9 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 ## Current Prototype Specifications
 
 -   **Core Hardware:** Arduino Uno Q (Microcontroller/Motor Control)
--   **Movement:** Two wheels with 360-degree movement capability (differential drive) - **Pins 5 (Left) & 6 (Right)**
--   **Peripherals:** USB-C dongle (USB Camera, USB Speaker, Microphone)
--   **Sensors:** Proximity/Distance Sensor (Analog Pin A0)
+-   **Movement:** Two wheels with 360-degree movement capability (differential drive) - **Pins 11 (Left) & 10 (Right)**
+-   **Peripherals:** USB-C dongle (USB Camera, Bluetooth Speaker, Microphone)
+-   **Sensors:** Proximity/Distance Sensor (Trig Pin 8, Echo Pin 9)
 -   **Power:** PowerBank 20000 mAh
 -   **Software Stack:** Python 3.12, Google Gemini Robotics ER 1.5 Preview API
 -   **Connectivity:** WiFi required for API access
@@ -31,6 +31,7 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 | **Power Management**   | Single PowerBank      | Integrated Power Distribution Board (PDB) with voltage regulation                | Ensure stable power for SBC, motors, and peripherals; implement low-power warning system.                 |
 
 ![alt text](image-2.png)
+
 ### 2. Software Architecture and Code Structure
 
 The project currently uses foundational C code (`music.c`, `starwars.c`, `temp.c`) for low-level tasks, while `main.py` handles high-level logic and API interaction.
@@ -67,7 +68,7 @@ graph TD
         Python[Python Script]
         Webcam[USB Webcam]
         Mic[USB Microphone]
-        Speaker[USB Speaker]
+        Speaker[Bluetooth Speaker]
 
         Python <--> Webcam
         Python <--> Mic
@@ -76,9 +77,9 @@ graph TD
 
     subgraph MCU ["MCU (Arduino)"]
         Bridge[Arduino_RouterBridge]
-        ServoL["Servo Left (Pin 5)"]
-        ServoR["Servo Right (Pin 6)"]
-        Sensor["Proximity Sensor (Pin A0)"]
+        ServoL["Servo Left (Pin 11)"]
+        ServoR["Servo Right (Pin 10)"]
+        Sensor["Proximity Sensor (Trig 8, Echo 9)"]
 
         Bridge --> ServoL
         Bridge --> ServoR
@@ -95,13 +96,30 @@ graph TD
 
 | Component       | Arduino Pin | Description                       |
 | :-------------- | :---------- | :-------------------------------- |
-| **Servo Left**  | D5          | Left Wheel (Continuous Rotation)  |
-| **Servo Right** | D6          | Right Wheel (Continuous Rotation) |
-| **Sensor**      | A0          | Proximity/Distance Analog Input   |
+| **Servo Left**  | D11         | Left Wheel (Continuous Rotation)  |
+| **Servo Right** | D10         | Right Wheel (Continuous Rotation) |
+| **Sensor**      | D8, D9      | Proximity/Distance (Trig/Echo)    |
 | **Eye Left**    | D2          | Left Eye LED                      |
 | **Eye Right**   | D3          | Right Eye LED                     |
 | **Matrix**      | Built-in    | 12x8 LED Matrix for Emotions      |
 | **USB**         | USB Port    | Serial Communication with MPU     |
+
+## Arduino Cloud Variables
+
+The following variables are synchronized with the Arduino Cloud:
+
+-   **Read/Write (Controls):**
+
+    -   `speed` (int): Controls the speed of the robot.
+    -   `back` (bool): Command to move backward.
+    -   `left` (bool): Command to turn left.
+    -   `right` (bool): Command to turn right.
+    -   `forward` (bool): Command to move forward.
+
+-   **Read-Only (Telemetry):**
+    -   `distance` (int): Distance measured by the ultrasonic sensor (cm).
+    -   `temperature` (float): Temperature from Modulino sensor.
+    -   `humidity` (float): Humidity from Modulino sensor.
 
 ## Power Distribution
 
