@@ -87,7 +87,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                     service = build('texttospeech', 'v1')
 
                     input_text = {'text': text}
-                    voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-C'}
+                    voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-B'}
                     audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
                     logger.info(f"Synthesizing text: {text}")
