@@ -25,7 +25,7 @@ def speak(text):
 
 if __name__ == "__main__":
     # Check if a command line argument is provided, otherwise use default
-    text_to_speak = "ЮЛЯ Снимай трусЫЫЫ быстро сказал или хотя бы раздвинь ноги" # "Hello communication check"
+    text_to_speak = "Привет проверка связи" 
     
     if len(sys.argv) > 1:
         text_to_speak = " ".join(sys.argv[1:])
