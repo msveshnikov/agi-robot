@@ -9,4 +9,5 @@ bricks:
       ARDUINO_SECRET: "8tMau8RKJMg0a#xxAate2Q9@S"
 - arduino:video_object_detection:
     model: yolox-object-detection
+- arduino:cloud_llm: {}
 icon: 😀

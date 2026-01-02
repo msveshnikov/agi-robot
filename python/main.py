@@ -121,6 +121,7 @@ Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
 
 play_sound("/home/arduino/1.wav")
+speak("Робот готов к бою!")
 
 App.start_brick(arduino_cloud)
 App.run()
