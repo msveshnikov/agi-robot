@@ -6,8 +6,8 @@ import sys
 import tempfile
 import base64
 import os
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
-#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
+#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
 import logging
 
