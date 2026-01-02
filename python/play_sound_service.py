@@ -127,6 +127,51 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(b"Missing 'text' parameter. Usage: /speak?text=Hello")
+        
+        elif parsed_url.path == '/camera':
+            try:
+                # Store captured image in a temporary file
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
+                    image_path = f.name
+                
+                # Capture command (fswebcam for Debian)
+                if sys.platform != 'win32':
+                    # -r resolution, --no-banner removes timestamp banner, -S skips frames for auto-exposure
+                    cmd = ['fswebcam', '-r', '1280x720', '--no-banner', '-S', '5', image_path]
+                    logger.info(f"Capturing image with command: {' '.join(cmd)}")
+                    subprocess.run(cmd, check=True, capture_output=True)
+                else:
+                    # Windows placeholder or error (fswebcam not standard on Windows)
+                    # For now, just return an error or bytes of a dummy image could be created, 
+                    # but easiest is to report not supported or try a generic approach if possible.
+                    # We will raise error to be clear functionality is for Debian as requested.
+                    raise NotImplementedError("Camera capture not implemented for Windows in this script.")
+
+                with open(image_path, 'rb') as f:
+                    image_data = f.read()
+                
+                # Clean up temp file
+                os.remove(image_path)
+
+                self.send_response(200)
+                self.send_header('Content-type', 'image/jpeg')
+                self.send_header('Content-length', str(len(image_data)))
+                self.end_headers()
+                self.wfile.write(image_data)
+                logger.info("Image captured and sent.")
+
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Error executing fswebcam: {e.stderr}", exc_info=True)
+                self.send_response(500)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(f"Error capturing image: {e}".encode('utf-8'))
+            except Exception as e:
+                logger.error(f"Error in /camera endpoint: {e}", exc_info=True)
+                self.send_response(500)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(f"Error: {e}".encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
