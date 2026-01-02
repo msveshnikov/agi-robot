@@ -2,6 +2,7 @@ import http.server
 import socketserver
 import subprocess
 import urllib.parse
+import sys
 import tempfile
 import base64
 import os
@@ -25,6 +26,23 @@ try:
 except ImportError:
     logger.warning("google-api-python-client not found. TTS will not work.")
 
+def play_audio_file(filename):
+    try:
+        if sys.platform == 'win32':
+            import winsound
+            # SND_FILENAME: filename is a file name
+            # SND_ASYNC: play asynchronously
+            # SND_NODEFAULT: do not play default sound if file not found
+            winsound.PlaySound(filename, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
+            logger.info(f"Playing audio on Windows: {filename}")
+        else:
+            # Linux / other
+            subprocess.Popen(['aplay', filename])
+            logger.info(f"Playing audio via aplay: {filename}")
+    except Exception as e:
+        logger.error(f"Failed to play audio: {e}", exc_info=True)
+        raise e
+
 
 PORT = 5000
 
@@ -38,9 +56,8 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
             
             if filename:
                 try:
-                    # Execute 'aplay filename'
-                    # Use Popen to play asynchronously so the request doesn't block the web server
-                    subprocess.Popen(['aplay', filename])
+                    # Execute 'aplay filename' or winsound
+                    play_audio_file(filename)
                     
                     self.send_response(200)
                     self.send_header('Content-type', 'text/plain')
@@ -92,7 +109,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                         temp_filename = f.name
 
                     # Play audio using aplay
-                    subprocess.Popen(['aplay', temp_filename])
+                    play_audio_file(temp_filename)
 
                     self.send_response(200)
                     self.send_header('Content-type', 'text/plain; charset=utf-8')
