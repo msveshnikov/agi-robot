@@ -5,11 +5,25 @@ import urllib.parse
 import tempfile
 import base64
 import os
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
+#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
+
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("SoundService")
+
 try:
     from googleapiclient.discovery import build
 except ImportError:
-    print("Warning: google-api-python-client not found. TTS will not work.")
+    logger.warning("google-api-python-client not found. TTS will not work.")
 
 
 PORT = 5000
@@ -17,6 +31,7 @@ PORT = 5000
 class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urllib.parse.urlparse(self.path)
+        logger.info(f"Received request: {self.path}")
         if parsed_url.path == '/play':
             query_components = urllib.parse.parse_qs(parsed_url.query)
             filename = query_components.get('filename', [None])[0]
@@ -31,7 +46,9 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                     self.send_header('Content-type', 'text/plain')
                     self.end_headers()
                     self.wfile.write(f"Playing {filename}".encode('utf-8'))
+                    logger.info(f"Successfully started playing {filename}")
                 except Exception as e:
+                    logger.error(f"Error playing file {filename}: {e}", exc_info=True)
                     self.send_response(500)
                     self.send_header('Content-type', 'text/plain')
                     self.end_headers()
@@ -49,12 +66,14 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 try:
                     # Initialize TTS service
                     # Note: Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set
+                    logger.info("Initializing Google TTS service...")
                     service = build('texttospeech', 'v1')
 
                     input_text = {'text': text}
                     voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-C'}
                     audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
+                    logger.info(f"Synthesizing text: {text}")
                     response = service.text().synthesize(
                         body={
                             'input': input_text,
@@ -62,6 +81,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                             'audioConfig': audio_config
                         }
                     ).execute()
+                    logger.info("TTS synthesis successful.")
 
                     # Decode audio
                     audio_content = base64.b64decode(response['audioContent'])
@@ -80,6 +100,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(f"Speaking: {text}".encode('utf-8'))
                 
                 except Exception as e:
+                    logger.error(f"Error calling Google TTS: {e}", exc_info=True)
                     self.send_response(500)
                     self.send_header('Content-type', 'text/plain; charset=utf-8')
                     self.end_headers()
@@ -97,7 +118,7 @@ if __name__ == "__main__":
     # Allow address reuse to avoid "Address already in use" errors on restart
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), SoundPlayerHandler) as httpd:
-        print(f"Sound player service running on http://localhost:{PORT}")
+        logger.info(f"Sound player service running on http://localhost:{PORT}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
