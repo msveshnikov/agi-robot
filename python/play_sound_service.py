@@ -6,8 +6,11 @@ import sys
 import tempfile
 import base64
 import os
-#os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
+
+if sys.platform == 'win32':
+  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
+else:
+  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
 import logging
 
@@ -45,6 +48,7 @@ def play_audio_file(filename):
 
 
 PORT = 5000
+TTS_CACHE = {}
 
 class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -81,32 +85,39 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
 
             if text:
                 try:
-                    # Initialize TTS service
-                    # Note: Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set
-                    logger.info("Initializing Google TTS service...")
-                    service = build('texttospeech', 'v1')
+                    if text in TTS_CACHE:
+                        logger.info(f"Using cached audio for text: {text}")
+                        temp_filename = TTS_CACHE[text]
+                    else:
+                        # Initialize TTS service
+                        # Note: Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set
+                        logger.info("Initializing Google TTS service...")
+                        service = build('texttospeech', 'v1')
 
-                    input_text = {'text': text}
-                    voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-B'}
-                    audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
+                        input_text = {'text': text}
+                        voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-B'}
+                        audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
-                    logger.info(f"Synthesizing text: {text}")
-                    response = service.text().synthesize(
-                        body={
-                            'input': input_text,
-                            'voice': voice,
-                            'audioConfig': audio_config
-                        }
-                    ).execute()
-                    logger.info("TTS synthesis successful.")
+                        logger.info(f"Synthesizing text: {text}")
+                        response = service.text().synthesize(
+                            body={
+                                'input': input_text,
+                                'voice': voice,
+                                'audioConfig': audio_config
+                            }
+                        ).execute()
+                        logger.info("TTS synthesis successful.")
 
-                    # Decode audio
-                    audio_content = base64.b64decode(response['audioContent'])
+                        # Decode audio
+                        audio_content = base64.b64decode(response['audioContent'])
 
-                    # Write to temp file
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as f:
-                        f.write(audio_content)
-                        temp_filename = f.name
+                        # Write to temp file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as f:
+                            f.write(audio_content)
+                            temp_filename = f.name
+                        
+                        # Cache the filename
+                        TTS_CACHE[text] = temp_filename
 
                     # Play audio using aplay
                     play_audio_file(temp_filename)

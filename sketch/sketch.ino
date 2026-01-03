@@ -18,7 +18,7 @@ NewPing sonar(trigPin, echoPin, 1000);
 
 int speed = 0;  //0..90
 int previousSpeed = 0;
-int manual_speed = 30;
+int manual_speed = 45;
 
 boolean back = false;
 boolean left = false;
@@ -61,19 +61,19 @@ void loop() {
   if (left) {
     right_servo.write(90 - manual_speed);
     left_servo.write(90 - manual_speed);
-    delay(2000);
+    delay(1000);
   } else if (right) {
     right_servo.write(90 + manual_speed);
     left_servo.write(90 + manual_speed);
-    delay(2000);
+    delay(1000);
   } else if (forward) {
     right_servo.write(90 - manual_speed);
     left_servo.write(90 + manual_speed);
-    delay(2000);
+    delay(1000);
   } else if (back) {
     right_servo.write(90 + manual_speed);
     left_servo.write(90 - manual_speed);
-    delay(2000);    
+    delay(1000);    
   } else if (distance > 25 || distance == 0 ) {
       right_servo.write(90 - speed);
       left_servo.write(90 + speed);
