@@ -62,9 +62,9 @@ void loop() {
   distance = sonar.ping_cm();
   Bridge.call("set_distance", distance);
   
-  matrix.beginText(0, 1, 127, 0, 0); // X, Y, then R, G, B
-  matrix.print(" distance=" + String(distance) + "  ");
-  matrix.endText(SCROLL_LEFT);
+//   matrix.beginText(0, 1, 127, 0, 0); // X, Y, then R, G, B
+//   matrix.print(" distance=" + String(distance) + "  ");
+//   matrix.endText(SCROLL_LEFT);
 
   float temperature = thermo.getTemperature();
   Bridge.call("set_temperature", temperature);
