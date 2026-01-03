@@ -9,7 +9,7 @@ profiles:
       - ArxContainer (0.7.0)
       - ArxTypeTraits (0.3.1)
       - Servo (1.3.0)
-      - dir: newping
+      - NewPing (1.9.7)
       - dependency: ArduinoGraphics (1.1.4)
       - dependency: Arduino_HS300x (1.0.0)
       - dependency: Arduino_LPS22HB (1.0.2)
