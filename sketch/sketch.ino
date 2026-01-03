@@ -1,8 +1,13 @@
 #include <Arduino_RouterBridge.h>
 
+#include "ArduinoGraphics.h"
+#include "Arduino_LED_Matrix.h"
+
 #include <Modulino.h>
 #include <Servo.h>
 #include <NewPing.h>
+
+Arduino_LED_Matrix matrix;
 
 Servo right_servo;
 Servo left_servo;
@@ -40,6 +45,11 @@ void setup() {
   left_servo.attach(left_wheel);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
+
+  matrix.begin();
+  matrix.textFont(Font_5x7);
+  matrix.textScrollSpeed(100);
+  matrix.clear();
 }
 
 void loop() {
@@ -52,6 +62,10 @@ void loop() {
   distance = sonar.ping_cm();
   Bridge.call("set_distance", distance);
   
+  matrix.beginText(0, 1, 127, 0, 0); // X, Y, then R, G, B
+  matrix.print(" distance=" + String(distance) + "  ");
+  matrix.endText(SCROLL_LEFT);
+
   float temperature = thermo.getTemperature();
   Bridge.call("set_temperature", temperature);
   
