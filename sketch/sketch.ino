@@ -21,7 +21,7 @@ const int right_wheel = 10;
 
 NewPing sonar(trigPin, echoPin, 1000);
 
-int speed = 0;  //0..90
+int speed = 0; // 0..90
 int previousSpeed = 0;
 int manual_speed = 45;
 
@@ -32,71 +32,84 @@ boolean forward = false;
 
 float duration, distance = 100;
 
-void setup() {
-  Bridge.begin();
-  Monitor.begin();
-  
-  Modulino.begin(Wire1);
-  thermo.begin();
+void setup()
+{
+    Bridge.begin();
+    Monitor.begin();
 
-  pinMode(right_wheel, OUTPUT);
-  pinMode(left_wheel, OUTPUT);
-  right_servo.attach(right_wheel);
-  left_servo.attach(left_wheel);
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
+    Modulino.begin(Wire1);
+    thermo.begin();
 
-  matrix.begin();
-  matrix.textFont(Font_5x7);
-  matrix.textScrollSpeed(100);
-  matrix.clear();
+    pinMode(right_wheel, OUTPUT);
+    pinMode(left_wheel, OUTPUT);
+    right_servo.attach(right_wheel);
+    left_servo.attach(left_wheel);
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+
+    matrix.begin();
+    matrix.textFont(Font_5x7);
+    matrix.textScrollSpeed(100);
+    matrix.clear();
 }
 
-void loop() {
-  Bridge.call("get_speed").result(speed);
-  Bridge.call("get_back").result(back);
-  Bridge.call("get_left").result(left);
-  Bridge.call("get_right").result(right);
-  Bridge.call("get_forward").result(forward);
-  
-  distance = sonar.ping_cm();
-  Bridge.call("set_distance", distance);
+void loop()
+{
+    Bridge.call("get_speed").result(speed);
+    Bridge.call("get_back").result(back);
+    Bridge.call("get_left").result(left);
+    Bridge.call("get_right").result(right);
+    Bridge.call("get_forward").result(forward);
 
-  float temperature = thermo.getTemperature();
-  Bridge.call("set_temperature", temperature);
-  
-  float humidity = thermo.getHumidity();
-  Bridge.call("set_humidity", humidity);
+    distance = sonar.ping_cm();
+    Bridge.call("set_distance", distance);
 
-  if (left) {
-    right_servo.write(90 - manual_speed);
-    left_servo.write(90 - manual_speed);
-    delay(1000);
-  } else if (right) {
-    right_servo.write(90 + manual_speed);
-    left_servo.write(90 + manual_speed);
-    delay(1000);
-  } else if (forward) {
-    right_servo.write(90 - manual_speed);
-    left_servo.write(90 + manual_speed);
-    delay(1000);
-  } else if (back) {
-    right_servo.write(90 + manual_speed);
-    left_servo.write(90 - manual_speed);
-    delay(1000);    
-  } else if (distance > 25 || distance == 0 ) {
-      right_servo.write(90 - speed);
-      left_servo.write(90 + speed);
-  } else {
-    Bridge.call("speak", "Обнаружено препятствие");    
-    right_servo.write(90 + speed);
-    left_servo.write(90 - speed);
-    delay(2000);
-    right_servo.write(90 - speed);
-    left_servo.write(90 - speed);
-    delay(1000);
-  }
-  previousSpeed = speed;
-  
-  delay(200);
+    float temperature = thermo.getTemperature();
+    Bridge.call("set_temperature", temperature);
+
+    float humidity = thermo.getHumidity();
+    Bridge.call("set_humidity", humidity);
+
+    if (left)
+    {
+        right_servo.write(90 - manual_speed);
+        left_servo.write(90 - manual_speed);
+        delay(1000);
+    }
+    else if (right)
+    {
+        right_servo.write(90 + manual_speed);
+        left_servo.write(90 + manual_speed);
+        delay(1000);
+    }
+    else if (forward)
+    {
+        right_servo.write(90 - manual_speed);
+        left_servo.write(90 + manual_speed);
+        delay(1000);
+    }
+    else if (back)
+    {
+        right_servo.write(90 + manual_speed);
+        left_servo.write(90 - manual_speed);
+        delay(1000);
+    }
+    else if (distance > 25 || distance == 0)
+    {
+        right_servo.write(90 - speed);
+        left_servo.write(90 + speed);
+    }
+    else
+    {
+        Bridge.call("speak", "Обнаружено препятствие");
+        right_servo.write(90 + speed);
+        left_servo.write(90 - speed);
+        delay(2000);
+        right_servo.write(90 - speed);
+        left_servo.write(90 - speed);
+        delay(1000);
+    }
+    previousSpeed = speed;
+
+    delay(200);
 }
