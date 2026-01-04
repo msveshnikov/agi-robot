@@ -7,6 +7,11 @@ from arduino.app_bricks.arduino_cloud import ArduinoCloud
 import urllib.request
 import urllib.parse
 import os
+# from arduino.app_bricks.keyword_spotting import KeywordSpotting
+
+from arduino.app_peripherals.usb_camera import USBCamera
+from PIL.Image import Image
+     
 
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -20,6 +25,7 @@ def send_detections_to_ui(detections: dict):
       "confidence": value.get("confidence"),
       "timestamp": datetime.now(UTC).isoformat()
     }
+    speak(key)
     ui.send_message("detection", message=entry)
  
 detection_stream.on_detect_all(send_detections_to_ui)
@@ -113,6 +119,14 @@ Bridge.provide("set_distance", set_distance)
 
 def set_temperature(t):
   arduino_cloud.temperature = t
+  # try:
+  #   camera = USBCamera()
+  #   camera.start()
+  #   image: Image = camera.capture()
+  #   camera.stop()
+  #   image.save("output.jpg")
+  # except Exception as X:
+  #    print("Exception ", X)
 
 def set_humidity(h):
   arduino_cloud.humidity = h
@@ -124,4 +138,13 @@ play_sound("/home/arduino/1.wav")
 speak("Робот готов к бою!")
 
 App.start_brick(arduino_cloud)
+
+# def on_keyword_detected():
+#     """Callback function that handles a detected keyword."""
+#     speak("Привет, ПИДАРАС!")
+#    # Bridge.call("keyword_detected")
+
+# spotter = KeywordSpotting()
+# spotter.on_detect("hey_arduino", on_keyword_detected)
+
 App.run()

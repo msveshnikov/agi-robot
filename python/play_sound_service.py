@@ -148,7 +148,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 # Capture command (fswebcam for Debian)
                 if sys.platform != 'win32':
                     # -r resolution, --no-banner removes timestamp banner, -S skips frames for auto-exposure
-                    cmd = ['fswebcam', '-d', '/dev/video2', '-r', '1280x720', '--no-banner', '-S', '5', image_path]
+                    cmd = ['fswebcam', '-d', '/dev/video0', '-r', '1280x720', '--no-banner', '-S', '5', image_path]
                     logger.info(f"Capturing image with command: {' '.join(cmd)}")
                     subprocess.run(cmd, check=True, capture_output=True)
                 else:
