@@ -7,7 +7,7 @@ from arduino.app_bricks.arduino_cloud import ArduinoCloud
 import urllib.request
 import urllib.parse
 import os
-# from arduino.app_bricks.keyword_spotting import KeywordSpotting
+from arduino.app_bricks.keyword_spotting import KeywordSpotting
 
 from arduino.app_peripherals.usb_camera import USBCamera
 from PIL.Image import Image
@@ -149,12 +149,12 @@ speak("Робот готов к бою!")
 
 App.start_brick(arduino_cloud)
 
-# def on_keyword_detected():
-#     """Callback function that handles a detected keyword."""
-#     speak("Привет, ПИДАРАС!")
-#    # Bridge.call("keyword_detected")
+def on_keyword_detected():
+    """Callback function that handles a detected keyword."""
+    speak("Привет, ПИДАРАС!")
+   # Bridge.call("keyword_detected")
 
-# spotter = KeywordSpotting()
-# spotter.on_detect("hey_arduino", on_keyword_detected)
+spotter = KeywordSpotting()
+spotter.on_detect("hey_arduino", on_keyword_detected)
 
 App.run()
