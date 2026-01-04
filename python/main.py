@@ -149,10 +149,27 @@ speak("Робот готов к бою!")
 
 App.start_brick(arduino_cloud)
 
+def ask_llm(prompt):
+    try:
+        query = urllib.parse.urlencode({'text': prompt})
+        # Increase timeout for LLM generation
+        url = f"http://172.17.0.1:5000/llm?{query}"
+        with urllib.request.urlopen(url, timeout=15) as response:
+            return response.read().decode('utf-8')
+    except Exception as e:
+        print(f"Warning: Could not call LLM service: {e}")
+        return None
+
 def on_keyword_detected():
     """Callback function that handles a detected keyword."""
-    speak("Привет, ПИДАРАС!")
-   # Bridge.call("keyword_detected")
+    print("Keyword detected! Asking LLM...")
+    prompt = "Расскажи короткий смешной анекдот про сериал Очень Странные Дела"
+    response = ask_llm(prompt)
+    if response:
+        print(f"LLM Response: {response}")
+        speak(response)
+    else:
+        speak("Что-то пошло не так с моим электронным мозгом.")
 
 spotter = KeywordSpotting()
 spotter.on_detect("hey_arduino", on_keyword_detected)

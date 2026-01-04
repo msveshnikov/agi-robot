@@ -29,6 +29,13 @@ try:
 except ImportError:
     logger.warning("google-api-python-client not found. TTS will not work.")
 
+try:
+    import google.auth
+    import vertexai
+    from vertexai.generative_models import GenerativeModel
+except ImportError:
+    logger.warning("google-cloud-aiplatform not found. LLM will not work.")
+
 def play_audio_file(filename):
     try:
         if sys.platform == 'win32':
@@ -49,6 +56,22 @@ def play_audio_file(filename):
 
 PORT = 5000
 TTS_CACHE = {}
+LLM_MODEL = None
+
+def init_llm():
+    global LLM_MODEL
+    if LLM_MODEL:
+        return
+    
+    try:
+        # Credentials are automatically loaded from GOOGLE_APPLICATION_CREDENTIALS env var
+        credentials, project_id = google.auth.default()
+        vertexai.init(project=project_id, location="us-central1", credentials=credentials)
+        LLM_MODEL = GenerativeModel("gemini-2.0-flash")
+        logger.info("Vertex AI initialized with Gemini Flash 2.0")
+    except Exception as e:
+        logger.error(f"Failed to initialize Vertex AI: {e}", exc_info=True)
+        raise
 
 class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -183,6 +206,39 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(f"Error: {e}".encode('utf-8'))
+        
+        elif parsed_url.path == '/llm':
+            query_components = urllib.parse.parse_qs(parsed_url.query)
+            prompt = query_components.get('text', [None])[0]
+
+            if prompt:
+                try:
+                    init_llm()
+                    if not LLM_MODEL:
+                        raise Exception("LLM model not initialized")
+                    
+                    logger.info(f"Generating text for prompt: {prompt}")
+                    # Generate content
+                    response = LLM_MODEL.generate_content(prompt)
+                    generated_text = response.text
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(generated_text.encode('utf-8'))
+                    logger.info("LLM generation successful.")
+
+                except Exception as e:
+                    logger.error(f"Error calling Vertex AI LLM: {e}", exc_info=True)
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(f"Error calling LLM: {e}".encode('utf-8'))
+            else:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b"Missing 'text' parameter. Usage: /llm?text=Hello")
         else:
             self.send_response(404)
             self.end_headers()

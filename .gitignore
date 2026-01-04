@@ -3,3 +3,4 @@
 # ignore app cache folder
 .cache/
 google.json
+python/__pycache__/play_sound_service.cpython-312.pyc
