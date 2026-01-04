@@ -18,14 +18,24 @@ detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
 
 ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
 
+
+import time
+
+last_speak_time = 0
+
 def send_detections_to_ui(detections: dict):
+  global last_speak_time
   for key, value in detections.items():
     entry = {
       "content": key,
       "confidence": value.get("confidence"),
       "timestamp": datetime.now(UTC).isoformat()
     }
-    speak(key)
+    
+    if time.time() - last_speak_time >= 10:
+        speak(key)
+        last_speak_time = time.time()
+
     ui.send_message("detection", message=entry)
  
 detection_stream.on_detect_all(send_detections_to_ui)
