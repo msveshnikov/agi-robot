@@ -160,16 +160,27 @@ def ask_llm(prompt):
         print(f"Warning: Could not call LLM service: {e}")
         return None
 
+is_telling_anecdote = False
+
 def on_keyword_detected():
     """Callback function that handles a detected keyword."""
+    global is_telling_anecdote
+    if is_telling_anecdote:
+        print("Already telling an anecdote, skipping.")
+        return
+
     print("Keyword detected! Asking LLM...")
-    prompt = "Расскажи короткий смешной анекдот про сериал Очень Странные Дела"
-    response = ask_llm(prompt)
-    if response:
-        print(f"LLM Response: {response}")
-        speak(response)
-    else:
-        speak("Что-то пошло не так с моим электронным мозгом.")
+    is_telling_anecdote = True
+    try:
+        prompt = "Расскажи короткий смешной анекдот про сериал Очень Странные Дела"
+        response = ask_llm(prompt)
+        if response:
+            print(f"LLM Response: {response}")
+            speak(response)
+        else:
+            speak("Что-то пошло не так с моим электронным мозгом.")
+    finally:
+        is_telling_anecdote = False
 
 spotter = KeywordSpotting()
 spotter.on_detect("hey_arduino", on_keyword_detected)
