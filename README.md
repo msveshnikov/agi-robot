@@ -8,9 +8,9 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 
 -   **Core Hardware:** Arduino Uno Q (Microcontroller/Motor Control)
 -   **Movement:** Two wheels with 360-degree movement capability (differential drive) - **Pins 11 (Left) & 10 (Right)**
--   **Peripherals:** USB-C dongle (USB Camera, Bluetooth Speaker, Microphone)
+-   **Peripherals:** USB-C dongle (USB Camera with Mic, Bluetooth Speaker)
 -   **Sensors:** Proximity/Distance Sensor (Trig Pin 8, Echo Pin 9)
--   **Power:** PowerBank 20000 mAh
+-   **Power:** PowerBank 10000 mAh
 -   **Software Stack:** Python 3.12, Google Gemini Robotics ER 1.5 Preview API
 -   **Connectivity:** WiFi required for API access
 
@@ -24,23 +24,20 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 
 | Area                   | Current Status        | Proposed Enhancement                                                             | Rationale                                                                                                 |
 | :--------------------- | :-------------------- | :------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| **Microcontroller**    | Arduino Uno Q         | Transition to Raspberry Pi (e.g., Pi 5 or Zero 2 W) or equivalent SBC            | Offload Python processing, improve camera/audio stream handling, and provide local processing capability. |
+| **Microcontroller**    | Arduino Uno Q         |         |  |
 | **Motor Control**      | Integrated with Uno Q | Dedicated Motor Driver Shield (e.g., L298N or specialized drivers)               | Better current handling, precision control, and separation of logic/power circuits.                       |
-| **Sensing/Navigation** | USB Camera only       | Integrate IMU (Accelerometer/Gyroscope) and Proximity Sensors (Ultrasonic/LiDAR) | Enable robust spatial awareness, obstacle avoidance, and precise movement/pose tracking.                  |
-| **Physical Structure** | N/A (Assumed generic) | Custom 3D Printed Chassis                                                        | Modular housing for components, better stability, and improved aesthetics for component housing.          |
-| **Power Management**   | Single PowerBank      | Integrated Power Distribution Board (PDB) with voltage regulation                | Ensure stable power for SBC, motors, and peripherals; implement low-power warning system.                 |
+| **Sensing/Navigation** | USB Camera + Proximity Sensors (Ultrasonic)      | Integrate IMU (Accelerometer/Gyroscope)    | Enable robust spatial awareness, obstacle avoidance, and precise movement/pose tracking.                  |
+| **Physical Structure** |Custom 3D Printed Chassis                                             |             | Modular housing for components, better stability, and improved aesthetics for component housing.          |
+| **Power Management**   | Single PowerBank      |  | Ensure stable power for SBC, motors, and peripherals; implement low-power warning system.                 |
 
 ![alt text](image-2.png)
 
 ### 2. Software Architecture and Code Structure
 
-The project currently uses foundational C code (`music.c`, `starwars.c`, `temp.c`) for low-level tasks, while `main.py` handles high-level logic and API interaction.
 
--   **Refactor C Code:** Consolidate low-level hardware interaction (motor control, sensor reading) into a dedicated library (e.g., `hardware_interface.c`) callable by Python via `ctypes` or similar bindings.
 -   **Python Logic (`main.py`):**
     -   Implement a clear state machine for autonomous behavior (e.g., Idle, Exploring, Interacting, Charging).
     -   Separate API communication handling (API client) from local decision-making (Behavior Tree).
--   **Configuration Management:** Introduce a `config.json` or environment variables for API keys, WiFi settings, and hardware calibration values.
 
 ### 3. Interaction and Autonomy Features
 
@@ -52,13 +49,12 @@ The project currently uses foundational C code (`music.c`, `starwars.c`, `temp.c
 ### 4. Project Development Setup
 
 -   **Dependency Management:** Utilize a `requirements.txt` file for explicit Python dependency tracking.
--   **Development Environment:** Expand the `.vscode/settings.json` to include linting (e.g., Black, Pylint) and debugging configurations for easier collaboration and development setup.
 
 # Robot Hardware Schema
 
 ## Overview
 
-The robot consists of an MCU (Arduino) handling motor control and an MPU (PC/SBC) handling high-level logic, vision, and audio. They are connected via USB (Serial).
+The Uno Q consists of an MCU handling motor control and an MPU (PC/SBC) handling high-level logic, vision, and audio. They are connected via USB (Serial).
 
 ## Connection Diagram
 
@@ -102,7 +98,7 @@ graph TD
 | **Eye Left**    | D2          | Left Eye LED                      |
 | **Eye Right**   | D3          | Right Eye LED                     |
 | **Matrix**      | Built-in    | 12x8 LED Matrix for Emotions      |
-| **USB**         | USB Port    | Serial Communication with MPU     |
+| **USB**         | USB Port    | Serial Communication with WebCam     |
 
 ## Arduino Cloud Variables
 
@@ -123,8 +119,7 @@ The following variables are synchronized with the Arduino Cloud:
 
 ## Power Distribution
 
--   **Arduino**: Powered via USB or external 7-12V DC jack.
--   **Servos**: **CRITICAL**: Do NOT power servos directly from the Arduino 5V pin. Use an external 5V power supply (e.g., 4xAA battery pack or 5V/2A adapter) for the servos. Connect the external power ground to Arduino GND.
+-   **Arduino**: Powered via USB PowerBank
 
 ## MPU Requirements
 
@@ -134,7 +129,6 @@ The following variables are synchronized with the Arduino Cloud:
 
 # TODO
 
--   [x] use only two motors (servos), reverse one for turning left right
 -   [x] get pic from USB and send it to LLM model
 -   [x] in prompt ask for json output with fixed schema, allowing speaking and moving (we have no head or arms)
 -   [x] speak loudly if returned by model
