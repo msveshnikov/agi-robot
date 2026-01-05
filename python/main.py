@@ -7,7 +7,7 @@ from arduino.app_bricks.arduino_cloud import ArduinoCloud
 import urllib.request
 import urllib.parse
 import os
-# from arduino.app_bricks.keyword_spotting import KeywordSpotting
+from arduino.app_bricks.keyword_spotting import KeywordSpotting
 
 from arduino.app_peripherals.usb_camera import USBCamera
 from PIL.Image import Image
@@ -182,7 +182,7 @@ def on_keyword_detected():
     finally:
         is_telling_anecdote = False
 
-# spotter = KeywordSpotting()
-# spotter.on_detect("hey_arduino", on_keyword_detected)
+spotter = KeywordSpotting()
+spotter.on_detect("hey_arduino", on_keyword_detected)
 
 App.run()
