@@ -6,6 +6,9 @@ import sys
 import tempfile
 import base64
 import os
+import socketio
+import threading
+import json
 
 if sys.platform == 'win32':
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
@@ -164,42 +167,96 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
         
         elif parsed_url.path == '/camera':
             try:
-                # Store captured image in a temporary file
-                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as f:
-                    image_path = f.name
-                
-                # Capture command (fswebcam for Debian)
-                if sys.platform != 'win32':
-                    # -r resolution, --no-banner removes timestamp banner, -S skips frames for auto-exposure
-                    cmd = ['fswebcam', '-d', '/dev/video0', '-r', '1280x720', '--no-banner', '-S', '5', image_path]
-                    logger.info(f"Capturing image with command: {' '.join(cmd)}")
-                    subprocess.run(cmd, check=True, capture_output=True)
-                else:
-                    # Windows placeholder or error (fswebcam not standard on Windows)
-                    # For now, just return an error or bytes of a dummy image could be created, 
-                    # but easiest is to report not supported or try a generic approach if possible.
-                    # We will raise error to be clear functionality is for Debian as requested.
-                    raise NotImplementedError("Camera capture not implemented for Windows in this script.")
+                # Use a socket.io-based image provider (see python/image.py)
+                def _get_image_from_socket(server_url=None, timeout=5):
+                    sio = socketio.Client(logger=False, engineio_logger=False)
+                    result = {'data': None}
+                    done = threading.Event()
 
-                with open(image_path, 'rb') as f:
-                    image_data = f.read()
-                
-                # Clean up temp file
-                os.remove(image_path)
+                    @sio.on('image')
+                    def _on_image(data):
+                        try:
+                            b64 = None
+                            if isinstance(data, bytes):
+                                result['data'] = data
+                                done.set()
+                                return
+                            if isinstance(data, str):
+                                b64 = data
+                            if isinstance(data, dict):
+                                for key in ('b64', 'image', 'img', 'data', 'payload'):
+                                    v = data.get(key)
+                                    if v:
+                                        b64 = v
+                                        break
+                                if not b64 and 'frames' in data and data['frames']:
+                                    first = data['frames'][0]
+                                    if isinstance(first, (str, bytes)):
+                                        b64 = first
+                            if isinstance(data, (list, tuple)) and data:
+                                for item in data:
+                                    if isinstance(item, (str, bytes)):
+                                        b64 = item
+                                        break
+                                    if isinstance(item, dict):
+                                        for key in ('b64', 'image', 'img', 'data'):
+                                            if item.get(key):
+                                                b64 = item.get(key)
+                                                break
+                                        if b64:
+                                            break
+
+                            if b64 is None:
+                                result['data'] = None
+                                done.set()
+                                return
+
+                            if isinstance(b64, bytes):
+                                result['data'] = b64
+                                done.set()
+                                return
+
+                            if isinstance(b64, str) and b64.startswith('data:image'):
+                                parts = b64.split(',', 1)
+                                if len(parts) == 2:
+                                    b64 = parts[1]
+
+                            try:
+                                result['data'] = base64.b64decode(b64)
+                            except Exception:
+                                result['data'] = None
+                            finally:
+                                done.set()
+                        except Exception:
+                            result['data'] = None
+                            done.set()
+
+                    try:
+                        if server_url is None:
+                            server_url = os.environ.get('IMAGE_SERVER_URL', 'http://localhost:4912')
+                        sio.connect(server_url)
+                        done.wait(timeout)
+                        sio.disconnect()
+                        return result['data']
+                    except Exception:
+                        try:
+                            sio.disconnect()
+                        except Exception:
+                            pass
+                        return None
+
+                image_data = _get_image_from_socket(timeout=5)
+
+                if not image_data:
+                    raise Exception('No image received from socket provider')
 
                 self.send_response(200)
                 self.send_header('Content-type', 'image/jpeg')
                 self.send_header('Content-length', str(len(image_data)))
                 self.end_headers()
                 self.wfile.write(image_data)
-                logger.info("Image captured and sent.")
+                logger.info('Image received from socket provider and sent.')
 
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Error executing fswebcam: {e.stderr}", exc_info=True)
-                self.send_response(500)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(f"Error capturing image: {e}".encode('utf-8'))
             except Exception as e:
                 logger.error(f"Error in /camera endpoint: {e}", exc_info=True)
                 self.send_response(500)
