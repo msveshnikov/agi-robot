@@ -67,8 +67,8 @@ def init_llm():
         # Credentials are automatically loaded from GOOGLE_APPLICATION_CREDENTIALS env var
         credentials, project_id = google.auth.default()
         vertexai.init(project=project_id, location="us-central1", credentials=credentials)
-        LLM_MODEL = GenerativeModel("gemini-2.0-flash")
-        logger.info("Vertex AI initialized with Gemini Flash 2.0")
+        LLM_MODEL = GenerativeModel("gemini-2.5-flash")
+        logger.info("Vertex AI initialized with Gemini")
     except Exception as e:
         logger.error(f"Failed to initialize Vertex AI: {e}", exc_info=True)
         raise
