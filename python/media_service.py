@@ -9,6 +9,7 @@ import os
 import socketio
 import threading
 import json
+import re
 
 if sys.platform == 'win32':
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
@@ -163,16 +164,44 @@ def get_image_from_socket(timeout=5):
 
 def send_to_gemini(text, image_bytes):
     try:
+        # Build a prompt that forces a JSON-only response matching the expected schema
+        schema_instructions = (
+            "Return ONLY a single valid JSON object (no explanatory text) with the following keys:\n"
+            "- speak: either null or an object {\"text\": string}\n"
+            "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
+            "         \"distance_cm\": integer or null, \"angle_deg\": integer or null, \"speed\": integer or null }\n"
+            "- subplan: a string (may be empty)\n"
+            "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers."
+        )
+
+        prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
+
         # Prefer using the vertexai client (same as /llm) if available.
         try:
             init_llm()
             if LLM_MODEL:
                 logger.info('Using Vertex AI client for Gemini (via vertexai)')
                 try:
-                    response = LLM_MODEL.generate_content(text)
+                    response = LLM_MODEL.generate_content(prompt_text)
                     if hasattr(response, 'text'):
-                        return response.text
-                    return str(response)
+                        response_text = response.text
+                    else:
+                        response_text = str(response)
+
+                    # Try to parse JSON and return parsed object if valid
+                    try:
+                        return json.loads(response_text)
+                    except Exception:
+                        # Attempt to extract JSON substring
+                        m = re.search(r"\{[\s\S]*\}", response_text)
+                        if m:
+                            try:
+                                return json.loads(m.group(0))
+                            except Exception:
+                                pass
+                        # Fallthrough to allow REST fallback below
+                        logger.warning('Vertex AI returned non-json, raw: %s', response_text)
+                        # attempt a conversion pass below
                 except Exception:
                     logger.exception('Vertex AI client call failed, falling back to REST API')
         except Exception:
@@ -197,7 +226,7 @@ def send_to_gemini(text, image_bytes):
             'instances': [
                 {
                     'input': {
-                        'text': text,
+                        'text': prompt_text,
                         'image': {
                             'mime_type': 'image/jpeg',
                             'data': base64.b64encode(image_bytes).decode('utf-8')
@@ -243,6 +272,7 @@ def send_to_gemini(text, image_bytes):
 
         j = resp.json()
         # Try to extract reasonable text response from known fields
+        response_text = None
         if 'predictions' in j and isinstance(j['predictions'], list) and j['predictions']:
             pred = j['predictions'][0]
             # Common fields: 'content', 'output', 'text'
@@ -250,13 +280,56 @@ def send_to_gemini(text, image_bytes):
                 if key in pred:
                     val = pred[key]
                     if isinstance(val, str):
-                        return val
+                        response_text = val
+                        break
                     if isinstance(val, list) and val:
                         if isinstance(val[0], dict) and 'content' in val[0]:
-                            return val[0]['content']
-                        return str(val)
-        # Fallback: return full JSON
-        return json.dumps(j)
+                            response_text = val[0]['content']
+                            break
+                        response_text = str(val)
+                        break
+
+        if response_text is None:
+            # fallback to full JSON string
+            response_text = json.dumps(j)
+
+        # Try to parse JSON directly
+        try:
+            return json.loads(response_text)
+        except Exception:
+            # Try extracting JSON substring
+            m = re.search(r"\{[\s\S]*\}", response_text)
+            if m:
+                try:
+                    return json.loads(m.group(0))
+                except Exception:
+                    pass
+
+        # If available, ask Vertex AI to convert the raw text into valid JSON matching schema
+        try:
+            init_llm()
+            if LLM_MODEL:
+                convert_prompt = (
+                    "Convert the following text into a single valid JSON object matching the schema:\n"
+                    f"{schema_instructions}\n\nRaw text:\n{response_text}\n\nReturn only the JSON object."
+                )
+                logger.info('Requesting JSON conversion from Vertex AI for non-JSON output')
+                conv_resp = LLM_MODEL.generate_content(convert_prompt)
+                conv_text = conv_resp.text if hasattr(conv_resp, 'text') else str(conv_resp)
+                try:
+                    return json.loads(conv_text)
+                except Exception:
+                    m2 = re.search(r"\{[\s\S]*\}", conv_text)
+                    if m2:
+                        try:
+                            return json.loads(m2.group(0))
+                        except Exception:
+                            pass
+        except Exception:
+            logger.exception('JSON conversion via Vertex AI failed')
+
+        # Final fallback: raise to allow caller to handle non-json
+        raise Exception('Gemini returned non-JSON and conversion attempts failed')
 
     except Exception as e:
         logger.error(f"Failed to call Gemini API: {e}", exc_info=True)
