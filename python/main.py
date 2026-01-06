@@ -56,7 +56,7 @@ def send_detections_to_ui(detections: dict):
 detection_stream.on_detect_all(send_detections_to_ui)
 
 arduino_cloud = ArduinoCloud()
-speed = 0
+speed = 45
 back = False
 left = False
 right = False
@@ -315,6 +315,9 @@ def agi_loop(distance):
                 move_cmd = "STOP"
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
+
+    if move_cmd:
+        logger.info(f"AGI loop returning command: {move_cmd}")
 
     return move_cmd
 

@@ -167,12 +167,12 @@ def send_to_gemini(text, image_bytes):
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
         schema_instructions = (
-            "Return ONLY a single valid JSON object (no explanatory text) with the following keys:\n"
-            "- speak: either null or an object {\"text\": string}\n"
-            "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
-            "         \"distance_cm\": integer or null, \"angle_deg\": integer or null, \"speed\": integer or null }\n"
-            "- subplan: a string (may be empty)\n"
-            "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers."
+            "Return ONLY a single valid JSON object. Do not use Markdown code blocks (no ```json). "
+            "Use DOUBLE QUOTES for all keys and string values. Schema:\n"
+            "- speak: null or {\"text\": string}\n"
+            "- move: null or {\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", "
+            "\"distance_cm\": int, \"angle_deg\": int, \"speed\": int}\n"
+            "- subplan: string\n"
         )
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
@@ -204,10 +204,16 @@ def send_to_gemini(text, image_bytes):
                         # Attempt to extract JSON substring
                         m = re.search(r"\{[\s\S]*\}", response_text)
                         if m:
+                            extracted = m.group(0)
                             try:
-                                return json.loads(m.group(0))
+                                return json.loads(extracted)
                             except Exception:
-                                pass
+                                try:
+                                    val = ast.literal_eval(extracted)
+                                    if isinstance(val, (dict, list)):
+                                        return val
+                                except Exception:
+                                    pass
                         
                         # Fallthrough to allow REST fallback below
                         logger.warning('Vertex AI returned non-json, raw: %s', response_text)
@@ -318,10 +324,16 @@ def send_to_gemini(text, image_bytes):
             # Try extracting JSON substring
             m = re.search(r"\{[\s\S]*\}", response_text)
             if m:
+                extracted = m.group(0)
                 try:
-                    return json.loads(m.group(0))
+                    return json.loads(extracted)
                 except Exception:
-                    pass
+                    try:
+                        val = ast.literal_eval(extracted)
+                        if isinstance(val, (dict, list)):
+                            return val
+                    except Exception:
+                        pass
 
         # If available, ask Vertex AI to convert the raw text into valid JSON matching schema
         try:
@@ -521,6 +533,8 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                     self.end_headers()
                     if isinstance(response_text, bytes):
                         self.wfile.write(response_text)
+                    elif isinstance(response_text, (dict, list)):
+                        self.wfile.write(json.dumps(response_text).encode('utf-8'))
                     else:
                         self.wfile.write(str(response_text).encode('utf-8'))
                     logger.info('Received response from Gemini and returned to client.')
@@ -575,6 +589,8 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 if isinstance(response_text, bytes):
                     self.wfile.write(response_text)
+                elif isinstance(response_text, (dict, list)):
+                    self.wfile.write(json.dumps(response_text).encode('utf-8'))
                 else:
                     self.wfile.write(str(response_text).encode('utf-8'))
                 logger.info('Received response from Gemini and returned to client (POST).')
