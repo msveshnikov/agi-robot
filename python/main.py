@@ -9,21 +9,16 @@ import urllib.parse
 import os
 from arduino.app_bricks.keyword_spotting import KeywordSpotting
 import logging
-
 from arduino.app_peripherals.usb_camera import USBCamera
 from PIL.Image import Image
 import io
 import base64
 import json
+import time
      
-
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
-
 ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
-
-
-import time
 
 # Logging setup
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -98,12 +93,12 @@ def agi_callback(client: object, value: bool):
     logger.info(f"AGI value updated from cloud: {value}")
     agi = value
 
-arduino_cloud.register("speed", value=0, on_write=speed_callback)
-arduino_cloud.register("back", value=False, on_write=back_callback)
-arduino_cloud.register("left", value=False, on_write=left_callback)
-arduino_cloud.register("right", value=False, on_write=right_callback)
-arduino_cloud.register("forward", value=False, on_write=forward_callback)
-arduino_cloud.register("agi", value=False, on_write=agi_callback)
+arduino_cloud.register("speed", on_write=speed_callback)
+arduino_cloud.register("back",  on_write=back_callback)
+arduino_cloud.register("left",  on_write=left_callback)
+arduino_cloud.register("right", on_write=right_callback)
+arduino_cloud.register("forward", on_write=forward_callback)
+arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
@@ -188,7 +183,7 @@ try:
 except Exception:
     pass
 
-App.start_brick(arduino_cloud)
+
 
 def ask_llm(prompt):
     try:
@@ -255,8 +250,6 @@ def on_keyword_detected():
 
 spotter = KeywordSpotting()
 spotter.on_detect("hey_arduino", on_keyword_detected)
-
-App.run()
 
 # Internal subplan/context for AGI loop
 subplan = ""
@@ -328,3 +321,6 @@ def agi_loop(distance):
 
 # expose agi_loop to the MCU
 Bridge.provide("agi_loop", agi_loop)
+App.start_brick(arduino_cloud)
+
+App.run()
