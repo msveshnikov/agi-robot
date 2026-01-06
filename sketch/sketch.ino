@@ -110,12 +110,11 @@ void loop()
     else if (agi)
     {
         Monitor.print("Action: AGI loop, distance=");
-        Monitor.print(distance);
+        Monitor.println(distance);
         String mvcmd;
         Bridge.call("agi_loop", distance).result(mvcmd);
         Monitor.print("AGI cmd: ");
-        Monitor.print(mvcmd);
-        Monitor.print("\n");
+        Monitor.println(mvcmd);
         if (mvcmd.length() > 0)
         {
             // expected formats:

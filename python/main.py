@@ -275,8 +275,9 @@ def agi_loop(distance):
         pass
 
     resp = ask_llm_vision(distance=distance, subplan=subplan)
+    move_cmd = ""
     if not resp:
-        return
+        return move_cmd
 
     # Update subplan if provided
     try:
@@ -293,25 +294,25 @@ def agi_loop(distance):
             if text:
                 speak(text)
     except Exception as e:
-            mv_speed = mv.get("speed")
-            # Use explicit None check so that 0 is a valid speed value
-            if cmd in ("forward", "back") and distance is not None:
-                chosen_speed = int(mv_speed) if mv_speed is not None else int(speed)
-                move_cmd = f"MOVE|{cmd}|{int(distance)}|{chosen_speed}"
-            elif cmd in ("left", "right") and angle is not None:
-                chosen_speed = int(mv_speed) if mv_speed is not None else int(speed)
-                move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
+        logger.warning("Warning handling speak: %s", e)
+
+    # Handle movement: build a short command string for MCU to execute and return it
+    try:
+        mv = resp.get("move")
+        if mv and isinstance(mv, dict):
             # Expected keys: command (forward|back|left|right), distance_cm, angle_deg, speed
             cmd = mv.get("command")
-            distance = mv.get("distance_cm")
+            mv_distance = mv.get("distance_cm")
             angle = mv.get("angle_deg")
             mv_speed = mv.get("speed")
-            if cmd in ("forward", "back") and distance is not None:
+            # Use explicit None check so that 0 is a valid speed value
+            chosen_speed = int(mv_speed) if mv_speed is not None else int(speed)
+            if cmd in ("forward", "back") and mv_distance is not None:
                 # Format: MOVE|direction|distance_cm|speed
-                move_cmd = f"MOVE|{cmd}|{int(distance)}|{int(mv_speed) if mv_speed else int(speed)}"
+                move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
             elif cmd in ("left", "right") and angle is not None:
                 # Format: TURN|direction|angle_deg|speed
-                move_cmd = f"TURN|{cmd}|{int(angle)}|{int(mv_speed) if mv_speed else int(speed)}"
+                move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
             elif cmd == "stop":
                 move_cmd = "STOP"
     except Exception as e:
