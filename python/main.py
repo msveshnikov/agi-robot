@@ -25,6 +25,12 @@ ui.on_message("override_th", lambda sid, threshold: detection_stream.override_th
 import time
 
 last_speak_time = 0
+# Persistent main goal (remains for the robot forever)
+MAIN_GOAL = "Find the Christmas Tree in the room"
+
+# Control talkative behavior: announce intentions often
+last_intent_speak_time = 0
+INTENT_SPEAK_INTERVAL = 15  # seconds between intention announcements
 
 def send_detections_to_ui(detections: dict):
   global last_speak_time
@@ -38,6 +44,12 @@ def send_detections_to_ui(detections: dict):
     if time.time() - last_speak_time >= 10:
         speak(key)
         last_speak_time = time.time()
+
+    # Be talkative about intentions when detections occur
+    try:
+        announce_intention()
+    except Exception:
+        pass
 
     ui.send_message("detection", message=entry)
  
@@ -130,6 +142,21 @@ def speak(text):
     except Exception as e:
         print(f"Warning: Could not call speak service: {e}")
 
+
+def announce_intention():
+    """Speak the robot's main intention frequently (respecting interval)."""
+    global last_intent_speak_time
+    try:
+        now = time.time()
+        if now - last_intent_speak_time < INTENT_SPEAK_INTERVAL:
+            return
+        last_intent_speak_time = now
+        # Mention the persistent main goal and a short intent phrase
+        intent_text = f"My main goal is to {MAIN_GOAL}. I will look around the room and try to find it."
+        speak(intent_text)
+    except Exception:
+        pass
+
 Bridge.provide("play_sound", play_sound)
 Bridge.provide("speak", speak)
 Bridge.provide("get_speed", get_speed)
@@ -151,6 +178,10 @@ Bridge.provide("set_humidity", set_humidity)
 
 play_sound("/home/arduino/1.wav")
 speak("Робот готов к бою!")
+try:
+    speak(f"My main goal is to {MAIN_GOAL}.")
+except Exception:
+    pass
 
 App.start_brick(arduino_cloud)
 
@@ -169,7 +200,7 @@ def ask_llm(prompt):
 def ask_llm_vision(distance: float, subplan: str = "") -> dict:
     """Call the /llm_vision endpoint, sending distance and subplan. Returns parsed JSON dict or {}."""
     try:
-        payload = {"distance": distance, "subplan": subplan}
+        payload = {"distance": distance, "subplan": subplan, "main_goal": MAIN_GOAL}
         # try to attach a camera image if available
         try:
             cam = USBCamera()
@@ -238,6 +269,12 @@ def agi_loop(distance):
     }
     """
     global subplan, forward, back, left, right
+
+    # Announce intention frequently in the AGI loop
+    try:
+        announce_intention()
+    except Exception:
+        pass
 
     resp = ask_llm_vision(distance=distance, subplan=subplan)
     if not resp:
