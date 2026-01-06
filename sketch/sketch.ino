@@ -96,7 +96,76 @@ void loop()
     }
     else if (agi)
     {
-        Bridge.call("agi_loop");
+        String mvcmd;
+        Bridge.call("agi_loop", distance).result(mvcmd);
+        if (mvcmd.length() > 0) {
+            // expected formats:
+            // MOVE|forward|20|45  -> direction, distance_cm, speed
+            // TURN|left|45|45    -> direction, angle_deg, speed
+            // STOP
+            int idx1 = mvcmd.indexOf('|');
+            String verb = mvcmd;
+            if (idx1 != -1) verb = mvcmd.substring(0, idx1);
+
+            if (verb == "MOVE") {
+                // parse parts
+                int p1 = mvcmd.indexOf('|', idx1 + 1);
+                int p2 = mvcmd.indexOf('|', p1 + 1);
+                String dir = mvcmd.substring(idx1 + 1, p1);
+                String distStr = mvcmd.substring(p1 + 1, p2);
+                String spdStr = mvcmd.substring(p2 + 1);
+                int dist = distStr.toInt();
+                int mvspd = spdStr.toInt();
+                // estimate time by speed
+                float base_cm_per_sec = 10.0; // at speed ~45
+                float cm_per_sec = base_cm_per_sec * ( (mvspd>0) ? ( (float)mvspd / 45.0 ) : 1.0 );
+                if (cm_per_sec < 0.5) cm_per_sec = 0.5;
+                unsigned long ms = (unsigned long)((dist / cm_per_sec) * 1000.0);
+
+                if (dir == "forward") {
+                    right_servo.write(90 - mvspd);
+                    left_servo.write(90 + mvspd);
+                    delay(ms);
+                } else if (dir == "back") {
+                    right_servo.write(90 + mvspd);
+                    left_servo.write(90 - mvspd);
+                    delay(ms);
+                }
+                // stop
+                right_servo.write(90);
+                left_servo.write(90);
+            }
+            else if (verb == "TURN") {
+                int p1 = mvcmd.indexOf('|', idx1 + 1);
+                int p2 = mvcmd.indexOf('|', p1 + 1);
+                String dir = mvcmd.substring(idx1 + 1, p1);
+                String angStr = mvcmd.substring(p1 + 1, p2);
+                String spdStr = mvcmd.substring(p2 + 1);
+                int ang = angStr.toInt();
+                int mvspd = spdStr.toInt();
+                // estimate ms per degree
+                float ms_per_deg_base = 10.0; // empirical base at speed 45
+                float scale = (mvspd>0) ? ((float)mvspd / 45.0) : 1.0;
+                unsigned long ms = (unsigned long)(ang * ms_per_deg_base / scale);
+
+                if (dir == "left") {
+                    // left turn: both wheels same direction to rotate
+                    right_servo.write(90 + mvspd);
+                    left_servo.write(90 + mvspd);
+                    delay(ms);
+                } else if (dir == "right") {
+                    right_servo.write(90 - mvspd);
+                    left_servo.write(90 - mvspd);
+                    delay(ms);
+                }
+                right_servo.write(90);
+                left_servo.write(90);
+            }
+            else if (verb == "STOP") {
+                right_servo.write(90);
+                left_servo.write(90);
+            }
+        }
     }
     else
     {

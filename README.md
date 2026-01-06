@@ -129,9 +129,9 @@ The following variables are synchronized with the Arduino Cloud:
 
 # TODO
 
--   [x] get pic from USB and send it to LLM model
--   [x] in prompt ask for json output with fixed schema, allowing speaking and moving (we have no head or arms)
--   [x] speak loudly if returned by model
+-   [x] in agi_loop() ask model (/llm_vision), send there distance as well, for json output with fixed schema (create it!), allowing speaking and moving (we have no head or arms), and MOST IMPORTANT: use some internal string for context of previous actions (subplan), send this context to model and ask to update it
+-   [x] provide move interface (bridge) from sketch.ino to main.py, and call this iterface at the and of agi_loop() if model returned some movement command
+-   [x] speak loudly (TTS) if returned by model
 -   [x] listen to mic and send transcription to LLM model with USB cam picture and proximity sensor data
 -   [x] show robot current emotion on integrated LED matrix
 -   [x] add two red LEDs (eyes)

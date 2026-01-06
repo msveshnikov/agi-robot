@@ -11,6 +11,9 @@ from arduino.app_bricks.keyword_spotting import KeywordSpotting
 
 from arduino.app_peripherals.usb_camera import USBCamera
 from PIL.Image import Image
+import io
+import base64
+import json
      
 
 ui = WebUI()
@@ -162,6 +165,35 @@ def ask_llm(prompt):
         print(f"Warning: Could not call LLM service: {e}")
         return None
 
+
+def ask_llm_vision(distance: float, subplan: str = "") -> dict:
+    """Call the /llm_vision endpoint, sending distance and subplan. Returns parsed JSON dict or {}."""
+    try:
+        payload = {"distance": distance, "subplan": subplan}
+        # try to attach a camera image if available
+        try:
+            cam = USBCamera()
+            img = cam.capture()
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG")
+            img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+            payload["image_base64"] = img_b64
+        except Exception:
+            pass
+
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
+        with urllib.request.urlopen(req, timeout=20) as response:
+            resp = response.read().decode("utf-8")
+            try:
+                return json.loads(resp)
+            except Exception:
+                print("Warning: llm_vision returned non-json, raw:", resp)
+                return {}
+    except Exception as e:
+        print(f"Warning: Could not call LLM vision service: {e}")
+        return {}
+
 is_telling_anecdote = False
 
 def on_keyword_detected():
@@ -190,3 +222,67 @@ spotter = KeywordSpotting()
 spotter.on_detect("hey_arduino", on_keyword_detected)
 
 App.run()
+
+# Internal subplan/context for AGI loop
+subplan = ""
+
+
+def agi_loop(distance):
+    """Called from MCU. Sends distance + subplan to LLM-vision, handles JSON response.
+
+    Expected JSON schema:
+    {
+      "speak": {"text": "...",
+      "move": {"command": "forward|back|left|right|stop", "duration": seconds, "speed": int},
+      "subplan": "updated context string"
+    }
+    """
+    global subplan, forward, back, left, right
+
+    resp = ask_llm_vision(distance=distance, subplan=subplan)
+    if not resp:
+        return
+
+    # Update subplan if provided
+    try:
+        if "subplan" in resp and isinstance(resp["subplan"], str):
+            subplan = resp["subplan"]
+    except Exception:
+        pass
+
+    # Handle speaking
+    try:
+        sp = resp.get("speak")
+        if sp and isinstance(sp, dict):
+            text = sp.get("text")
+            if text:
+                speak(text)
+    except Exception as e:
+        print("Warning handling speak:", e)
+
+    # Handle movement: build a short command string for MCU to execute and return it
+    move_cmd = ""
+    try:
+        mv = resp.get("move")
+        if mv and isinstance(mv, dict):
+            # Expected keys: command (forward|back|left|right), distance_cm, angle_deg, speed
+            cmd = mv.get("command")
+            distance = mv.get("distance_cm")
+            angle = mv.get("angle_deg")
+            mv_speed = mv.get("speed")
+            if cmd in ("forward", "back") and distance is not None:
+                # Format: MOVE|direction|distance_cm|speed
+                move_cmd = f"MOVE|{cmd}|{int(distance)}|{int(mv_speed) if mv_speed else int(speed)}"
+            elif cmd in ("left", "right") and angle is not None:
+                # Format: TURN|direction|angle_deg|speed
+                move_cmd = f"TURN|{cmd}|{int(angle)}|{int(mv_speed) if mv_speed else int(speed)}"
+            elif cmd == "stop":
+                move_cmd = "STOP"
+    except Exception as e:
+        print("Warning handling move:", e)
+
+    return move_cmd
+
+
+# expose agi_loop to the MCU
+Bridge.provide("agi_loop", agi_loop)
