@@ -293,13 +293,14 @@ def agi_loop(distance):
             if text:
                 speak(text)
     except Exception as e:
-        logger.warning("Warning handling speak: %s", e)
-
-    # Handle movement: build a short command string for MCU to execute and return it
-    move_cmd = ""
-    try:
-        mv = resp.get("move")
-        if mv and isinstance(mv, dict):
+                mv_speed = mv.get("speed")
+                # Use explicit None check so that 0 is a valid speed value
+                if cmd in ("forward", "back") and distance is not None:
+                    chosen_speed = int(mv_speed) if mv_speed is not None else int(speed)
+                    move_cmd = f"MOVE|{cmd}|{int(distance)}|{chosen_speed}"
+                elif cmd in ("left", "right") and angle is not None:
+                    chosen_speed = int(mv_speed) if mv_speed is not None else int(speed)
+                    move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
             # Expected keys: command (forward|back|left|right), distance_cm, angle_deg, speed
             cmd = mv.get("command")
             distance = mv.get("distance_cm")

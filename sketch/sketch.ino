@@ -216,6 +216,9 @@ void loop()
             }
         }
     }
-    right_servo.write(90);
-    left_servo.write(90);
+    else
+    {
+        right_servo.write(90);
+        left_servo.write(90);
+    }
 }
