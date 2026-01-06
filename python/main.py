@@ -7,7 +7,7 @@ from arduino.app_bricks.arduino_cloud import ArduinoCloud
 import urllib.request
 import urllib.parse
 import os
-from arduino.app_bricks.keyword_spotting import KeywordSpotting
+# from arduino.app_bricks.keyword_spotting import KeywordSpotting
 import logging
 from arduino.app_peripherals.usb_camera import USBCamera
 from PIL.Image import Image
