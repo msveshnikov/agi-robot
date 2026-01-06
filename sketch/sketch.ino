@@ -62,21 +62,6 @@ void loop()
     Bridge.call("get_forward").result(forward);
     Bridge.call("get_agi").result(agi);
 
-    Monitor.print("Speed:");
-    Monitor.print(speed);
-    Monitor.print(" ");
-    Monitor.print("B:");
-    Monitor.print(back);
-    Monitor.print(" L:");
-    Monitor.print(left);
-    Monitor.print(" R:");
-    Monitor.print(right);
-    Monitor.print(" F:");
-    Monitor.print(forward);
-    Monitor.print(" AGI:");
-    Monitor.print(agi);
-    Monitor.print("\n");
-
     distance = sonar.ping_cm();
     Monitor.print("Distance(cm): ");
     Monitor.print(distance);
@@ -151,13 +136,6 @@ void loop()
 
             if (verb == "MOVE")
             {
-                Monitor.print("AGI MOVE verb parsed: ");
-                Monitor.print(dir);
-                Monitor.print(" dist=");
-                Monitor.print(dist);
-                Monitor.print(" spd=");
-                Monitor.print(mvspd);
-                Monitor.print("\n");
                 // parse parts
                 int p1 = mvcmd.indexOf('|', idx1 + 1);
                 int p2 = mvcmd.indexOf('|', p1 + 1);
@@ -166,6 +144,13 @@ void loop()
                 String spdStr = mvcmd.substring(p2 + 1);
                 int dist = distStr.toInt();
                 int mvspd = spdStr.toInt();
+                Monitor.print("AGI MOVE verb parsed: ");
+                Monitor.print(dir);
+                Monitor.print(" dist=");
+                Monitor.print(dist);
+                Monitor.print(" spd=");
+                Monitor.print(mvspd);
+                Monitor.print("\n");
                 // estimate time by speed
                 float base_cm_per_sec = 10.0; // at speed ~45
                 float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
@@ -193,13 +178,6 @@ void loop()
             }
             else if (verb == "TURN")
             {
-                Monitor.print("AGI TURN verb parsed: ");
-                Monitor.print(dir);
-                Monitor.print(" ang=");
-                Monitor.print(ang);
-                Monitor.print(" spd=");
-                Monitor.print(mvspd);
-                Monitor.print("\n");
                 int p1 = mvcmd.indexOf('|', idx1 + 1);
                 int p2 = mvcmd.indexOf('|', p1 + 1);
                 String dir = mvcmd.substring(idx1 + 1, p1);
@@ -207,6 +185,13 @@ void loop()
                 String spdStr = mvcmd.substring(p2 + 1);
                 int ang = angStr.toInt();
                 int mvspd = spdStr.toInt();
+                Monitor.print("AGI TURN verb parsed: ");
+                Monitor.print(dir);
+                Monitor.print(" ang=");
+                Monitor.print(ang);
+                Monitor.print(" spd=");
+                Monitor.print(mvspd);
+                Monitor.print("\n");
                 // estimate ms per degree
                 float ms_per_deg_base = 10.0; // empirical base at speed 45
                 float scale = (mvspd > 0) ? ((float)mvspd / 45.0) : 1.0;
