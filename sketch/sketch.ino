@@ -21,16 +21,15 @@ const int right_wheel = 10;
 
 NewPing sonar(trigPin, echoPin, 1000);
 
-int speed = 0; // 0..90
-int previousSpeed = 0;
-int manual_speed = 45;
+int speed = 45; // 0..90
 
 boolean back = false;
 boolean left = false;
 boolean right = false;
 boolean forward = false;
+boolean agi = false;
 
-float duration, distance = 100;
+float duration, distance;
 
 void setup()
 {
@@ -60,6 +59,7 @@ void loop()
     Bridge.call("get_left").result(left);
     Bridge.call("get_right").result(right);
     Bridge.call("get_forward").result(forward);
+    Bridge.call("get_agi").result(agi);
 
     distance = sonar.ping_cm();
     Bridge.call("set_distance", distance);
@@ -72,44 +72,38 @@ void loop()
 
     if (left)
     {
-        right_servo.write(90 - manual_speed);
-        left_servo.write(90 - manual_speed);
+        right_servo.write(90 - speed);
+        left_servo.write(90 - speed);
         delay(1000);
     }
     else if (right)
     {
-        right_servo.write(90 + manual_speed);
-        left_servo.write(90 + manual_speed);
+        right_servo.write(90 + speed);
+        left_servo.write(90 + speed);
         delay(1000);
     }
     else if (forward)
     {
-        right_servo.write(90 - manual_speed);
-        left_servo.write(90 + manual_speed);
+        right_servo.write(90 - speed);
+        left_servo.write(90 + speed);
         delay(1000);
     }
     else if (back)
     {
-        right_servo.write(90 + manual_speed);
-        left_servo.write(90 - manual_speed);
+        right_servo.write(90 + speed);
+        left_servo.write(90 - speed);
         delay(1000);
     }
-    else if (distance > 25 || distance == 0)
+    else if (agi)
     {
-        right_servo.write(90 - speed);
-        left_servo.write(90 + speed);
+        Bridge.call("agi_loop");
     }
     else
     {
-        Bridge.call("speak", "Обнаружено препятствие");
-        right_servo.write(90 + speed);
-        left_servo.write(90 - speed);
-        delay(2000);
-        right_servo.write(90 - speed);
-        left_servo.write(90 - speed);
+        right_servo.write(90);
+        left_servo.write(90);
         delay(1000);
     }
-    previousSpeed = speed;
 
     delay(200);
 }

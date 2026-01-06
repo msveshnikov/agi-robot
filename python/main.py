@@ -46,6 +46,7 @@ back = False
 left = False
 right = False
 forward = False
+agi = False
 
 def speed_callback(client: object, value: int):
     global speed
@@ -72,12 +73,17 @@ def forward_callback(client: object, value: bool):
     print(f"Forward value updated from cloud: {value}")
     forward = value
 
+def agi_callback(client: object, value: bool):
+    global agi
+    print(f"AGI value updated from cloud: {value}")
+    agi = value
 
 arduino_cloud.register("speed", value=0, on_write=speed_callback)
 arduino_cloud.register("back", value=False, on_write=back_callback)
 arduino_cloud.register("left", value=False, on_write=left_callback)
 arduino_cloud.register("right", value=False, on_write=right_callback)
 arduino_cloud.register("forward", value=False, on_write=forward_callback)
+arduino_cloud.register("agi", value=False, on_write=agi_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
@@ -96,6 +102,9 @@ def get_right():
 
 def get_forward():
     return forward
+
+def get_agi():
+    return agi
 
 def set_distance(d):
     arduino_cloud.distance = int(d)
@@ -125,18 +134,11 @@ Bridge.provide("get_back", get_back)
 Bridge.provide("get_left", get_left)
 Bridge.provide("get_right", get_right)
 Bridge.provide("get_forward", get_forward)
+Bridge.provide("get_agi", get_agi)
 Bridge.provide("set_distance", set_distance)
 
 def set_temperature(t):
   arduino_cloud.temperature = t
-  # try:
-  #   camera = USBCamera()
-  #   camera.start()
-  #   image: Image = camera.capture()
-  #   camera.stop()
-  #   image.save("output.jpg")
-  # except Exception as X:
-  #    print("Exception ", X)
 
 def set_humidity(h):
   arduino_cloud.humidity = h
@@ -170,6 +172,8 @@ def on_keyword_detected():
         return
 
     print("Keyword detected! Asking LLM...")
+    play_sound("/home/arduino/2.wav")
+
     is_telling_anecdote = True
     try:
         prompt = "Расскажи короткий смешной анекдот про сериал Очень Странные Дела"

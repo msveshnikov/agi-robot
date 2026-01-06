@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Exec=python3 /home/arduino/ArduinoApps/robot/python/media_service.py
+Hidden=false
+X-GNOME-Autostart-enabled=true
+Name=media
+Icon=camera-web
+Comment=
+Path=
+Terminal=false
+StartupNotify=false
