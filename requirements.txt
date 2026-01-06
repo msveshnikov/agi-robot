@@ -4,3 +4,4 @@ pyserial
 SpeechRecognition
 pyttsx3
 pyaudio
+requests

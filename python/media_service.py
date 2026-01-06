@@ -39,6 +39,10 @@ try:
 except ImportError:
     logger.warning("google-cloud-aiplatform not found. LLM will not work.")
 
+try:
+    import requests
+except Exception:
+    requests = None
 def play_audio_file(filename):
     try:
         if sys.platform == 'win32':
@@ -74,6 +78,146 @@ def init_llm():
         logger.info("Vertex AI initialized with Gemini")
     except Exception as e:
         logger.error(f"Failed to initialize Vertex AI: {e}", exc_info=True)
+        raise
+
+
+def get_image_from_socket(timeout=5):
+    sio = socketio.Client(logger=False, engineio_logger=False)
+    result = {'data': None}
+    done = threading.Event()
+
+    @sio.on('image')
+    def _on_image(data):
+        try:
+            b64 = None
+            if isinstance(data, bytes):
+                result['data'] = data
+                done.set()
+                return
+            if isinstance(data, str):
+                b64 = data
+            if isinstance(data, dict):
+                for key in ('b64', 'image', 'img', 'data', 'payload'):
+                    v = data.get(key)
+                    if v:
+                        b64 = v
+                        break
+                if not b64 and 'frames' in data and data['frames']:
+                    first = data['frames'][0]
+                    if isinstance(first, (str, bytes)):
+                        b64 = first
+            if isinstance(data, (list, tuple)) and data:
+                for item in data:
+                    if isinstance(item, (str, bytes)):
+                        b64 = item
+                        break
+                    if isinstance(item, dict):
+                        for key in ('b64', 'image', 'img', 'data'):
+                            if item.get(key):
+                                b64 = item.get(key)
+                                break
+                        if b64:
+                            break
+
+            if b64 is None:
+                result['data'] = None
+                done.set()
+                return
+
+            if isinstance(b64, bytes):
+                result['data'] = b64
+                done.set()
+                return
+
+            if isinstance(b64, str) and b64.startswith('data:image'):
+                parts = b64.split(',', 1)
+                if len(parts) == 2:
+                    b64 = parts[1]
+
+            try:
+                result['data'] = base64.b64decode(b64)
+            except Exception:
+                result['data'] = None
+            finally:
+                done.set()
+        except Exception:
+            result['data'] = None
+            done.set()
+
+    try:
+        server_url = os.environ.get('IMAGE_SERVER_URL', 'http://localhost:4912')
+        sio.connect(server_url)
+        done.wait(timeout)
+        try:
+            sio.disconnect()
+        except Exception:
+            pass
+        return result['data']
+    except Exception:
+        try:
+            sio.disconnect()
+        except Exception:
+            pass
+        return None
+
+
+def send_to_gemini(text, image_bytes):
+    try:
+        # Try using google.auth credentials to call Generative Models REST API
+        credentials, project_id = google.auth.default()
+        from google.auth.transport.requests import Request
+        credentials.refresh(Request())
+        token = credentials.token
+
+        if not requests:
+            raise Exception('requests package not available')
+
+        url = 'https://generativemodels.googleapis.com/v1/models/gemini-robotics-er-1.5-preview:predict'
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Content-Type': 'application/json'
+        }
+
+        body = {
+            'instances': [
+                {
+                    'input': {
+                        'text': text,
+                        'image': {
+                            'mime_type': 'image/jpeg',
+                            'data': base64.b64encode(image_bytes).decode('utf-8')
+                        }
+                    }
+                }
+            ],
+            'parameters': {
+                'temperature': 0.2
+            }
+        }
+
+        resp = requests.post(url, headers=headers, json=body, timeout=30)
+        if resp.status_code != 200:
+            raise Exception(f'Non-200 from Gemini API: {resp.status_code} {resp.text}')
+
+        j = resp.json()
+        # Try to extract reasonable text response from known fields
+        if 'predictions' in j and isinstance(j['predictions'], list) and j['predictions']:
+            pred = j['predictions'][0]
+            # Common fields: 'content', 'output', 'text'
+            for key in ('content', 'output', 'text', 'candidates'):
+                if key in pred:
+                    val = pred[key]
+                    if isinstance(val, str):
+                        return val
+                    if isinstance(val, list) and val:
+                        if isinstance(val[0], dict) and 'content' in val[0]:
+                            return val[0]['content']
+                        return str(val)
+        # Fallback: return full JSON
+        return json.dumps(j)
+
+    except Exception as e:
+        logger.error(f"Failed to call Gemini API: {e}", exc_info=True)
         raise
 
 class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
@@ -167,85 +311,8 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
         
         elif parsed_url.path == '/camera':
             try:
-                # Use a socket.io-based image provider (see python/image.py)
-                def _get_image_from_socket(server_url=None, timeout=5):
-                    sio = socketio.Client(logger=False, engineio_logger=False)
-                    result = {'data': None}
-                    done = threading.Event()
-
-                    @sio.on('image')
-                    def _on_image(data):
-                        try:
-                            b64 = None
-                            if isinstance(data, bytes):
-                                result['data'] = data
-                                done.set()
-                                return
-                            if isinstance(data, str):
-                                b64 = data
-                            if isinstance(data, dict):
-                                for key in ('b64', 'image', 'img', 'data', 'payload'):
-                                    v = data.get(key)
-                                    if v:
-                                        b64 = v
-                                        break
-                                if not b64 and 'frames' in data and data['frames']:
-                                    first = data['frames'][0]
-                                    if isinstance(first, (str, bytes)):
-                                        b64 = first
-                            if isinstance(data, (list, tuple)) and data:
-                                for item in data:
-                                    if isinstance(item, (str, bytes)):
-                                        b64 = item
-                                        break
-                                    if isinstance(item, dict):
-                                        for key in ('b64', 'image', 'img', 'data'):
-                                            if item.get(key):
-                                                b64 = item.get(key)
-                                                break
-                                        if b64:
-                                            break
-
-                            if b64 is None:
-                                result['data'] = None
-                                done.set()
-                                return
-
-                            if isinstance(b64, bytes):
-                                result['data'] = b64
-                                done.set()
-                                return
-
-                            if isinstance(b64, str) and b64.startswith('data:image'):
-                                parts = b64.split(',', 1)
-                                if len(parts) == 2:
-                                    b64 = parts[1]
-
-                            try:
-                                result['data'] = base64.b64decode(b64)
-                            except Exception:
-                                result['data'] = None
-                            finally:
-                                done.set()
-                        except Exception:
-                            result['data'] = None
-                            done.set()
-
-                    try:
-                        if server_url is None:
-                            server_url = os.environ.get('IMAGE_SERVER_URL', 'http://localhost:4912')
-                        sio.connect(server_url)
-                        done.wait(timeout)
-                        sio.disconnect()
-                        return result['data']
-                    except Exception:
-                        try:
-                            sio.disconnect()
-                        except Exception:
-                            pass
-                        return None
-
-                image_data = _get_image_from_socket(timeout=5)
+                # Use shared socket image helper
+                image_data = get_image_from_socket(timeout=5)
 
                 if not image_data:
                     raise Exception('No image received from socket provider')
@@ -296,6 +363,41 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(b"Missing 'text' parameter. Usage: /llm?text=Hello")
+        elif parsed_url.path == '/llm_vision':
+            query_components = urllib.parse.parse_qs(parsed_url.query)
+            prompt = query_components.get('text', [None])[0]
+
+            if not prompt:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b"Missing 'text' parameter. Usage: /llm_vision?text=Describe%20this")
+            else:
+                try:
+                    # Capture image via socket provider
+                    image_data = get_image_from_socket(timeout=5)
+                    if not image_data:
+                        raise Exception('No image available from socket provider')
+
+                    # Send to Gemini multimodal model
+                    logger.info('Sending text+image to Gemini model...')
+                    response_text = send_to_gemini(prompt, image_data)
+
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    if isinstance(response_text, bytes):
+                        self.wfile.write(response_text)
+                    else:
+                        self.wfile.write(str(response_text).encode('utf-8'))
+                    logger.info('Received response from Gemini and returned to client.')
+
+                except Exception as e:
+                    logger.error(f"Error in /llm_vision: {e}", exc_info=True)
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(f"Error: {e}".encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
