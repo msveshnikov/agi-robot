@@ -353,6 +353,61 @@ def send_to_gemini(text, image_bytes):
         logger.error(f"Failed to call Gemini API: {e}", exc_info=True)
         raise
 
+
+def normalize_response_object(response_text):
+    """Normalize various Gemini responses into JSON bytes.
+    - If bytes: return as-is
+    - If dict/list: return JSON bytes
+    - If str: try json.loads, ast.literal_eval, or extract JSON substring
+    - Fallback: wrap raw text into {"raw": "..."}
+    """
+    try:
+        if isinstance(response_text, bytes):
+            return response_text
+
+        if isinstance(response_text, (dict, list)):
+            return json.dumps(response_text).encode('utf-8')
+
+        if isinstance(response_text, str):
+            s = response_text.strip()
+            # Try proper JSON
+            try:
+                obj = json.loads(s)
+                return json.dumps(obj).encode('utf-8')
+            except Exception:
+                pass
+
+            # Try Python literal eval (handles single quotes)
+            try:
+                obj = ast.literal_eval(s)
+                if isinstance(obj, (dict, list)):
+                    return json.dumps(obj).encode('utf-8')
+            except Exception:
+                pass
+
+            # Try extracting JSON substring
+            m = re.search(r"\{[\s\S]*\}", s)
+            if m:
+                jstr = m.group(0)
+                try:
+                    obj = json.loads(jstr)
+                    return json.dumps(obj).encode('utf-8')
+                except Exception:
+                    try:
+                        obj = ast.literal_eval(jstr)
+                        if isinstance(obj, (dict, list)):
+                            return json.dumps(obj).encode('utf-8')
+                    except Exception:
+                        pass
+
+            # Last resort: return wrapped raw text
+            return json.dumps({"raw": s}).encode('utf-8')
+
+        # Unknown type: stringify
+        return json.dumps({"raw": str(response_text)}).encode('utf-8')
+    except Exception:
+        return json.dumps({"raw": str(response_text)}).encode('utf-8')
+
 class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urllib.parse.urlparse(self.path)
@@ -517,12 +572,10 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                     response_text = send_to_gemini(prompt, image_data)
 
                     self.send_response(200)
-                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.send_header('Content-type', 'application/json; charset=utf-8')
                     self.end_headers()
-                    if isinstance(response_text, bytes):
-                        self.wfile.write(response_text)
-                    else:
-                        self.wfile.write(str(response_text).encode('utf-8'))
+                    out = normalize_response_object(response_text)
+                    self.wfile.write(out)
                     logger.info('Received response from Gemini and returned to client.')
 
                 except Exception as e:
@@ -571,12 +624,10 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 response_text = send_to_gemini(prompt, image_data)
 
                 self.send_response(200)
-                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
-                if isinstance(response_text, bytes):
-                    self.wfile.write(response_text)
-                else:
-                    self.wfile.write(str(response_text).encode('utf-8'))
+                out = normalize_response_object(response_text)
+                self.wfile.write(out)
                 logger.info('Received response from Gemini and returned to client (POST).')
 
             except Exception as e:
