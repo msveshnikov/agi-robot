@@ -248,8 +248,8 @@ def on_keyword_detected():
     finally:
         is_telling_anecdote = False
 
-spotter = KeywordSpotting()
-spotter.on_detect("hey_arduino", on_keyword_detected)
+# spotter = KeywordSpotting()
+# spotter.on_detect("hey_arduino", on_keyword_detected)
 
 # Internal subplan/context for AGI loop
 subplan = ""
