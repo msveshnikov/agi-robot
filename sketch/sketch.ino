@@ -109,6 +109,8 @@ void loop()
     }
     else if (agi)
     {
+        Monitor.print("Action: AGI loop, distance=");
+        Monitor.print(distance);
         String mvcmd;
         Bridge.call("agi_loop", distance).result(mvcmd);
         Monitor.print("AGI cmd: ");

@@ -273,6 +273,7 @@ def agi_loop(distance):
     }
     """
     global subplan, forward, back, left, right
+    logger.info(f"AGI loop called with distance: {distance}, current subplan: {subplan}")
 
     # Announce intention frequently in the AGI loop
     try:
