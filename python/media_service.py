@@ -402,6 +402,60 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+    def do_POST(self):
+        parsed_url = urllib.parse.urlparse(self.path)
+        logger.info(f"Received POST request: {self.path}")
+        if parsed_url.path == '/llm_vision':
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(content_length) if content_length else b''
+                try:
+                    payload = json.loads(body.decode('utf-8')) if body else {}
+                except Exception:
+                    payload = {}
+
+                distance = payload.get('distance')
+                subplan = payload.get('subplan', '')
+                main_goal = payload.get('main_goal', '')
+                # Compose a prompt for the multimodal model
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\nDescribe the scene and suggest next actions."
+
+                image_data = None
+                image_b64 = payload.get('image_base64')
+                if image_b64:
+                    try:
+                        image_data = base64.b64decode(image_b64)
+                    except Exception:
+                        image_data = None
+
+                if not image_data:
+                    image_data = get_image_from_socket(timeout=5)
+
+                if not image_data:
+                    raise Exception('No image available for llm_vision')
+
+                logger.info('Sending text+image to Gemini model (POST handler)...')
+                response_text = send_to_gemini(prompt, image_data)
+
+                self.send_response(200)
+                self.send_header('Content-type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                if isinstance(response_text, bytes):
+                    self.wfile.write(response_text)
+                else:
+                    self.wfile.write(str(response_text).encode('utf-8'))
+                logger.info('Received response from Gemini and returned to client (POST).')
+
+            except Exception as e:
+                logger.error(f"Error in POST /llm_vision: {e}", exc_info=True)
+                self.send_response(500)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(f"Error: {e}".encode('utf-8'))
+        else:
+            self.send_response(404)
+            self.end_headers()
+
 if __name__ == "__main__":
     # Allow address reuse to avoid "Address already in use" errors on restart
     socketserver.TCPServer.allow_reuse_address = True

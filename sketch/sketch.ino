@@ -216,12 +216,6 @@ void loop()
             }
         }
     }
-    else
-    {
-        right_servo.write(90);
-        left_servo.write(90);
-        delay(1000);
-    }
-
-    delay(200);
+    right_servo.write(90);
+    left_servo.write(90);
 }
