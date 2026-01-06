@@ -137,7 +137,7 @@ def speak(text):
     try:
         query = urllib.parse.urlencode({'text': text})
         url = f"http://172.17.0.1:5000/speak?{query}"
-        with urllib.request.urlopen(url, timeout=5) as response: # Increased timeout for TTS generation
+        with urllib.request.urlopen(url, timeout=30) as response: # Increased timeout for TTS generation
             logger.info(f"Speak service called: {response.read().decode()}")
     except Exception as e:
         logger.warning(f"Could not call speak service: {e}")

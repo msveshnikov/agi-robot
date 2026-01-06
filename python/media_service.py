@@ -10,6 +10,7 @@ import socketio
 import threading
 import json
 import re
+import ast
 
 if sys.platform == 'win32':
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
@@ -192,6 +193,14 @@ def send_to_gemini(text, image_bytes):
                     try:
                         return json.loads(response_text)
                     except Exception:
+                        # Try ast.literal_eval for single-quoted dicts (common LLM error)
+                        try:
+                            val = ast.literal_eval(response_text)
+                            if isinstance(val, (dict, list)):
+                                return val
+                        except Exception:
+                            pass
+
                         # Attempt to extract JSON substring
                         m = re.search(r"\{[\s\S]*\}", response_text)
                         if m:
@@ -199,6 +208,7 @@ def send_to_gemini(text, image_bytes):
                                 return json.loads(m.group(0))
                             except Exception:
                                 pass
+                        
                         # Fallthrough to allow REST fallback below
                         logger.warning('Vertex AI returned non-json, raw: %s', response_text)
                         # attempt a conversion pass below
@@ -297,6 +307,14 @@ def send_to_gemini(text, image_bytes):
         try:
             return json.loads(response_text)
         except Exception:
+            # Try ast.literal_eval
+            try:
+                val = ast.literal_eval(response_text)
+                if isinstance(val, (dict, list)):
+                    return val
+            except Exception:
+                pass
+
             # Try extracting JSON substring
             m = re.search(r"\{[\s\S]*\}", response_text)
             if m:
