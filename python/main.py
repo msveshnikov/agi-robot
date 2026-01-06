@@ -8,6 +8,7 @@ import urllib.request
 import urllib.parse
 import os
 from arduino.app_bricks.keyword_spotting import KeywordSpotting
+import logging
 
 from arduino.app_peripherals.usb_camera import USBCamera
 from PIL.Image import Image
@@ -23,6 +24,10 @@ ui.on_message("override_th", lambda sid, threshold: detection_stream.override_th
 
 
 import time
+
+# Logging setup
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger("robot.main")
 
 last_speak_time = 0
 # Persistent main goal (remains for the robot forever)
@@ -65,32 +70,32 @@ agi = False
 
 def speed_callback(client: object, value: int):
     global speed
-    print(f"Speed value updated from cloud: {value}")
+    logger.info(f"Speed value updated from cloud: {value}")
     speed = value
 
 def back_callback(client: object, value: bool):
     global back
-    print(f"Speed value updated from cloud: {value}")
+    logger.info(f"Back value updated from cloud: {value}")
     back = value
 
 def left_callback(client: object, value: bool):
     global left
-    print(f"Left value updated from cloud: {value}")
+    logger.info(f"Left value updated from cloud: {value}")
     left = value
 
 def right_callback(client: object, value: bool):
     global right
-    print(f"Right value updated from cloud: {value}")
+    logger.info(f"Right value updated from cloud: {value}")
     right = value
 
 def forward_callback(client: object, value: bool):
     global forward
-    print(f"Forward value updated from cloud: {value}")
+    logger.info(f"Forward value updated from cloud: {value}")
     forward = value
 
 def agi_callback(client: object, value: bool):
     global agi
-    print(f"AGI value updated from cloud: {value}")
+    logger.info(f"AGI value updated from cloud: {value}")
     agi = value
 
 arduino_cloud.register("speed", value=0, on_write=speed_callback)
@@ -129,18 +134,18 @@ def play_sound(filename):
         query = urllib.parse.urlencode({'filename': filename})
         url = f"http://172.17.0.1:5000/play?{query}"
         with urllib.request.urlopen(url, timeout=1) as response:
-            print(f"Sound service called: {response.read().decode()}")
+            logger.info(f"Sound service called: {response.read().decode()}")
     except Exception as e:
-        print(f"Warning: Could not call sound service: {e}")
+        logger.warning(f"Could not call sound service: {e}")
 
 def speak(text):
     try:
         query = urllib.parse.urlencode({'text': text})
         url = f"http://172.17.0.1:5000/speak?{query}"
         with urllib.request.urlopen(url, timeout=5) as response: # Increased timeout for TTS generation
-            print(f"Speak service called: {response.read().decode()}")
+            logger.info(f"Speak service called: {response.read().decode()}")
     except Exception as e:
-        print(f"Warning: Could not call speak service: {e}")
+        logger.warning(f"Could not call speak service: {e}")
 
 
 def announce_intention():
@@ -155,7 +160,7 @@ def announce_intention():
         intent_text = f"My main goal is to {MAIN_GOAL}. I will look around the room and try to find it."
         speak(intent_text)
     except Exception:
-        pass
+        logger.exception("Error while announcing intention")
 
 Bridge.provide("play_sound", play_sound)
 Bridge.provide("speak", speak)
@@ -193,7 +198,7 @@ def ask_llm(prompt):
         with urllib.request.urlopen(url, timeout=15) as response:
             return response.read().decode('utf-8')
     except Exception as e:
-        print(f"Warning: Could not call LLM service: {e}")
+        logger.warning(f"Could not call LLM service: {e}")
         return None
 
 
@@ -219,10 +224,10 @@ def ask_llm_vision(distance: float, subplan: str = "") -> dict:
             try:
                 return json.loads(resp)
             except Exception:
-                print("Warning: llm_vision returned non-json, raw:", resp)
+                logger.warning("llm_vision returned non-json, raw: %s", resp)
                 return {}
     except Exception as e:
-        print(f"Warning: Could not call LLM vision service: {e}")
+        logger.warning(f"Could not call LLM vision service: {e}")
         return {}
 
 is_telling_anecdote = False
@@ -231,10 +236,9 @@ def on_keyword_detected():
     """Callback function that handles a detected keyword."""
     global is_telling_anecdote
     if is_telling_anecdote:
-        print("Already telling an anecdote, skipping.")
+        logger.debug("Already telling an anecdote, skipping.")
         return
-
-    print("Keyword detected! Asking LLM...")
+    logger.info("Keyword detected! Asking LLM...")
     play_sound("/home/arduino/2.wav")
 
     is_telling_anecdote = True
@@ -242,7 +246,7 @@ def on_keyword_detected():
         prompt = "Расскажи короткий смешной анекдот про сериал Очень Странные Дела"
         response = ask_llm(prompt)
         if response:
-            print(f"LLM Response: {response}")
+            logger.info("LLM Response: %s", response)
             speak(response)
         else:
             speak("Что-то пошло не так с моим электронным мозгом.")
@@ -295,7 +299,7 @@ def agi_loop(distance):
             if text:
                 speak(text)
     except Exception as e:
-        print("Warning handling speak:", e)
+        logger.warning("Warning handling speak: %s", e)
 
     # Handle movement: build a short command string for MCU to execute and return it
     move_cmd = ""
@@ -316,7 +320,7 @@ def agi_loop(distance):
             elif cmd == "stop":
                 move_cmd = "STOP"
     except Exception as e:
-        print("Warning handling move:", e)
+        logger.warning("Warning handling move: %s", e)
 
     return move_cmd
 
