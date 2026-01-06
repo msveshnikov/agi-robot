@@ -63,21 +63,12 @@ void loop()
     Bridge.call("get_agi").result(agi);
 
     distance = sonar.ping_cm();
-    Monitor.print("Distance(cm): ");
-    Monitor.print(distance);
-    Monitor.print("\n");
     Bridge.call("set_distance", distance);
 
     float temperature = thermo.getTemperature();
-    Monitor.print("Temp: ");
-    Monitor.print(temperature);
-    Monitor.print("\n");
     Bridge.call("set_temperature", temperature);
 
     float humidity = thermo.getHumidity();
-    Monitor.print("Humidity: ");
-    Monitor.print(humidity);
-    Monitor.print("\n");
     Bridge.call("set_humidity", humidity);
 
     if (left)
