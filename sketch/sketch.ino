@@ -74,8 +74,7 @@ void loop()
     if (left)
     {
         Monitor.print("Action: LEFT, speed=");
-        Monitor.print(speed);
-        Monitor.print("\n");
+        Monitor.println(speed);
         right_servo.write(90 - speed);
         left_servo.write(90 - speed);
         delay(1000);
@@ -83,8 +82,7 @@ void loop()
     else if (right)
     {
         Monitor.print("Action: RIGHT, speed=");
-        Monitor.print(speed);
-        Monitor.print("\n");
+        Monitor.println(speed);
         right_servo.write(90 + speed);
         left_servo.write(90 + speed);
         delay(1000);
@@ -92,8 +90,7 @@ void loop()
     else if (forward)
     {
         Monitor.print("Action: FORWARD, speed=");
-        Monitor.print(speed);
-        Monitor.print("\n");
+        Monitor.println(speed);
         right_servo.write(90 - speed);
         left_servo.write(90 + speed);
         delay(1000);
@@ -101,8 +98,7 @@ void loop()
     else if (back)
     {
         Monitor.print("Action: BACK, speed=");
-        Monitor.print(speed);
-        Monitor.print("\n");
+        Monitor.println(speed);
         right_servo.write(90 + speed);
         left_servo.write(90 - speed);
         delay(1000);
@@ -141,8 +137,8 @@ void loop()
                 Monitor.print(" dist=");
                 Monitor.print(dist);
                 Monitor.print(" spd=");
-                Monitor.print(mvspd);
-                Monitor.print("\n");
+                Monitor.println(mvspd);
+                
                 // estimate time by speed
                 float base_cm_per_sec = 10.0; // at speed ~45
                 float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
@@ -182,8 +178,8 @@ void loop()
                 Monitor.print(" ang=");
                 Monitor.print(ang);
                 Monitor.print(" spd=");
-                Monitor.print(mvspd);
-                Monitor.print("\n");
+                Monitor.println(mvspd);
+                
                 // estimate ms per degree
                 float ms_per_deg_base = 10.0; // empirical base at speed 45
                 float scale = (mvspd > 0) ? ((float)mvspd / 45.0) : 1.0;
