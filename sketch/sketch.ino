@@ -35,6 +35,7 @@ void setup()
 {
     Bridge.begin();
     Monitor.begin();
+    Monitor.print("Bridge initialized\n");
 
     Modulino.begin(Wire1);
     thermo.begin();
@@ -61,35 +62,71 @@ void loop()
     Bridge.call("get_forward").result(forward);
     Bridge.call("get_agi").result(agi);
 
+    Monitor.print("Speed:");
+    Monitor.print(speed);
+    Monitor.print(" ");
+    Monitor.print("B:");
+    Monitor.print(back);
+    Monitor.print(" L:");
+    Monitor.print(left);
+    Monitor.print(" R:");
+    Monitor.print(right);
+    Monitor.print(" F:");
+    Monitor.print(forward);
+    Monitor.print(" AGI:");
+    Monitor.print(agi);
+    Monitor.print("\n");
+
     distance = sonar.ping_cm();
+    Monitor.print("Distance(cm): ");
+    Monitor.print(distance);
+    Monitor.print("\n");
     Bridge.call("set_distance", distance);
 
     float temperature = thermo.getTemperature();
+    Monitor.print("Temp: ");
+    Monitor.print(temperature);
+    Monitor.print("\n");
     Bridge.call("set_temperature", temperature);
 
     float humidity = thermo.getHumidity();
+    Monitor.print("Humidity: ");
+    Monitor.print(humidity);
+    Monitor.print("\n");
     Bridge.call("set_humidity", humidity);
 
     if (left)
     {
+        Monitor.print("Action: LEFT, speed=");
+        Monitor.print(speed);
+        Monitor.print("\n");
         right_servo.write(90 - speed);
         left_servo.write(90 - speed);
         delay(1000);
     }
     else if (right)
     {
+        Monitor.print("Action: RIGHT, speed=");
+        Monitor.print(speed);
+        Monitor.print("\n");
         right_servo.write(90 + speed);
         left_servo.write(90 + speed);
         delay(1000);
     }
     else if (forward)
     {
+        Monitor.print("Action: FORWARD, speed=");
+        Monitor.print(speed);
+        Monitor.print("\n");
         right_servo.write(90 - speed);
         left_servo.write(90 + speed);
         delay(1000);
     }
     else if (back)
     {
+        Monitor.print("Action: BACK, speed=");
+        Monitor.print(speed);
+        Monitor.print("\n");
         right_servo.write(90 + speed);
         left_servo.write(90 - speed);
         delay(1000);
@@ -98,16 +135,29 @@ void loop()
     {
         String mvcmd;
         Bridge.call("agi_loop", distance).result(mvcmd);
-        if (mvcmd.length() > 0) {
+        Monitor.print("AGI cmd: ");
+        Monitor.print(mvcmd);
+        Monitor.print("\n");
+        if (mvcmd.length() > 0)
+        {
             // expected formats:
             // MOVE|forward|20|45  -> direction, distance_cm, speed
             // TURN|left|45|45    -> direction, angle_deg, speed
             // STOP
             int idx1 = mvcmd.indexOf('|');
             String verb = mvcmd;
-            if (idx1 != -1) verb = mvcmd.substring(0, idx1);
+            if (idx1 != -1)
+                verb = mvcmd.substring(0, idx1);
 
-            if (verb == "MOVE") {
+            if (verb == "MOVE")
+            {
+                Monitor.print("AGI MOVE verb parsed: ");
+                Monitor.print(dir);
+                Monitor.print(" dist=");
+                Monitor.print(dist);
+                Monitor.print(" spd=");
+                Monitor.print(mvspd);
+                Monitor.print("\n");
                 // parse parts
                 int p1 = mvcmd.indexOf('|', idx1 + 1);
                 int p2 = mvcmd.indexOf('|', p1 + 1);
@@ -118,15 +168,21 @@ void loop()
                 int mvspd = spdStr.toInt();
                 // estimate time by speed
                 float base_cm_per_sec = 10.0; // at speed ~45
-                float cm_per_sec = base_cm_per_sec * ( (mvspd>0) ? ( (float)mvspd / 45.0 ) : 1.0 );
-                if (cm_per_sec < 0.5) cm_per_sec = 0.5;
+                float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
+                if (cm_per_sec < 0.5)
+                    cm_per_sec = 0.5;
                 unsigned long ms = (unsigned long)((dist / cm_per_sec) * 1000.0);
 
-                if (dir == "forward") {
+                if (dir == "forward")
+                {
+                    Monitor.print("AGI executing MOVE forward\n");
                     right_servo.write(90 - mvspd);
                     left_servo.write(90 + mvspd);
                     delay(ms);
-                } else if (dir == "back") {
+                }
+                else if (dir == "back")
+                {
+                    Monitor.print("AGI executing MOVE back\n");
                     right_servo.write(90 + mvspd);
                     left_servo.write(90 - mvspd);
                     delay(ms);
@@ -135,7 +191,15 @@ void loop()
                 right_servo.write(90);
                 left_servo.write(90);
             }
-            else if (verb == "TURN") {
+            else if (verb == "TURN")
+            {
+                Monitor.print("AGI TURN verb parsed: ");
+                Monitor.print(dir);
+                Monitor.print(" ang=");
+                Monitor.print(ang);
+                Monitor.print(" spd=");
+                Monitor.print(mvspd);
+                Monitor.print("\n");
                 int p1 = mvcmd.indexOf('|', idx1 + 1);
                 int p2 = mvcmd.indexOf('|', p1 + 1);
                 String dir = mvcmd.substring(idx1 + 1, p1);
@@ -145,15 +209,20 @@ void loop()
                 int mvspd = spdStr.toInt();
                 // estimate ms per degree
                 float ms_per_deg_base = 10.0; // empirical base at speed 45
-                float scale = (mvspd>0) ? ((float)mvspd / 45.0) : 1.0;
+                float scale = (mvspd > 0) ? ((float)mvspd / 45.0) : 1.0;
                 unsigned long ms = (unsigned long)(ang * ms_per_deg_base / scale);
 
-                if (dir == "left") {
+                if (dir == "left")
+                {
+                    Monitor.print("AGI executing TURN left\n");
                     // left turn: both wheels same direction to rotate
                     right_servo.write(90 + mvspd);
                     left_servo.write(90 + mvspd);
                     delay(ms);
-                } else if (dir == "right") {
+                }
+                else if (dir == "right")
+                {
+                    Monitor.print("AGI executing TURN right\n");
                     right_servo.write(90 - mvspd);
                     left_servo.write(90 - mvspd);
                     delay(ms);
@@ -161,7 +230,9 @@ void loop()
                 right_servo.write(90);
                 left_servo.write(90);
             }
-            else if (verb == "STOP") {
+            else if (verb == "STOP")
+            {
+                Monitor.print("AGI STOP\n");
                 right_servo.write(90);
                 left_servo.write(90);
             }

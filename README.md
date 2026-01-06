@@ -134,4 +134,4 @@ The following variables are synchronized with the Arduino Cloud:
 -   [x] speak loudly (TTS) if returned by model
 -   [x] listen to mic and send transcription to LLM model with USB cam picture and proximity sensor data
 -   [x] show robot current emotion on integrated LED matrix
--   [x] add two red LEDs (eyes)
+
