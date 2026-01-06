@@ -163,8 +163,24 @@ def get_image_from_socket(timeout=5):
 
 def send_to_gemini(text, image_bytes):
     try:
+        # Prefer using the vertexai client (same as /llm) if available.
+        try:
+            init_llm()
+            if LLM_MODEL:
+                logger.info('Using Vertex AI client for Gemini (via vertexai)')
+                try:
+                    response = LLM_MODEL.generate_content(text)
+                    if hasattr(response, 'text'):
+                        return response.text
+                    return str(response)
+                except Exception:
+                    logger.exception('Vertex AI client call failed, falling back to REST API')
+        except Exception:
+            logger.exception('Failed to initialize Vertex AI client; will try REST generativemodels API')
+
         # Try using google.auth credentials to call Generative Models REST API
-        credentials, project_id = google.auth.default()
+        # Request a token with the cloud-platform scope so the REST API accepts it
+        credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/cloud-platform'])
         from google.auth.transport.requests import Request
         credentials.refresh(Request())
         token = credentials.token
@@ -172,7 +188,6 @@ def send_to_gemini(text, image_bytes):
         if not requests:
             raise Exception('requests package not available')
 
-        url = 'https://generativemodels.googleapis.com/v1/models/gemini-robotics-er-1.5-preview:predict'
         headers = {
             'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
@@ -195,7 +210,34 @@ def send_to_gemini(text, image_bytes):
             }
         }
 
-        resp = requests.post(url, headers=headers, json=body, timeout=30)
+        # Try a list of Gemini model endpoints, preferring Flash 2.5 for vision.
+        model_candidates = [
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-preview',
+            'gemini-robotics-er-1.5-preview'
+        ]
+
+        resp = None
+        last_exc = None
+        for model_name in model_candidates:
+            try:
+                url = f'https://generativemodels.googleapis.com/v1/models/{model_name}:predict'
+                resp = requests.post(url, headers=headers, json=body, timeout=30)
+                # If we get a 404 try next model; otherwise break and handle response
+                if resp.status_code == 404:
+                    resp = None
+                    continue
+                break
+            except Exception as e:
+                last_exc = e
+                resp = None
+                continue
+
+        if resp is None:
+            if last_exc:
+                raise last_exc
+            raise Exception('No response from any Gemini model endpoints')
+
         if resp.status_code != 200:
             raise Exception(f'Non-200 from Gemini API: {resp.status_code} {resp.text}')
 
@@ -460,7 +502,7 @@ if __name__ == "__main__":
     # Allow address reuse to avoid "Address already in use" errors on restart
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), SoundPlayerHandler) as httpd:
-        logger.info(f"Sound player service running on http://localhost:{PORT}")
+        logger.info(f"Media and LLM service running on http://localhost:{PORT}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
