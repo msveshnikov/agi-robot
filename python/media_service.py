@@ -408,7 +408,7 @@ def normalize_response_object(response_text):
     except Exception:
         return json.dumps({"raw": str(response_text)}).encode('utf-8')
 
-class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
+class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urllib.parse.urlparse(self.path)
         logger.info(f"Received request: {self.path}")
@@ -453,7 +453,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                         service = build('texttospeech', 'v1')
 
                         input_text = {'text': text}
-                        voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-B'}
+                        voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-C'}
                         audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
                         logger.info(f"Synthesizing text: {text}")
@@ -497,94 +497,6 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Missing 'text' parameter. Usage: /speak?text=Hello")
         
-        elif parsed_url.path == '/camera':
-            try:
-                # Use shared socket image helper
-                image_data = get_image_from_socket(timeout=5)
-
-                if not image_data:
-                    raise Exception('No image received from socket provider')
-
-                self.send_response(200)
-                self.send_header('Content-type', 'image/jpeg')
-                self.send_header('Content-length', str(len(image_data)))
-                self.end_headers()
-                self.wfile.write(image_data)
-                logger.info('Image received from socket provider and sent.')
-
-            except Exception as e:
-                logger.error(f"Error in /camera endpoint: {e}", exc_info=True)
-                self.send_response(500)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(f"Error: {e}".encode('utf-8'))
-        
-        elif parsed_url.path == '/llm':
-            query_components = urllib.parse.parse_qs(parsed_url.query)
-            prompt = query_components.get('text', [None])[0]
-
-            if prompt:
-                try:
-                    init_llm()
-                    if not LLM_MODEL:
-                        raise Exception("LLM model not initialized")
-                    
-                    logger.info(f"Generating text for prompt: {prompt}")
-                    # Generate content
-                    response = LLM_MODEL.generate_content(prompt)
-                    generated_text = response.text
-                    
-                    self.send_response(200)
-                    self.send_header('Content-type', 'text/plain; charset=utf-8')
-                    self.end_headers()
-                    self.wfile.write(generated_text.encode('utf-8'))
-                    logger.info("LLM generation successful.")
-
-                except Exception as e:
-                    logger.error(f"Error calling Vertex AI LLM: {e}", exc_info=True)
-                    self.send_response(500)
-                    self.send_header('Content-type', 'text/plain; charset=utf-8')
-                    self.end_headers()
-                    self.wfile.write(f"Error calling LLM: {e}".encode('utf-8'))
-            else:
-                self.send_response(400)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(b"Missing 'text' parameter. Usage: /llm?text=Hello")
-
-        elif parsed_url.path == '/llm_vision':
-            query_components = urllib.parse.parse_qs(parsed_url.query)
-            prompt = query_components.get('text', [None])[0]
-
-            if not prompt:
-                self.send_response(400)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(b"Missing 'text' parameter. Usage: /llm_vision?text=Describe%20this")
-            else:
-                try:
-                    # Capture image via socket provider
-                    image_data = get_image_from_socket(timeout=5)
-                    if not image_data:
-                        raise Exception('No image available from socket provider')
-
-                    # Send to Gemini multimodal model
-                    logger.info('Sending text+image to Gemini model...')
-                    response_text = send_to_gemini(prompt, image_data)
-
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json; charset=utf-8')
-                    self.end_headers()
-                    out = normalize_response_object(response_text)
-                    self.wfile.write(out)
-                    logger.info('Received response from Gemini and returned to client.')
-
-                except Exception as e:
-                    logger.error(f"Error in /llm_vision: {e}", exc_info=True)
-                    self.send_response(500)
-                    self.send_header('Content-type', 'text/plain; charset=utf-8')
-                    self.end_headers()
-                    self.wfile.write(f"Error: {e}".encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
@@ -607,16 +519,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 # Compose a prompt for the multimodal model
                 prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\n  You are a robot assistant with two wheels (differential drive) and NO arms or head. Describe the scene and suggest next actions."
 
-                image_data = None
-                image_b64 = payload.get('image_base64')
-                if image_b64:
-                    try:
-                        image_data = base64.b64decode(image_b64)
-                    except Exception:
-                        image_data = None
-
-                if not image_data:
-                    image_data = get_image_from_socket(timeout=5)
+                image_data = get_image_from_socket(timeout=5)
 
                 if not image_data:
                     raise Exception('No image available for llm_vision')
@@ -644,7 +547,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
 if __name__ == "__main__":
     # Allow address reuse to avoid "Address already in use" errors on restart
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), SoundPlayerHandler) as httpd:
+    with socketserver.TCPServer(("", PORT), MediaServiceHandler) as httpd:
         logger.info(f"Media and LLM service running on http://localhost:{PORT}")
         try:
             httpd.serve_forever()
