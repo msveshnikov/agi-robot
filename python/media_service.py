@@ -173,141 +173,40 @@ def send_to_gemini(text, image_bytes):
             "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
             "         \"distance_cm\": integer or null, \"angle_deg\": integer or null, \"speed\": integer or null }\n"
             "- subplan: a string (may be empty)\n"
-            "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers."
+            "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers. Pay attention on your front webcam image (attached)"
         )
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
 
-        # Prefer using the vertexai client (same as /llm) if available.
-        try:
-            init_llm()
-            if LLM_MODEL:
-                logger.info('Using Vertex AI client for Gemini (via vertexai)')
-                try:
-                    response = LLM_MODEL.generate_content(prompt_text)
-                    if hasattr(response, 'text'):
-                        response_text = response.text
-                    else:
-                        response_text = str(response)
+        # Use the vertexai client only. Send image bytes along with the prompt to the LLM model.
+        init_llm()
+        if not LLM_MODEL:
+            raise Exception('LLM_MODEL is not initialized')
 
-                    # Try to parse JSON and return parsed object if valid
-                    try:
-                        return json.loads(response_text)
-                    except Exception:
-                        # Try ast.literal_eval for single-quoted dicts (common LLM error)
-                        try:
-                            val = ast.literal_eval(response_text)
-                            if isinstance(val, (dict, list)):
-                                return val
-                        except Exception:
-                            pass
+        logger.info('Using Vertex AI client for Gemini (via vertexai) with image payload, length=%d', len(image_bytes) if image_bytes else 0)
 
-                        # Attempt to extract JSON substring
-                        m = re.search(r"\{[\s\S]*\}", response_text)
-                        if m:
-                            try:
-                                return json.loads(m.group(0))
-                            except Exception:
-                                pass
-                        
-                        # Fallthrough to allow REST fallback below
-                        logger.warning('Vertex AI returned non-json, raw: %s', response_text)
-                        # attempt a conversion pass below
-                except Exception:
-                    logger.exception('Vertex AI client call failed, falling back to REST API')
-        except Exception:
-            logger.exception('Failed to initialize Vertex AI client; will try REST generativemodels API')
-
-        # Try using google.auth credentials to call Generative Models REST API
-        # Request a token with the cloud-platform scope so the REST API accepts it
-        credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/cloud-platform'])
-        from google.auth.transport.requests import Request
-        credentials.refresh(Request())
-        token = credentials.token
-
-        if not requests:
-            raise Exception('requests package not available')
-
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
-        }
-
-        body = {
-            'instances': [
-                {
-                    'input': {
-                        'text': prompt_text,
-                        'image': {
-                            'mime_type': 'image/jpeg',
-                            'data': base64.b64encode(image_bytes).decode('utf-8')
-                        }
-                    }
+        payload = {
+            'input': {
+                'text': prompt_text,
+                'image': {
+                    'mime_type': 'image/jpeg',
+                    'data': base64.b64encode(image_bytes).decode('utf-8')
                 }
-            ],
+            },
             'parameters': {
-                'temperature': 0.2
+                'temperature': 0.0
             }
         }
 
-        # Try a list of Gemini model endpoints, preferring Flash 2.5 for vision.
-        model_candidates = [
-            'gemini-2.5-flash',
-            'gemini-robotics-er-1.5-preview'
-        ]
+        # Single approach: call the LLM client and parse its text response into JSON.
+        response = LLM_MODEL.generate_content(payload)
+        response_text = response.text if hasattr(response, 'text') else str(response)
 
-        resp = None
-        last_exc = None
-        for model_name in model_candidates:
-            try:
-                url = f'https://generativemodels.googleapis.com/v1/models/{model_name}:predict'
-                resp = requests.post(url, headers=headers, json=body, timeout=30)
-                # If we get a 404 try next model; otherwise break and handle response
-                if resp.status_code == 404:
-                    resp = None
-                    continue
-                break
-            except Exception as e:
-                last_exc = e
-                resp = None
-                continue
-
-        if resp is None:
-            if last_exc:
-                raise last_exc
-            raise Exception('No response from any Gemini model endpoints')
-
-        if resp.status_code != 200:
-            raise Exception(f'Non-200 from Gemini API: {resp.status_code} {resp.text}')
-
-        j = resp.json()
-        # Try to extract reasonable text response from known fields
-        response_text = None
-        if 'predictions' in j and isinstance(j['predictions'], list) and j['predictions']:
-            pred = j['predictions'][0]
-            # Common fields: 'content', 'output', 'text'
-            for key in ('content', 'output', 'text', 'candidates'):
-                if key in pred:
-                    val = pred[key]
-                    if isinstance(val, str):
-                        response_text = val
-                        break
-                    if isinstance(val, list) and val:
-                        if isinstance(val[0], dict) and 'content' in val[0]:
-                            response_text = val[0]['content']
-                            break
-                        response_text = str(val)
-                        break
-
-        if response_text is None:
-            # fallback to full JSON string
-            response_text = json.dumps(j)
-
-        # Try to parse JSON directly
+        # Try to parse JSON and return parsed object if valid
         try:
             return json.loads(response_text)
         except Exception:
-            # Try ast.literal_eval
+            # Try ast.literal_eval for single-quoted dicts
             try:
                 val = ast.literal_eval(response_text)
                 if isinstance(val, (dict, list)):
@@ -315,7 +214,7 @@ def send_to_gemini(text, image_bytes):
             except Exception:
                 pass
 
-            # Try extracting JSON substring
+            # Attempt to extract JSON substring
             m = re.search(r"\{[\s\S]*\}", response_text)
             if m:
                 try:
@@ -323,31 +222,8 @@ def send_to_gemini(text, image_bytes):
                 except Exception:
                     pass
 
-        # If available, ask Vertex AI to convert the raw text into valid JSON matching schema
-        try:
-            init_llm()
-            if LLM_MODEL:
-                convert_prompt = (
-                    "Convert the following text into a single valid JSON object matching the schema:\n"
-                    f"{schema_instructions}\n\nRaw text:\n{response_text}\n\nReturn only the JSON object."
-                )
-                logger.info('Requesting JSON conversion from Vertex AI for non-JSON output')
-                conv_resp = LLM_MODEL.generate_content(convert_prompt)
-                conv_text = conv_resp.text if hasattr(conv_resp, 'text') else str(conv_resp)
-                try:
-                    return json.loads(conv_text)
-                except Exception:
-                    m2 = re.search(r"\{[\s\S]*\}", conv_text)
-                    if m2:
-                        try:
-                            return json.loads(m2.group(0))
-                        except Exception:
-                            pass
-        except Exception:
-            logger.exception('JSON conversion via Vertex AI failed')
-
-        # Final fallback: raise to allow caller to handle non-json
-        raise Exception('Gemini returned non-JSON and conversion attempts failed')
+        # If we couldn't parse a valid JSON object, raise for the caller to handle
+        raise Exception('Gemini returned non-JSON or unparsable response')
 
     except Exception as e:
         logger.error(f"Failed to call Gemini API: {e}", exc_info=True)
@@ -453,7 +329,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                         service = build('texttospeech', 'v1')
 
                         input_text = {'text': text}
-                        voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-C'}
+                        voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-D'}
                         audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
                         logger.info(f"Synthesizing text: {text}")

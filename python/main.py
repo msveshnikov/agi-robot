@@ -160,7 +160,7 @@ Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
 
 play_sound("/home/arduino/1.wav")
-speak("Робот готов к бою!")
+speak("Robot is ready!!")
 try:
     speak(f"My main goal is to {MAIN_GOAL}.")
 except Exception:
