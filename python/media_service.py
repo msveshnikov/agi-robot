@@ -37,7 +37,7 @@ except ImportError:
 try:
     import google.auth
     import vertexai
-    from vertexai.generative_models import GenerativeModel
+    from vertexai.generative_models import GenerativeModel, Part
 except ImportError:
     logger.warning("google-cloud-aiplatform not found. LLM will not work.")
 
@@ -185,21 +185,13 @@ def send_to_gemini(text, image_bytes):
 
         logger.info('Using Vertex AI client for Gemini (via vertexai) with image payload, length=%d', len(image_bytes) if image_bytes else 0)
 
-        payload = {
-            'input': {
-                'text': prompt_text,
-                'image': {
-                    'mime_type': 'image/jpeg',
-                    'data': base64.b64encode(image_bytes).decode('utf-8')
-                }
-            },
-            'parameters': {
-                'temperature': 0.0
-            }
-        }
-
-        # Single approach: call the LLM client and parse its text response into JSON.
-        response = LLM_MODEL.generate_content(payload)
+        image_part = Part.from_data(data=image_bytes, mime_type="image/jpeg")
+        
+        # Call the LLM client with the prompt and image
+        response = LLM_MODEL.generate_content(
+            [prompt_text, image_part],
+            generation_config={"temperature": 0.0}
+        )
         response_text = response.text if hasattr(response, 'text') else str(response)
 
         # Try to parse JSON and return parsed object if valid
