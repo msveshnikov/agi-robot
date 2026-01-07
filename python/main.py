@@ -7,10 +7,7 @@ from arduino.app_bricks.arduino_cloud import ArduinoCloud
 import urllib.request
 import urllib.parse
 import os
-# from arduino.app_bricks.keyword_spotting import KeywordSpotting
 import logging
-from arduino.app_peripherals.usb_camera import USBCamera
-from PIL.Image import Image
 import io
 import base64
 import json
@@ -143,20 +140,6 @@ def speak(text):
         logger.warning(f"Could not call speak service: {e}")
 
 
-def announce_intention():
-    """Speak the robot's main intention frequently (respecting interval)."""
-    global last_intent_speak_time
-    try:
-        now = time.time()
-        if now - last_intent_speak_time < INTENT_SPEAK_INTERVAL:
-            return
-        last_intent_speak_time = now
-        # Mention the persistent main goal and a short intent phrase
-        intent_text = f"My main goal is to {MAIN_GOAL}. I will look around the room and try to find it."
-        speak(intent_text)
-    except Exception:
-        logger.exception("Error while announcing intention")
-
 Bridge.provide("play_sound", play_sound)
 Bridge.provide("speak", speak)
 Bridge.provide("get_speed", get_speed)
@@ -184,7 +167,6 @@ except Exception:
     pass
 
 
-
 def ask_llm(prompt):
     try:
         query = urllib.parse.urlencode({'text': prompt})
@@ -201,17 +183,6 @@ def ask_llm_vision(distance: float, subplan: str = "") -> dict:
     """Call the /llm_vision endpoint, sending distance and subplan. Returns parsed JSON dict or {}."""
     try:
         payload = {"distance": distance, "subplan": subplan, "main_goal": MAIN_GOAL}
-        # try to attach a camera image if available
-        try:
-            cam = USBCamera()
-            img = cam.capture()
-            buf = io.BytesIO()
-            img.save(buf, format="JPEG")
-            img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-            payload["image_base64"] = img_b64
-        except Exception:
-            pass
-
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req, timeout=20) as response:
@@ -224,32 +195,6 @@ def ask_llm_vision(distance: float, subplan: str = "") -> dict:
     except Exception as e:
         logger.warning(f"Could not call LLM vision service: {e}")
         return {}
-
-is_telling_anecdote = False
-
-def on_keyword_detected():
-    """Callback function that handles a detected keyword."""
-    global is_telling_anecdote
-    if is_telling_anecdote:
-        logger.debug("Already telling an anecdote, skipping.")
-        return
-    logger.info("Keyword detected! Asking LLM...")
-    play_sound("/home/arduino/2.wav")
-
-    is_telling_anecdote = True
-    try:
-        prompt = "Расскажи короткий смешной анекдот про сериал Очень Странные Дела"
-        response = ask_llm(prompt)
-        if response:
-            logger.info("LLM Response: %s", response)
-            speak(response)
-        else:
-            speak("Что-то пошло не так с моим электронным мозгом.")
-    finally:
-        is_telling_anecdote = False
-
-# spotter = KeywordSpotting()
-# spotter.on_detect("hey_arduino", on_keyword_detected)
 
 # Internal subplan/context for AGI loop
 subplan = ""
@@ -267,12 +212,6 @@ def agi_loop(distance):
     """
     global subplan, forward, back, left, right
     logger.info(f"AGI loop called with distance: {distance}, current subplan: {subplan}")
-
-    # Announce intention frequently in the AGI loop
-    try:
-        announce_intention()
-    except Exception:
-        pass
 
     resp = ask_llm_vision(distance=distance, subplan=subplan)
     move_cmd = ""

@@ -167,6 +167,7 @@ def send_to_gemini(text, image_bytes):
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
         schema_instructions = (
+            "You are a robot assistant with two wheels (differential drive) and NO arms or head.\n"
             "Return ONLY a single valid JSON object (no explanatory text) with the following keys:\n"
             "- speak: either null or an object {\"text\": string}\n"
             "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
@@ -252,7 +253,6 @@ def send_to_gemini(text, image_bytes):
         # Try a list of Gemini model endpoints, preferring Flash 2.5 for vision.
         model_candidates = [
             'gemini-2.5-flash',
-            'gemini-2.5-flash-preview',
             'gemini-robotics-er-1.5-preview'
         ]
 
@@ -551,6 +551,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(b"Missing 'text' parameter. Usage: /llm?text=Hello")
+
         elif parsed_url.path == '/llm_vision':
             query_components = urllib.parse.parse_qs(parsed_url.query)
             prompt = query_components.get('text', [None])[0]
@@ -604,7 +605,7 @@ class SoundPlayerHandler(http.server.BaseHTTPRequestHandler):
                 subplan = payload.get('subplan', '')
                 main_goal = payload.get('main_goal', '')
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\nDescribe the scene and suggest next actions."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\n  You are a robot assistant with two wheels (differential drive) and NO arms or head. Describe the scene and suggest next actions."
 
                 image_data = None
                 image_b64 = payload.get('image_base64')

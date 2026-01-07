@@ -1,7 +1,0 @@
-google-generativeai
-opencv-python
-pyserial
-SpeechRecognition
-pyttsx3
-pyaudio
-requests
