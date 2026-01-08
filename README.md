@@ -1,6 +1,6 @@
 # AGI Robot
 
-This project aims to create a highly interactive, autonomous robot utilizing the Google Gemini Robotics ER 1.5 Preview API for decision-making and real-time interaction.
+This project aims to create a highly interactive, autonomous robot utilizing **Google Cloud Vertex AI (Gemini 2.5 Flash)** for decision-making and real-time interaction.
 
 ![alt text](image-1.png)
 
@@ -9,9 +9,11 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 -   **Core Hardware:** Arduino Uno Q (Microcontroller/Motor Control)
 -   **Movement:** Two wheels with 360-degree movement capability (differential drive) - **Pins 11 (Left) & 10 (Right)**
 -   **Peripherals:** USB-C dongle (USB Camera with Mic, Bluetooth Speaker)
--   **Sensors:** Proximity/Distance Sensor (Trig Pin 8, Echo Pin 9)
+-   **Sensors:**
+    -   Proximity/Distance Sensor (Trig Pin 8, Echo Pin 9)
+    -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
 -   **Power:** PowerBank 10000 mAh
--   **Software Stack:** Python 3.12, Google Gemini Robotics ER 1.5 Preview API
+-   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 2.5 Flash)
 -   **Connectivity:** WiFi required for API access
 
 **Functionality:** Uses wheels for movement, microphone for audio input, speaker for audio output, and camera for visual input. Capable of making autonomous decisions driven by the AI model.
@@ -22,22 +24,24 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 
 ### 1. Hardware Enhancements and Modularity
 
-| Area                   | Current Status        | Proposed Enhancement                                                             | Rationale                                                                                                 |
-| :--------------------- | :-------------------- | :------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| **Microcontroller**    | Arduino Uno Q         |         |  |
-| **Motor Control**      | Integrated with Uno Q | Dedicated Motor Driver Shield (e.g., L298N or specialized drivers)               | Better current handling, precision control, and separation of logic/power circuits.                       |
-| **Sensing/Navigation** | USB Camera + Proximity Sensors (Ultrasonic)      | Integrate IMU (Accelerometer/Gyroscope)    | Enable robust spatial awareness, obstacle avoidance, and precise movement/pose tracking.                  |
-| **Physical Structure** |Custom 3D Printed Chassis                                             |             | Modular housing for components, better stability, and improved aesthetics for component housing.          |
-| **Power Management**   | Single PowerBank      |  | Ensure stable power for SBC, motors, and peripherals; implement low-power warning system.                 |
+| Area                   | Current Status                           | Proposed Enhancement                                               | Rationale                                                                                        |
+| :--------------------- | :--------------------------------------- | :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- |
+| **Microcontroller**    | Arduino Uno Q                            |                                                                    |                                                                                                  |
+| **Motor Control**      | Integrated with Uno Q                    | Dedicated Motor Driver Shield (e.g., L298N or specialized drivers) | Better current handling, precision control, and separation of logic/power circuits.              |
+| **Sensing/Navigation** | USB Camera + Proximity + Modulino Thermo | Integrate IMU (Accelerometer/Gyroscope)                            | Enable robust spatial awareness, obstacle avoidance, and precise movement/pose tracking.         |
+| **Physical Structure** | Custom 3D Printed Chassis                |                                                                    | Modular housing for components, better stability, and improved aesthetics for component housing. |
+| **Power Management**   | Single PowerBank                         |                                                                    | Ensure stable power for SBC, motors, and peripherals; implement low-power warning system.        |
 
 ![alt text](image-2.png)
 
 ### 2. Software Architecture and Code Structure
 
-
 -   **Python Logic (`main.py`):**
-    -   Implement a clear state machine for autonomous behavior (e.g., Idle, Exploring, Interacting, Charging).
-    -   Separate API communication handling (API client) from local decision-making (Behavior Tree).
+    -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, and consults the Gemini 2.5 Flash model via `media_service.py` to decide on actions (Speak, Move, or update Subplan).
+    -   **Object Detection**: Uses `VideoObjectDetection` to identify objects in real-time and announce them (`send_detections_to_ui`).
+    -   **Arduino Cloud**: Synchronizes state variables (`speed`, `agi`, etc.) and telemetry (`distance`, `temperature`, `humidity`).
+-   **Media Service (`media_service.py`):**
+    -   Acts as a local HTTP server handling Text-to-Speech (Google TTS), audio playback (`aplay`), and LLM Vision requests (`/llm_vision` -> Vertex AI).
 
 ### 3. Interaction and Autonomy Features
 
@@ -54,21 +58,24 @@ This project aims to create a highly interactive, autonomous robot utilizing the
 
 ## Overview
 
-The Uno Q consists of an MCU handling motor control and an MPU (PC/SBC) handling high-level logic, vision, and audio. They are connected via USB (Serial).
+The Uno Q consists of an MCU handling motor control and an MPU (Linux Environment) handling high-level logic, vision, and audio. 
 
 ## Connection Diagram
 
 ```mermaid
 graph TD
-    subgraph MPU ["MPU (Computer/SBC)"]
-        Python[Python Script]
+    subgraph MPU ["MPU (Linux/Python)"]
+        Python[Python Script (main.py)]
+        MediaService[Media Service (media_service.py)]
         Webcam[USB Webcam]
         Mic[USB Microphone]
         Speaker[Bluetooth Speaker]
 
-        Python <--> Webcam
-        Python <--> Mic
-        Python <--> Speaker
+        Python <--> MediaService
+        MediaService <--> Webcam
+        MediaService <--> Mic
+        MediaService <--> Speaker
+        MediaService <--> VertexAI[Google Vertex AI (Gemini)]
     end
 
     subgraph MCU ["MCU (Arduino)"]
@@ -76,16 +83,16 @@ graph TD
         ServoL["Servo Left (Pin 11)"]
         ServoR["Servo Right (Pin 10)"]
         Sensor["Proximity Sensor (Trig 8, Echo 9)"]
+        Modulino["Modulino Thermo (I2C)"]
 
         Bridge --> ServoL
         Bridge --> ServoR
         Bridge --> Sensor
+        Bridge --> Modulino
         Bridge --> Matrix["LED Matrix (Built-in)"]
-        Bridge --> EyeL["Eye Left (Pin 2)"]
-        Bridge --> EyeR["Eye Right (Pin 3)"]
     end
 
-    Python <-->|USB Serial 115200 baud| Bridge
+    Python <-->|Internal Serial| Bridge
 ```
 
 ## Pinout Configuration
@@ -95,10 +102,9 @@ graph TD
 | **Servo Left**  | D11         | Left Wheel (Continuous Rotation)  |
 | **Servo Right** | D10         | Right Wheel (Continuous Rotation) |
 | **Sensor**      | D8, D9      | Proximity/Distance (Trig/Echo)    |
-| **Eye Left**    | D2          | Left Eye LED                      |
-| **Eye Right**   | D3          | Right Eye LED                     |
-| **Matrix**      | Built-in    | 12x8 LED Matrix for Emotions      |
-| **USB**         | USB Port    | Serial Communication with WebCam     |
+| **Modulino**    | I2C         | Temperature & Humidity Sensor     |
+| **Matrix**      | Built-in    | 12x8 LED Matrix                   |
+| **USB**         | USB Port    | Serial Communication/Webcam       |
 
 ## Arduino Cloud Variables
 
@@ -106,6 +112,7 @@ The following variables are synchronized with the Arduino Cloud:
 
 -   **Read/Write (Controls):**
 
+    -   `agi` (bool): Master switch to enable/disable the autonomous AGI loop.
     -   `speed` (int): Controls the speed of the robot.
     -   `back` (bool): Command to move backward.
     -   `left` (bool): Command to turn left.
@@ -114,8 +121,8 @@ The following variables are synchronized with the Arduino Cloud:
 
 -   **Read-Only (Telemetry):**
     -   `distance` (int): Distance measured by the ultrasonic sensor (cm).
-    -   `temperature` (float): Temperature from Modulino sensor.
-    -   `humidity` (float): Humidity from Modulino sensor.
+    -   `temperature` (float): Temperature from Modulino sensor (Celsius).
+    -   `humidity` (float): Humidity from Modulino sensor (%).
 
 ## Power Distribution
 
@@ -124,7 +131,7 @@ The following variables are synchronized with the Arduino Cloud:
 ## MPU Requirements
 
 -   **OS**: Linux Debian 13
--   **Python**: 3.13
+-   **Python**: 3.12+
 -   **Ports**: 1x USB-C host for Arduino, 1x USB-A for Webcam with mic.
 
 # TODO
