@@ -60,22 +60,23 @@ The Uno Q consists of an MCU handling motor control and an MPU (Linux Environmen
 
 ```mermaid
 graph TD
+graph TD
     subgraph MPU ["MPU (Linux/Python)"]
-        Python[Python Script (main.py)]
-        MediaService[Media Service (media_service.py)]
-        Webcam[USB Webcam]
-        Mic[USB Microphone]
-        Speaker[Bluetooth Speaker]
+        Python["Python Script (main.py)"]
+        MediaService["Media Service (media_service.py)"]
+        Webcam["USB Webcam"]
+        Mic["USB Microphone"]
+        Speaker["Bluetooth Speaker"]
 
         Python <--> MediaService
         MediaService <--> Webcam
         MediaService <--> Mic
         MediaService <--> Speaker
-        MediaService <--> VertexAI[Google Vertex AI (Gemini)]
+        MediaService <--> VertexAI["Google Vertex AI (Gemini)"]
     end
 
     subgraph MCU ["MCU (Arduino)"]
-        Bridge[Arduino_RouterBridge]
+        Bridge["Arduino_RouterBridge"]
         ServoL["Servo Left (Pin 11)"]
         ServoR["Servo Right (Pin 10)"]
         Sensor["Proximity Sensor (Trig 8, Echo 9)"]
