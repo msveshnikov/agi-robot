@@ -60,7 +60,6 @@ The Uno Q consists of an MCU handling motor control and an MPU (Linux Environmen
 
 ```mermaid
 graph TD
-graph TD
     subgraph MPU ["MPU (Linux/Python)"]
         Python["Python Script (main.py)"]
         MediaService["Media Service (media_service.py)"]
