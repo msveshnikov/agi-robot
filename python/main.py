@@ -90,12 +90,22 @@ def agi_callback(client: object, value: bool):
     logger.info(f"AGI value updated from cloud: {value}")
     agi = value
 
+def goal_callback(client: object, value: str):
+    global MAIN_GOAL
+    logger.info(f"Main Goal updated from cloud: {value}")
+    MAIN_GOAL = value
+    try:
+        speak(f"New goal received: {value}")
+    except Exception:
+        pass
+
 arduino_cloud.register("speed", on_write=speed_callback)
 arduino_cloud.register("back",  on_write=back_callback)
 arduino_cloud.register("left",  on_write=left_callback)
 arduino_cloud.register("right", on_write=right_callback)
 arduino_cloud.register("forward", on_write=forward_callback)
 arduino_cloud.register("agi", on_write=agi_callback)
+arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
