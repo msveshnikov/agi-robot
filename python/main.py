@@ -42,12 +42,6 @@ def send_detections_to_ui(detections: dict):
         speak(key)
         last_speak_time = time.time()
 
-    # Be talkative about intentions when detections occur
-    try:
-        announce_intention()
-    except Exception:
-        pass
-
     ui.send_message("detection", message=entry)
  
 detection_stream.on_detect_all(send_detections_to_ui)
@@ -135,7 +129,7 @@ def play_sound(filename):
     try:
         query = urllib.parse.urlencode({'filename': filename})
         url = f"http://172.17.0.1:5000/play?{query}"
-        with urllib.request.urlopen(url, timeout=1) as response:
+        with urllib.request.urlopen(url, timeout=15) as response:
             logger.info(f"Sound service called: {response.read().decode()}")
     except Exception as e:
         logger.warning(f"Could not call sound service: {e}")
@@ -144,7 +138,7 @@ def speak(text):
     try:
         query = urllib.parse.urlencode({'text': text})
         url = f"http://172.17.0.1:5000/speak?{query}"
-        with urllib.request.urlopen(url, timeout=30) as response: # Increased timeout for TTS generation
+        with urllib.request.urlopen(url, timeout=15) as response:
             logger.info(f"Speak service called: {response.read().decode()}")
     except Exception as e:
         logger.warning(f"Could not call speak service: {e}")
