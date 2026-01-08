@@ -160,23 +160,11 @@ Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
 
 play_sound("/home/arduino/1.wav")
-speak("Robot is ready!!")
+speak("Robot is ready")
 try:
     speak(f"My main goal is to {MAIN_GOAL}.")
 except Exception:
     pass
-
-
-def ask_llm(prompt):
-    try:
-        query = urllib.parse.urlencode({'text': prompt})
-        # Increase timeout for LLM generation
-        url = f"http://172.17.0.1:5000/llm?{query}"
-        with urllib.request.urlopen(url, timeout=15) as response:
-            return response.read().decode('utf-8')
-    except Exception as e:
-        logger.warning(f"Could not call LLM service: {e}")
-        return None
 
 
 def ask_llm_vision(distance: float, subplan: str = "") -> dict:
@@ -206,7 +194,7 @@ def agi_loop(distance):
     Expected JSON schema:
     {
       "speak": {"text": "...",
-      "move": {"command": "forward|back|left|right|stop", "duration": seconds},
+      "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
       "subplan": "updated context string"
     }
     """
@@ -239,13 +227,11 @@ def agi_loop(distance):
     try:
         mv = resp.get("move")
         if mv and isinstance(mv, dict):
-            # Expected keys: command (forward|back|left|right), distance_cm, angle_deg, speed
+            # Expected keys: command (forward|back|left|right), distance_cm, angle_deg
             cmd = mv.get("command")
             mv_distance = mv.get("distance_cm")
             angle = mv.get("angle_deg")
-            mv_speed = mv.get("speed")
-            # Use explicit None check so that 0 is a valid speed value
-            chosen_speed = int(mv_speed) if mv_speed is not None else int(speed)
+            chosen_speed = 45
             if cmd in ("forward", "back") and mv_distance is not None:
                 # Format: MOVE|direction|distance_cm|speed
                 move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"

@@ -139,7 +139,7 @@ void loop()
                 Monitor.println(mvspd);
                 
                 // estimate time by speed
-                float base_cm_per_sec = 10.0; // at speed ~45
+                float base_cm_per_sec = 30.0; // at speed ~45
                 float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
                 if (cm_per_sec < 0.5)
                     cm_per_sec = 0.5;
