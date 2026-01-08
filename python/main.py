@@ -171,10 +171,12 @@ except Exception:
     pass
 
 
-def ask_llm_vision(distance: float, subplan: str = "") -> dict:
+def ask_llm_vision(distance: float, subplan: str = "", movement_history: list = None) -> dict:
     """Call the /llm_vision endpoint, sending distance and subplan. Returns parsed JSON dict or {}."""
     try:
-        payload = {"distance": distance, "subplan": subplan, "main_goal": MAIN_GOAL}
+        if movement_history is None:
+            movement_history = []
+        payload = {"distance": distance, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history}
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req, timeout=20) as response:
@@ -190,6 +192,7 @@ def ask_llm_vision(distance: float, subplan: str = "") -> dict:
 
 # Internal subplan/context for AGI loop
 subplan = ""
+movement_history = []
 
 
 def agi_loop(distance):
@@ -202,10 +205,12 @@ def agi_loop(distance):
       "subplan": "updated context string"
     }
     """
-    global subplan, forward, back, left, right
+    
+    
+    global subplan, forward, back, left, right, movement_history
     logger.info(f"AGI loop called with distance: {distance}, current subplan: {subplan}")
 
-    resp = ask_llm_vision(distance=distance, subplan=subplan)
+    resp = ask_llm_vision(distance=distance, subplan=subplan, movement_history=movement_history)
     move_cmd = ""
     if not resp:
         return move_cmd
@@ -244,6 +249,11 @@ def agi_loop(distance):
                 move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
             elif cmd == "stop":
                 move_cmd = "STOP"
+            
+            # Add to history if a valid move command was generated
+            if move_cmd:
+                movement_history.append(mv)
+
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
 

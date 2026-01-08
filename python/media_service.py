@@ -384,8 +384,9 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 distance = payload.get('distance')
                 subplan = payload.get('subplan', '')
                 main_goal = payload.get('main_goal', '')
+                movement_history = payload.get('movement_history', [])
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\nDescribe the scene and suggest next actions."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\nMovement History: {movement_history}\nDescribe the scene and suggest next actions."
 
                 image_data = get_image_from_socket(timeout=5)
 
