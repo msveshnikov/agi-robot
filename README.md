@@ -47,18 +47,14 @@ This project aims to create a highly interactive, autonomous robot utilizing **G
 
 -   **Actuation:** Introduce one manipulator arm (e.g., 2-3 DOF) for basic physical object interaction, manipulation, and demonstration.
 -   **Multi-Modal Interaction:** Beyond simple command/response, implement context memory for longer, more meaningful conversations that persist across interactions.
--   **Environmental Mapping:** Integrate Simultaneous Localization and Mapping (SLAM) capabilities (if transitioning to an SBC) to allow the robot to navigate and remember its environment structure.
+-   **Environmental Mapping:** Integrate Simultaneous Localization and Mapping (SLAM) capabilities to allow the robot to navigate and remember its environment structure.
 -   **Task Execution:** Design a robust system for handling complex, multi-step instructions (e.g., "Go to the kitchen and report if the coffee machine is on").
-
-### 4. Project Development Setup
-
--   **Dependency Management:** Utilize a `requirements.txt` file for explicit Python dependency tracking.
 
 # Robot Hardware Schema
 
 ## Overview
 
-The Uno Q consists of an MCU handling motor control and an MPU (Linux Environment) handling high-level logic, vision, and audio. 
+The Uno Q consists of an MCU handling motor control and an MPU (Linux Environment) handling high-level logic, vision, and audio.
 
 ## Connection Diagram
 
@@ -136,4 +132,4 @@ The following variables are synchronized with the Arduino Cloud:
 
 # TODO
 
--   [x] listen to mic and send transcription to LLM model with USB cam picture and proximity sensor data
+-   [x] listen to mic and send transcription to LLM model 

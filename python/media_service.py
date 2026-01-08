@@ -171,7 +171,7 @@ def send_to_gemini(text, image_bytes):
             "Return ONLY a single valid JSON object (no explanatory text) with the following keys:\n"
             "- speak: either null or an object {\"text\": string}\n"
             "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
-            "         \"distance_cm\": integer or null, \"angle_deg\": integer or null, \"speed\": integer or null }\n"
+            "         \"distance_cm\": integer or null, \"angle_deg\": integer or null}\n"
             "- subplan: a string (may be empty)\n"
             "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers. Pay attention on your front webcam image (attached)"
         )
@@ -385,7 +385,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 subplan = payload.get('subplan', '')
                 main_goal = payload.get('main_goal', '')
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\n  You are a robot assistant with two wheels (differential drive) and NO arms or head. Describe the scene and suggest next actions."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\nDescribe the scene and suggest next actions."
 
                 image_data = get_image_from_socket(timeout=5)
 

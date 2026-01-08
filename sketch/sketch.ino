@@ -35,7 +35,6 @@ void setup()
 {
     Bridge.begin();
     Monitor.begin();
-    Monitor.print("Bridge initialized\n");
 
     Modulino.begin(Wire1);
     thermo.begin();

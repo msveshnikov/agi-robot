@@ -206,7 +206,7 @@ def agi_loop(distance):
     Expected JSON schema:
     {
       "speak": {"text": "...",
-      "move": {"command": "forward|back|left|right|stop", "duration": seconds, "speed": int},
+      "move": {"command": "forward|back|left|right|stop", "duration": seconds},
       "subplan": "updated context string"
     }
     """
