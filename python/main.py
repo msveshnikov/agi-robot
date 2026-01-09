@@ -129,7 +129,7 @@ def play_sound(filename):
     try:
         query = urllib.parse.urlencode({'filename': filename})
         url = f"http://172.17.0.1:5000/play?{query}"
-        with urllib.request.urlopen(url, timeout=15) as response:
+        with urllib.request.urlopen(url, timeout=55) as response:
             logger.info(f"Sound service called: {response.read().decode()}")
     except Exception as e:
         logger.warning(f"Could not call sound service: {e}")
@@ -138,7 +138,7 @@ def speak(text):
     try:
         query = urllib.parse.urlencode({'text': text})
         url = f"http://172.17.0.1:5000/speak?{query}"
-        with urllib.request.urlopen(url, timeout=15) as response:
+        with urllib.request.urlopen(url, timeout=55) as response:
             logger.info(f"Speak service called: {response.read().decode()}")
     except Exception as e:
         logger.warning(f"Could not call speak service: {e}")
@@ -179,7 +179,7 @@ def ask_llm_vision(distance: float, subplan: str = "", movement_history: list = 
         payload = {"distance": distance, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history}
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
-        with urllib.request.urlopen(req, timeout=20) as response:
+        with urllib.request.urlopen(req, timeout=55) as response:
             resp = response.read().decode("utf-8")
             try:
                 return json.loads(resp)
