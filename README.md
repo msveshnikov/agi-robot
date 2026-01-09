@@ -109,6 +109,7 @@ The following variables are synchronized with the Arduino Cloud:
 -   **Read/Write (Controls):**
 
     -   `agi` (bool): Master switch to enable/disable the autonomous AGI loop.
+    -   `goal` (str): Current goal for the robot.
     -   `speed` (int): Controls the speed of the robot.
     -   `back` (bool): Command to move backward.
     -   `left` (bool): Command to turn left.

@@ -167,13 +167,18 @@ def send_to_gemini(text, image_bytes):
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
         schema_instructions = (
-            "You are a robot assistant with two wheels (differential drive) and NO arms or head.\n"
+            "You are a smart robot assistant with two wheels (differential drive) and NO arms or head. "
+            "Your visual input is from a front-facing webcam. Orient yourself in the room to achieve your Main Goal.\n"
+            "Analyze the image carefully: identify obstacles, clear paths, and potential locations of interest.\n"
+            "If the goal is to find an object, look around (turn) if you don't see it.\n"
+            "Use the 'distance' reading (ultrasonic sensor in cm) to avoid crashes. If distance < 30, back up or turn.\n"
+            "Use 'movement_history' to avoid repetitive actions.\n"
             "Return ONLY a single valid JSON object (no explanatory text) with the following keys:\n"
-            "- speak: either null or an object {\"text\": string}\n"
+            "- speak: either null or an object {\"text\": short string describing your current thought or observation}\n"
             "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
-            "         \"distance_cm\": integer or null, \"angle_deg\": integer or null}\n"
-            "- subplan: a string (may be empty)\n"
-            "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers. Pay attention on your front webcam image (attached)"
+            "         \"distance_cm\": integer (approx 20-50 for small steps) or null, \"angle_deg\": integer (e.g. 45, 90) or null}\n"
+            "- subplan: a string (keep track of your detailed plan/state, e.g. 'Scanning left side of room')\n"
+            "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers."
         )
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
@@ -384,8 +389,9 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 distance = payload.get('distance')
                 subplan = payload.get('subplan', '')
                 main_goal = payload.get('main_goal', '')
+                movement_history = payload.get('movement_history', [])
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance}\nDescribe the scene and suggest next actions."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
 
                 image_data = get_image_from_socket(timeout=5)
 
