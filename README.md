@@ -137,3 +137,5 @@ The following variables are synchronized with the Arduino Cloud:
 # TODO
 
 -   [x] listen to mic and send transcription to LLM model 
+-   [x] RGD LED on roof with MCU control
+-   [x] WAV sounds in /home/arduino to play occasionally

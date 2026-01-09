@@ -68,7 +68,6 @@ def left_callback(client: object, value: bool):
     logger.info(f"Left value updated from cloud: {value}")
     left = value
 
-def right_callback(client: object, value: bool):
     global right
     logger.info(f"Right value updated from cloud: {value}")
     right = value
@@ -92,6 +91,17 @@ def goal_callback(client: object, value: str):
     except Exception:
         pass
 
+lang = "en"
+
+def lang_callback(client: object, value: str):
+    global lang
+    logger.info(f"Language updated from cloud: {value}")
+    lang = value
+    try:
+        speak(f"Language changed to {value}")
+    except Exception:
+        pass
+
 arduino_cloud.register("speed", on_write=speed_callback)
 arduino_cloud.register("back",  on_write=back_callback)
 arduino_cloud.register("left",  on_write=left_callback)
@@ -99,6 +109,7 @@ arduino_cloud.register("right", on_write=right_callback)
 arduino_cloud.register("forward", on_write=forward_callback)
 arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
+arduino_cloud.register("lang", on_write=lang_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
@@ -135,7 +146,7 @@ def play_sound(filename):
 
 def speak(text):
     try:
-        query = urllib.parse.urlencode({'text': text})
+        query = urllib.parse.urlencode({'text': text, 'lang': lang})
         url = f"http://172.17.0.1:5000/speak?{query}"
         with urllib.request.urlopen(url, timeout=55) as response:
             logger.info(f"Speak service called: {response.read().decode()}")
@@ -170,7 +181,7 @@ def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_
     try:
         if movement_history is None:
             movement_history = []
-        payload = {"distance": distance, "plan": plan, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history}
+        payload = {"distance": distance, "plan": plan, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history, "lang": lang}
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req, timeout=55) as response:

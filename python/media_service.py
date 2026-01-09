@@ -158,10 +158,18 @@ def get_image_from_socket(timeout=5):
         return None
 
 
-def send_to_gemini(text, image_bytes):
+def send_to_gemini(text, image_bytes, lang="en"):
 
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
+        lang_instruction = ""
+        if lang == 'ru':
+            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in RUSSIAN language."
+        elif lang == 'cz' or lang == 'cs':
+            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in CZECH language."
+        else:
+            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ENGLISH language."
+
         schema_instructions = (
             "You are a smart robot assistant with two wheels (differential drive) and NO arms or head. "
             "Your size is 24cm wide and 12cm long and 10cm high. WebCam is on your roof. "
@@ -176,7 +184,7 @@ def send_to_gemini(text, image_bytes):
             "6. MAPPING: Create a simple text-mode 2D map of the environemnt in the 'map' field. Use ASCII characters to represent walls, obstacles, and clear paths.\n\n"
             "RESPONSE FORMAT:\n"
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
-            "- speak: null or {\"text\": \"...\"} (keep it short and robotic)\n"
+            f"- speak: null or {{\"text\": \"...\"}} (keep it short and robotic. {lang_instruction})\n"
             "- move: null or {\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-100), \"angle_deg\": int (15-180)}\n"
             "- plan: string (Global strategy/goal status)\n"
             "- subplan: string (Immediate tactical steps)\n"
@@ -189,7 +197,7 @@ def send_to_gemini(text, image_bytes):
         if not LLM_CLIENT:
             raise Exception('LLM_CLIENT is not initialized')
 
-        logger.info('Sending text+image to Gemini model...')
+        logger.info(f'Sending text+image to Gemini model (lang={lang})...')
         
         contents = [
             types.Content(
@@ -279,23 +287,35 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
         elif parsed_url.path == '/speak':
             query_components = urllib.parse.parse_qs(parsed_url.query)
             text = query_components.get('text', [None])[0]
+            lang = query_components.get('lang', ['en'])[0]
 
             if text:
                 try:
-                    if text in TTS_CACHE:
-                        logger.info(f"Using cached audio for text: {text}")
-                        temp_filename = TTS_CACHE[text]
+                    # Cache key now includes language
+                    cache_key = f"{lang}:{text}"
+                    if cache_key in TTS_CACHE:
+                        logger.info(f"Using cached audio for text: {text} ({lang})")
+                        temp_filename = TTS_CACHE[cache_key]
                     else:
                         # Initialize TTS service
                         # Note: Requires GOOGLE_APPLICATION_CREDENTIALS environment variable to be set
-                        logger.info("Initializing Google TTS service...")
+                        logger.info(f"Initializing Google TTS service for lang={lang}...")
                         service = build('texttospeech', 'v1')
 
                         input_text = {'text': text}
-                        voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-D'}
+                        
+                        # Select voice based on language
+                        if lang == 'ru':
+                            voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-D'}
+                        elif lang == 'cz' or lang == 'cs':
+                            voice = {'languageCode': 'cs-CZ', 'name': 'cs-CZ-Wavenet-A'}
+                        else:
+                            # Default to English
+                            voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-D'}
+
                         audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
-                        logger.info(f"Synthesizing text: {text}")
+                        logger.info(f"Synthesizing text: {text} with voice: {voice['name']}")
                         response = service.text().synthesize(
                             body={
                                 'input': input_text,
@@ -314,14 +334,14 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                             temp_filename = f.name
                         
                         # Cache the filename
-                        TTS_CACHE[text] = temp_filename
+                        TTS_CACHE[cache_key] = temp_filename
 
                     play_audio_file(temp_filename)
 
                     self.send_response(200)
                     self.send_header('Content-type', 'text/plain; charset=utf-8')
                     self.end_headers()
-                    self.wfile.write(f"Speaking: {text}".encode('utf-8'))
+                    self.wfile.write(f"Speaking ({lang}): {text}".encode('utf-8'))
                 
                 except Exception as e:
                     logger.error(f"Error calling Google TTS: {e}", exc_info=True)
@@ -356,6 +376,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 subplan = payload.get('subplan', '')
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
+                lang = payload.get('lang', 'en')
+
                 # Compose a prompt for the multimodal model
                 prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
 
@@ -365,7 +387,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     raise Exception('No image available for llm_vision')
 
                 logger.info('Sending text+image to Gemini model (POST handler)...')
-                response_text = send_to_gemini(prompt, image_data)
+                response_text = send_to_gemini(prompt, image_data, lang=lang)
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
