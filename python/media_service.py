@@ -174,18 +174,20 @@ def send_to_gemini(text, image_bytes):
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
         schema_instructions = (
-            "You are a smart robot assistant with two wheels (differential drive) and NO arms or head. "
-            "Your visual input is from a front-facing webcam. Orient yourself in the room to achieve your Main Goal.\n"
-            "Analyze the image carefully: identify obstacles, clear paths, and potential locations of interest.\n"
-            "If the goal is to find an object, look around (turn) if you don't see it.\n"
-            "Use the 'distance' reading (ultrasonic sensor in cm) to avoid crashes. If distance < 30, back up or turn.\n"
-            "Use 'movement_history' to avoid repetitive actions.\n"
-            "Return ONLY a single valid JSON object (no explanatory text) with the following keys:\n"
-            "- speak: either null or an object {\"text\": short string describing your current thought or observation}\n"
-            "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],\n"
-            "         \"distance_cm\": integer (approx 20-50 for small steps) or null, \"angle_deg\": integer (e.g. 45, 90) or null}\n"
-            "- subplan: a string (keep track of your detailed plan/state, e.g. 'Scanning left side of room')\n"
+            "You are a smart robot assistant with two wheels (differential drive) and NO arms or head."
+            "Your size is 24cm wide and 12cm long and 10cm high. WebCam is on your roof. You can move forward, backward, turn left, and turn right."
+            "Your visual input is from a front-facing webcam. Orient yourself in the room to achieve your Main Goal.n"
+            "Analyze the image carefully: identify obstacles, clear paths, and potential locations of interest.n"
+            "If the goal is to find an object, look around (turn) if you don't see it."
+            "Use the 'distance' reading (ultrasonic sensor in cm) to avoid crashes. If distance < 30, back up or turn."
+            "Use 'movement_history' to avoid repetitive actions."
+            "Return ONLY a single valid JSON object (no explanatory text) with the following keys:"
+            "- speak: either null or an object {\"text\": short string describing your current thought or observation}"
+            "- move: either null or an object {\"command\": one of [\"forward\",\"back\",\"left\",\"right\",\"stop\"],"
+            "         \"distance_cm\": integer (approx 20-50 for small steps) or null, \"angle_deg\": integer (e.g. 45, 90) or null}"
+            "- subplan: a string (keep track of your detailed plan/state, e.g. 'Scanning left side of room')"
             "Do not include any other keys or text. Make sure the JSON parses with standard JSON parsers."
+            "Put to subplan all needed information for future steps. This is your only memory."
         )
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
@@ -210,12 +212,6 @@ def send_to_gemini(text, image_bytes):
 
        
         generate_content_config = types.GenerateContentConfig(
-            # thinking_config=types.ThinkingConfig(
-            #     include_thoughts=False # We want pure JSON if possible, but the model might force thinking. 
-            #                          # The user test had thinking_budget=1024 (and got validation error originally when using token count, check test_robotics.py fix)
-            #                          # The user fixed it by REMOVING thinking_config in step 61.
-            #                          # So I will NOT include thinking_config here to be safe and cleaner for JSON parsing.
-            # ),
             temperature=0.7
         )
 
@@ -266,9 +262,11 @@ def normalize_response_object(response_text):
     - Fallback: wrap raw text into {"raw": "..."}
     """
     try:
+        logger.info("Normalizing Gemini response...")
         if isinstance(response_text, bytes):
             return response_text
 
+        logger.info(f"Response type: {type(response_text)}")
         if isinstance(response_text, (dict, list)):
             return json.dumps(response_text).encode('utf-8')
 

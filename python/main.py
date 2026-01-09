@@ -38,9 +38,9 @@ def send_detections_to_ui(detections: dict):
       "timestamp": datetime.now(UTC).isoformat()
     }
     
-    if time.time() - last_speak_time >= 10:
-        speak(key)
-        last_speak_time = time.time()
+    # if time.time() - last_speak_time >= 10:
+    #     speak(key)
+    #     last_speak_time = time.time()
 
     ui.send_message("detection", message=entry)
  

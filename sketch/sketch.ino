@@ -141,7 +141,7 @@ void loop()
                 Monitor.println(mvspd);
                 
                 // estimate time by speed
-                float base_cm_per_sec = 30.0; // at speed ~45
+                float base_cm_per_sec = 20.0; // at speed ~45
                 float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
                 if (cm_per_sec < 0.5)
                     cm_per_sec = 0.5;
@@ -189,7 +189,6 @@ void loop()
                 if (dir == "left")
                 {
                     Monitor.println("AGI executing TURN left\n");
-                    // left turn: both wheels same direction to rotate
                     right_servo.write(90 - mvspd);
                     left_servo.write(90 - mvspd);
                     delay(ms);
