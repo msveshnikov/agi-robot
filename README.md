@@ -121,6 +121,9 @@ The following variables are synchronized with the Arduino Cloud:
     -   `temperature` (float): Temperature from Modulino sensor (Celsius).
     -   `humidity` (float): Humidity from Modulino sensor (%).
 
+![alt text](image-3.png)
+
+
 ## Power Distribution
 
 -   **Arduino**: Powered via USB PowerBank
