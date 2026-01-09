@@ -52,9 +52,6 @@ def play_audio_file(filename):
     try:
         if sys.platform == 'win32':
             import winsound
-            # SND_FILENAME: filename is a file name
-            # SND_ASYNC: play asynchronously
-            # SND_NODEFAULT: do not play default sound if file not found
             winsound.PlaySound(filename, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
             logger.info(f"Playing audio on Windows: {filename}")
         else:
@@ -196,7 +193,7 @@ def send_to_gemini(text, image_bytes):
         if not LLM_CLIENT:
             raise Exception('LLM_CLIENT is not initialized')
 
-        logger.info('Sending text+image to Gemini Robotics model...')
+        logger.info('Sending text+image to Gemini model...')
         
         contents = [
             types.Content(
@@ -209,16 +206,15 @@ def send_to_gemini(text, image_bytes):
         
         if image_bytes:
              contents[0].parts.append(types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"))
-
        
         generate_content_config = types.GenerateContentConfig(
             temperature=0.7
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model="gemini-robotics-er-1.5-preview",
-            contents=contents,
-            config=generate_content_config
+            model = "gemini-3-flash-preview" ##"gemini-robotics-er-1.5-preview",
+            contents = contents,
+            confi = generate_content_config
         )
         
         response_text = response.text if hasattr(response, 'text') else str(response)
