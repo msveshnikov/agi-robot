@@ -1,5 +1,5 @@
-*.wav
-*.mp3
+
+
 # ignore app cache folder
 .cache/
 google.json
