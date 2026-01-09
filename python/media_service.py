@@ -258,7 +258,6 @@ def normalize_response_object(response_text):
     """Normalize various Gemini responses into JSON bytes.
     - If bytes: return as-is
     - If dict/list: return JSON bytes
-    - If str: try json.loads, ast.literal_eval, or extract JSON substring
     - Fallback: wrap raw text into {"raw": "..."}
     """
     try:
@@ -270,42 +269,6 @@ def normalize_response_object(response_text):
         if isinstance(response_text, (dict, list)):
             return json.dumps(response_text).encode('utf-8')
 
-        if isinstance(response_text, str):
-            s = response_text.strip()
-            # Try proper JSON
-            try:
-                obj = json.loads(s)
-                return json.dumps(obj).encode('utf-8')
-            except Exception:
-                pass
-
-            # Try Python literal eval (handles single quotes)
-            try:
-                obj = ast.literal_eval(s)
-                if isinstance(obj, (dict, list)):
-                    return json.dumps(obj).encode('utf-8')
-            except Exception:
-                pass
-
-            # Try extracting JSON substring
-            m = re.search(r"\{[\s\S]*\}", s)
-            if m:
-                jstr = m.group(0)
-                try:
-                    obj = json.loads(jstr)
-                    return json.dumps(obj).encode('utf-8')
-                except Exception:
-                    try:
-                        obj = ast.literal_eval(jstr)
-                        if isinstance(obj, (dict, list)):
-                            return json.dumps(obj).encode('utf-8')
-                    except Exception:
-                        pass
-
-            # Last resort: return wrapped raw text
-            return json.dumps({"raw": s}).encode('utf-8')
-
-        # Unknown type: stringify
         return json.dumps({"raw": str(response_text)}).encode('utf-8')
     except Exception:
         return json.dumps({"raw": str(response_text)}).encode('utf-8')
