@@ -13,7 +13,7 @@ import re
 import ast
 
 if sys.platform == 'win32':
-  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Arduino\\google.json'
+  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Python\\agi-robot\\google.json'
 else:
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
@@ -34,17 +34,20 @@ try:
 except ImportError:
     logger.warning("google-api-python-client not found. TTS will not work.")
 
-try:
-    import google.auth
-    import vertexai
-    from vertexai.generative_models import GenerativeModel, Part
-except ImportError:
-    logger.warning("google-cloud-aiplatform not found. LLM will not work.")
 
 try:
-    import requests
-except Exception:
-    requests = None
+    from google import genai
+    from google.genai import types
+except ImportError:
+    logger.warning("google-genai library not found. LLM will not work.")
+
+try:
+    import google.auth
+except ImportError:
+    pass
+
+
+
 def play_audio_file(filename):
     try:
         if sys.platform == 'win32':
@@ -65,21 +68,24 @@ def play_audio_file(filename):
 
 PORT = 5000
 TTS_CACHE = {}
-LLM_MODEL = None
+LLM_CLIENT = None
 
 def init_llm():
-    global LLM_MODEL
-    if LLM_MODEL:
+    global LLM_CLIENT
+    if LLM_CLIENT:
         return
     
     try:
-        # Credentials are automatically loaded from GOOGLE_APPLICATION_CREDENTIALS env var
-        credentials, project_id = google.auth.default()
-        vertexai.init(project=project_id, location="us-central1", credentials=credentials)
-        LLM_MODEL = GenerativeModel("gemini-2.5-flash")
-        logger.info("Vertex AI initialized with Gemini")
+        api_key = os.environ.get("GEMINI_KEY")
+        if not api_key:
+            logger.warning("GEMINI_KEY is not set.")
+        
+        # Initialize client with API key (or default if library handles it, but user requested removing Vertex usage)
+        LLM_CLIENT = genai.Client(api_key=api_key)
+        logger.info("GenAI Client initialized")
+
     except Exception as e:
-        logger.error(f"Failed to initialize Vertex AI: {e}", exc_info=True)
+        logger.error(f"Failed to initialize GenAI Client: {e}", exc_info=True)
         raise
 
 
@@ -164,6 +170,7 @@ def get_image_from_socket(timeout=5):
 
 
 def send_to_gemini(text, image_bytes):
+
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
         schema_instructions = (
@@ -183,23 +190,47 @@ def send_to_gemini(text, image_bytes):
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
 
-        # Use the vertexai client only. Send image bytes along with the prompt to the LLM model.
         init_llm()
-        if not LLM_MODEL:
-            raise Exception('LLM_MODEL is not initialized')
+        if not LLM_CLIENT:
+            raise Exception('LLM_CLIENT is not initialized')
 
-        logger.info('Using Vertex AI client for Gemini (via vertexai) with image payload, length=%d', len(image_bytes) if image_bytes else 0)
-
-        image_part = Part.from_data(data=image_bytes, mime_type="image/jpeg")
+        logger.info('Sending text+image to Gemini Robotics model...')
         
-        # Call the LLM client with the prompt and image
-        response = LLM_MODEL.generate_content(
-            [prompt_text, image_part],
-            generation_config={"temperature": 0.0}
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt_text),
+                ]
+            )
+        ]
+        
+        if image_bytes:
+             contents[0].parts.append(types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"))
+
+       
+        generate_content_config = types.GenerateContentConfig(
+            # thinking_config=types.ThinkingConfig(
+            #     include_thoughts=False # We want pure JSON if possible, but the model might force thinking. 
+            #                          # The user test had thinking_budget=1024 (and got validation error originally when using token count, check test_robotics.py fix)
+            #                          # The user fixed it by REMOVING thinking_config in step 61.
+            #                          # So I will NOT include thinking_config here to be safe and cleaner for JSON parsing.
+            # ),
+            temperature=0.7
         )
+
+        response = LLM_CLIENT.models.generate_content(
+            model="gemini-robotics-er-1.5-preview",
+            contents=contents,
+            config=generate_content_config
+        )
+        
         response_text = response.text if hasattr(response, 'text') else str(response)
 
-        # Try to parse JSON and return parsed object if valid
+        # Log raw response for debugging because new model might be chatty
+        logger.info(f"Raw Gemini Response: {response_text[:500]}...")
+
+        # Try to parse JSON and return parsed object if valid (same logic as before)
         try:
             return json.loads(response_text)
         except Exception:
