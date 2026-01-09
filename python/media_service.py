@@ -19,7 +19,6 @@ else:
 
 import logging
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -50,14 +49,8 @@ except ImportError:
 
 def play_audio_file(filename):
     try:
-        if sys.platform == 'win32':
-            import winsound
-            winsound.PlaySound(filename, winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT)
-            logger.info(f"Playing audio on Windows: {filename}")
-        else:
-            # Linux / other
-            subprocess.Popen(['aplay', filename])
-            logger.info(f"Playing audio via aplay: {filename}")
+        subprocess.Popen(['aplay', filename])
+        logger.info(f"Playing audio via aplay: {filename}")
     except Exception as e:
         logger.error(f"Failed to play audio: {e}", exc_info=True)
         raise e
@@ -77,7 +70,6 @@ def init_llm():
         if not api_key:
             logger.warning("GEMINI_KEY is not set.")
         
-        # Initialize client with API key (or default if library handles it, but user requested removing Vertex usage)
         LLM_CLIENT = genai.Client(api_key=api_key)
         logger.info("GenAI Client initialized")
 
@@ -219,14 +211,11 @@ def send_to_gemini(text, image_bytes):
         
         response_text = response.text if hasattr(response, 'text') else str(response)
 
-        # Log raw response for debugging because new model might be chatty
-        logger.info(f"Raw Gemini Response: {response_text[:500]}...")
 
         # Try to parse JSON and return parsed object if valid (same logic as before)
         try:
             return json.loads(response_text)
         except Exception:
-            # Try ast.literal_eval for single-quoted dicts
             try:
                 val = ast.literal_eval(response_text)
                 if isinstance(val, (dict, list)):
@@ -234,7 +223,6 @@ def send_to_gemini(text, image_bytes):
             except Exception:
                 pass
 
-            # Attempt to extract JSON substring
             m = re.search(r"\{[\s\S]*\}", response_text)
             if m:
                 try:
@@ -242,7 +230,6 @@ def send_to_gemini(text, image_bytes):
                 except Exception:
                     pass
 
-        # If we couldn't parse a valid JSON object, raise for the caller to handle
         raise Exception('Gemini returned non-JSON or unparsable response')
 
     except Exception as e:
