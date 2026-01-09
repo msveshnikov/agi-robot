@@ -170,12 +170,12 @@ except Exception:
     pass
 
 
-def ask_llm_vision(distance: float, subplan: str = "", movement_history: list = None) -> dict:
-    """Call the /llm_vision endpoint, sending distance and subplan. Returns parsed JSON dict or {}."""
+def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None) -> dict:
+    """Call the /llm_vision endpoint, sending distance, plan, and subplan. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
             movement_history = []
-        payload = {"distance": distance, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history}
+        payload = {"distance": distance, "plan": plan, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history}
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req, timeout=55) as response:
@@ -190,6 +190,7 @@ def ask_llm_vision(distance: float, subplan: str = "", movement_history: list = 
         return {}
 
 # Internal subplan/context for AGI loop
+plan = ""
 subplan = ""
 movement_history = []
 
@@ -201,21 +202,24 @@ def agi_loop(distance):
     {
       "speak": {"text": "...",
       "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
+      "plan": "updated global strategy",
       "subplan": "updated context string"
     }
     """
     
     
-    global subplan, forward, back, left, right, movement_history
-    logger.info(f"AGI loop called with distance: {distance}, current subplan: {subplan}")
+    global plan, subplan, forward, back, left, right, movement_history
+    logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}")
 
-    resp = ask_llm_vision(distance=distance, subplan=subplan, movement_history=movement_history)
+    resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history)
     move_cmd = ""
     if not resp:
         return move_cmd
 
     # Update subplan if provided
     try:
+        if "plan" in resp and isinstance(resp["plan"], str):
+            plan = resp["plan"]
         if "subplan" in resp and isinstance(resp["subplan"], str):
             subplan = resp["subplan"]
     except Exception:

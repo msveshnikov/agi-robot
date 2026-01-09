@@ -170,13 +170,17 @@ def send_to_gemini(text, image_bytes):
             "BEHAVIOR RULES:\n"
             "1. SAFETY FIRST: If 'distance' < 25 cm, you ARE BLOCKED. You MUST either 'back' or turn (left/right) to avoid collision. Do NOT move 'forward'.\n"
             "2. NAVIGATION: To find an object, systemically scan the room by turning (e.g. 30-60 degrees). If you see a potential target, turn to face it and move closer.\n"
-            "3. MEMORY: Use 'movement_history' and 'subplan' to avoid loops (e.g. don't turn left forever). If stuck, try a different action.\n"
-            "4. REASONING: Briefy explain your visual analysis and strategy in the 'subplan' field alongside your state tracking.\n\n"
+            "3. MEMORY: Use 'movement_history', 'plan', and 'subplan' to avoid loops. If stuck, try a different action.\n"
+            "4. REASONING: Briefly explain your visual analysis and strategy.\n"
+            "5. PLANNING: Update 'plan' for the overall strategy (e.g., 'explore north side', 'approach green object') and 'subplan' for the immediate next few steps (e.g., 'turn right 30 degrees', 'move forward').\n"
+            "6. MAPPING: Create a simple text-mode 2D map of the environemnt in the 'map' field. Use ASCII characters to represent walls, obstacles, and clear paths.\n\n"
             "RESPONSE FORMAT:\n"
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
             "- speak: null or {\"text\": \"...\"} (keep it short and robotic)\n"
             "- move: null or {\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-100), \"angle_deg\": int (15-180)}\n"
-            "- subplan: string (Your internal monologue and memory. Update this to track what you have scanned or seen.)\n"
+            "- plan: string (Global strategy/goal status)\n"
+            "- subplan: string (Immediate tactical steps)\n"
+            "- map: string (Text-based 2D map)\n"
         )
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
@@ -348,11 +352,12 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     payload = {}
 
                 distance = payload.get('distance')
+                plan = payload.get('plan', '')
                 subplan = payload.get('subplan', '')
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nSubplan: {subplan}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
 
                 image_data = get_image_from_socket(timeout=5)
 
