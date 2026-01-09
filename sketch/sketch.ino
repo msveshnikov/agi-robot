@@ -31,6 +31,12 @@ boolean agi = false;
 
 float duration, distance;
 
+const int redPin = 6;
+const int greenPin = 5;
+const int bluePin = 3;
+
+String rgb_str = "0,0,0";
+
 void setup()
 {
     Bridge.begin();
@@ -46,6 +52,10 @@ void setup()
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
+    pinMode(redPin, OUTPUT);
+    pinMode(greenPin, OUTPUT);
+    pinMode(bluePin, OUTPUT);
+
     matrix.begin();
     matrix.textFont(Font_5x7);
     matrix.textScrollSpeed(100);
@@ -60,6 +70,23 @@ void loop()
     Bridge.call("get_right").result(right);
     Bridge.call("get_forward").result(forward);
     Bridge.call("get_agi").result(agi);
+
+    Bridge.call("get_rgb").result(rgb_str);
+
+    // Parse RGB string "r,g,b"
+    int r = 0, g = 0, b = 0;
+    int firstComma = rgb_str.indexOf(',');
+    int secondComma = rgb_str.indexOf(',', firstComma + 1);
+    
+    if (firstComma != -1 && secondComma != -1) {
+        r = rgb_str.substring(0, firstComma).toInt();
+        g = rgb_str.substring(firstComma + 1, secondComma).toInt();
+        b = rgb_str.substring(secondComma + 1).toInt();
+    }
+
+    analogWrite(redPin, r);
+    analogWrite(greenPin, g);
+    analogWrite(bluePin, b);
 
     distance = sonar.ping_cm();
     Bridge.call("set_distance", distance);

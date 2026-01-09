@@ -100,6 +100,7 @@ graph TD
 | **Sensor**      | D8, D9      | Proximity/Distance (Trig/Echo)    |
 | **Modulino**    | I2C         | Temperature & Humidity Sensor     |
 | **Matrix**      | Built-in    | 12x8 LED Matrix                   |
+| **RGB LED**     | D6, D5, D3  | Red, Green, Blue (Common Cathode) |
 | **USB**         | USB Port    | Serial Communication/Webcam       |
 
 ## Arduino Cloud Variables
@@ -115,6 +116,8 @@ The following variables are synchronized with the Arduino Cloud:
     -   `left` (bool): Command to turn left.
     -   `right` (bool): Command to turn right.
     -   `forward` (bool): Command to move forward.
+    -   `rgb` (str): RGB color code (format "R,G,B") for the roof LED.
+    -   `lang` (str): Language code (en, ru, cz).
 
 -   **Read-Only (Telemetry):**
     -   `distance` (int): Distance measured by the ultrasonic sensor (cm).

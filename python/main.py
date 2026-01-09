@@ -78,6 +78,7 @@ def forward_callback(client: object, value: bool):
     logger.info(f"Forward value updated from cloud: {value}")
     forward = value
 
+
 def agi_callback(client: object, value: bool):
     global agi
     logger.info(f"AGI value updated from cloud: {value}")
@@ -103,6 +104,13 @@ def lang_callback(client: object, value: str):
     except Exception:
         pass
 
+rgb = "0,0,0"
+
+def rgb_callback(client: object, value: str):
+    global rgb
+    logger.info(f"RGB value updated from cloud: {value}")
+    rgb = value
+
 arduino_cloud.register("speed", on_write=speed_callback)
 arduino_cloud.register("back",  on_write=back_callback)
 arduino_cloud.register("left",  on_write=left_callback)
@@ -111,6 +119,7 @@ arduino_cloud.register("forward", on_write=forward_callback)
 arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
+arduino_cloud.register("rgb", on_write=rgb_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
@@ -132,6 +141,9 @@ def get_forward():
 
 def get_agi():
     return agi
+
+def get_rgb():
+    return rgb
 
 def set_distance(d):
     arduino_cloud.distance = int(d)
@@ -172,6 +184,7 @@ Bridge.provide("get_left", get_left)
 Bridge.provide("get_right", get_right)
 Bridge.provide("get_forward", get_forward)
 Bridge.provide("get_agi", get_agi)
+Bridge.provide("get_rgb", get_rgb)
 Bridge.provide("set_distance", set_distance)
 
 def set_temperature(t):
