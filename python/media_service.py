@@ -212,7 +212,7 @@ def send_to_gemini(text, image_bytes):
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model = "gemini-3-flash-preview" ##"gemini-robotics-er-1.5-preview",
+            model = "gemini-3-flash-preview",   ##"gemini-robotics-er-1.5-preview",
             contents = contents,
             confi = generate_content_config
         )
