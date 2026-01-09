@@ -68,6 +68,7 @@ def left_callback(client: object, value: bool):
     logger.info(f"Left value updated from cloud: {value}")
     left = value
 
+def right_callback(client: object, value: bool):
     global right
     logger.info(f"Right value updated from cloud: {value}")
     right = value
