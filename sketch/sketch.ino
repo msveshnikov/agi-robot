@@ -104,6 +104,8 @@ void loop()
     }
     else if (agi)
     {
+        right_servo.write(90);
+        left_servo.write(90);
         Monitor.print("Action: AGI loop, distance=");
         Monitor.println(distance);
         if (distance == 0)
