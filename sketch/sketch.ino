@@ -147,14 +147,14 @@ void loop()
 
                 if (dir == "forward")
                 {
-                    Monitor.print("AGI executing MOVE forward\n");
+                    Monitor.println("AGI executing MOVE forward\n");
                     right_servo.write(90 - mvspd);
                     left_servo.write(90 + mvspd);
                     delay(ms);
                 }
                 else if (dir == "back")
                 {
-                    Monitor.print("AGI executing MOVE back\n");
+                    Monitor.println("AGI executing MOVE back\n");
                     right_servo.write(90 + mvspd);
                     left_servo.write(90 - mvspd);
                     delay(ms);
@@ -186,7 +186,7 @@ void loop()
 
                 if (dir == "left")
                 {
-                    Monitor.print("AGI executing TURN left\n");
+                    Monitor.println("AGI executing TURN left\n");
                     // left turn: both wheels same direction to rotate
                     right_servo.write(90 + mvspd);
                     left_servo.write(90 + mvspd);
@@ -194,7 +194,7 @@ void loop()
                 }
                 else if (dir == "right")
                 {
-                    Monitor.print("AGI executing TURN right\n");
+                    Monitor.println("AGI executing TURN right\n");
                     right_servo.write(90 - mvspd);
                     left_servo.write(90 - mvspd);
                     delay(ms);
@@ -204,7 +204,7 @@ void loop()
             }
             else if (verb == "STOP")
             {
-                Monitor.print("AGI STOP\n");
+                Monitor.println("AGI STOP\n");
                 right_servo.write(90);
                 left_servo.write(90);
             }
