@@ -164,11 +164,6 @@ Bridge.provide("set_humidity", set_humidity)
 
 play_sound("/home/arduino/1.wav")
 speak("Robot is ready")
-try:
-    speak(f"My main goal is to {MAIN_GOAL}.")
-except Exception:
-    pass
-
 
 def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None) -> dict:
     """Call the /llm_vision endpoint, sending distance, plan, and subplan. Returns parsed JSON dict or {}."""
