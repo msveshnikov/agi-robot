@@ -188,15 +188,15 @@ void loop()
                 {
                     Monitor.println("AGI executing TURN left\n");
                     // left turn: both wheels same direction to rotate
-                    right_servo.write(90 + mvspd);
-                    left_servo.write(90 + mvspd);
+                    right_servo.write(90 - mvspd);
+                    left_servo.write(90 - mvspd);
                     delay(ms);
                 }
                 else if (dir == "right")
                 {
                     Monitor.println("AGI executing TURN right\n");
-                    right_servo.write(90 - mvspd);
-                    left_servo.write(90 - mvspd);
+                    right_servo.write(90 + mvspd);
+                    left_servo.write(90 + mvspd);
                     delay(ms);
                 }
                 right_servo.write(90);
