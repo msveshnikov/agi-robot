@@ -254,7 +254,6 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
             
             if filename:
                 try:
-                    # Execute 'aplay filename' or winsound
                     play_audio_file(filename)
                     
                     self.send_response(200)
@@ -313,7 +312,6 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                         # Cache the filename
                         TTS_CACHE[text] = temp_filename
 
-                    # Play audio using aplay
                     play_audio_file(temp_filename)
 
                     self.send_response(200)
@@ -382,7 +380,6 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
 if __name__ == "__main__":
-    # Allow address reuse to avoid "Address already in use" errors on restart
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), MediaServiceHandler) as httpd:
         logger.info(f"Media and LLM service running on http://localhost:{PORT}")
