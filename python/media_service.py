@@ -251,23 +251,11 @@ def send_to_gemini(text, image_bytes):
 
 
 def normalize_response_object(response_text):
-    """Normalize various Gemini responses into JSON bytes.
-    - If bytes: return as-is
-    - If dict/list: return JSON bytes
-    - Fallback: wrap raw text into {"raw": "..."}
-    """
-    try:
-        logger.info("Normalizing Gemini response...")
-        if isinstance(response_text, bytes):
-            return response_text
+    if isinstance(response_text, bytes):
+        return response_text
+    if isinstance(response_text, (dict, list)):
+        return json.dumps(response_text).encode('utf-8')
 
-        logger.info(f"Response type: {type(response_text)}")
-        if isinstance(response_text, (dict, list)):
-            return json.dumps(response_text).encode('utf-8')
-
-        return json.dumps({"raw": str(response_text)}).encode('utf-8')
-    except Exception:
-        return json.dumps({"raw": str(response_text)}).encode('utf-8')
 
 class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
