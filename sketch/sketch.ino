@@ -106,6 +106,8 @@ void loop()
     {
         Monitor.print("Action: AGI loop, distance=");
         Monitor.println(distance);
+        if (distance == 0)
+            distance = 1000; // no echo, set to max
         String mvcmd;
         Bridge.call("agi_loop", distance).result(mvcmd);
         Monitor.print("AGI cmd: ");
