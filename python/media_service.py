@@ -12,6 +12,9 @@ import json
 import re
 import ast
 
+import random
+import glob
+
 if sys.platform == 'win32':
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Python\\agi-robot\\google.json'
 else:
@@ -54,6 +57,22 @@ def play_audio_file(filename):
     except Exception as e:
         logger.error(f"Failed to play audio: {e}", exc_info=True)
         raise e
+
+def play_random_sound():
+    try:
+        sounds_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sounds')
+        files = glob.glob(os.path.join(sounds_dir, '*.wav'))
+        if not files:
+            logger.warning(f"No .wav files found in {sounds_dir}")
+            return None
+        
+        filename = random.choice(files)
+        play_audio_file(filename)
+        return filename
+    except Exception as e:
+        logger.error(f"Failed to play random sound: {e}", exc_info=True)
+        return None
+
 
 
 PORT = 5000
@@ -178,13 +197,15 @@ def send_to_gemini(text, image_bytes, lang="en"):
             "BEHAVIOR RULES:\n"
             "1. SAFETY FIRST: If 'distance' < 25 cm, you ARE BLOCKED. You MUST either 'back' or turn (left/right) to avoid collision. Do NOT move 'forward'.\n"
             "2. NAVIGATION: To find an object, systemically scan the room by turning (e.g. 30-60 degrees). If you see a potential target, turn to face it and move closer.\n"
-            "3. MEMORY: Use 'movement_history', 'plan', and 'subplan' to avoid loops. If stuck, try a different action.\n"
-            "4. REASONING: Briefly explain your visual analysis and strategy.\n"
-            "5. PLANNING: Update 'plan' for the overall strategy (e.g., 'explore north side', 'approach green object') and 'subplan' for the immediate next few steps (e.g., 'turn right 30 degrees', 'move forward').\n"
-            "6. MAPPING: Create a simple text-mode 2D map of the environemnt in the 'map' field. Use ASCII characters to represent walls, obstacles, and clear paths.\n\n"
+            "3. BE SOCIAL: If you need to attract human attention, set 'sound' to 'casual'.\n"
+            "4. MEMORY: Use 'movement_history', 'plan', and 'subplan' to avoid loops. If stuck, try a different action.\n"
+            "5. REASONING: Briefly explain your visual analysis and strategy.\n"
+            "6. PLANNING: Update 'plan' for the overall strategy (e.g., 'explore north side', 'approach green object') and 'subplan' for the immediate next few steps (e.g., 'turn right 30 degrees', 'move forward').\n"
+            "7. MAPPING: Create a simple text-mode 2D map of the environemnt in the 'map' field. Use ASCII characters to represent walls, obstacles, and clear paths.\n\n"
             "RESPONSE FORMAT:\n"
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
             f"- speak: null or {{\"text\": \"...\"}} (keep it short and robotic. {lang_instruction})\n"
+            "- sound: null or \"casual\" (to play a random sound)\n"
             "- move: null or {\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-100), \"angle_deg\": int (15-180)}\n"
             "- plan: string (Global strategy/goal status)\n"
             "- subplan: string (Immediate tactical steps)\n"
@@ -284,6 +305,20 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(b"Missing 'filename' parameter. Usage: /play?filename=sound.wav")
+                self.wfile.write(b"Missing 'filename' parameter. Usage: /play?filename=sound.wav")
+        elif parsed_url.path == '/play_random':
+            filename = play_random_sound()
+            if filename:
+                 self.send_response(200)
+                 self.send_header('Content-type', 'text/plain')
+                 self.end_headers()
+                 self.wfile.write(f"Playing random sound: {filename}".encode('utf-8'))
+                 logger.info(f"Successfully started playing random sound: {filename}")
+            else:
+                 self.send_response(500)
+                 self.send_header('Content-type', 'text/plain')
+                 self.end_headers()
+                 self.wfile.write(b"Failed to play random sound (check logs)")
         elif parsed_url.path == '/speak':
             query_components = urllib.parse.parse_qs(parsed_url.query)
             text = query_components.get('text', [None])[0]

@@ -145,6 +145,15 @@ def play_sound(filename):
     except Exception as e:
         logger.warning(f"Could not call sound service: {e}")
 
+def play_random_sound():
+    try:
+        url = f"http://172.17.0.1:5000/play_random"
+        with urllib.request.urlopen(url, timeout=55) as response:
+            logger.info(f"Random sound service called: {response.read().decode()}")
+    except Exception as e:
+        logger.warning(f"Could not call random sound service: {e}")
+
+
 def speak(text):
     try:
         query = urllib.parse.urlencode({'text': text, 'lang': lang})
@@ -205,9 +214,9 @@ movement_history = []
 def agi_loop(distance):
     """Called from MCU. Sends distance + subplan to LLM-vision, handles JSON response.
 
-    Expected JSON schema:
     {
       "speak": {"text": "...",
+      "sound": "casual",
       "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
       "plan": "updated global strategy",
       "subplan": "updated context string"
@@ -241,6 +250,15 @@ def agi_loop(distance):
                 speak(text)
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
+
+    # Handle sound
+    try:
+        snd = resp.get("sound")
+        if snd == "casual":
+             play_random_sound()
+    except Exception as e:
+        logger.warning("Warning handling sound: %s", e)
+
 
     # Handle movement: build a short command string for MCU to execute and return it
     try:
