@@ -239,7 +239,7 @@ def agi_loop(distance):
             cmd = mv.get("command")
             mv_distance = mv.get("distance_cm")
             angle = mv.get("angle_deg")
-            chosen_speed = 45
+            chosen_speed = 50
             if cmd in ("forward", "back") and mv_distance is not None:
                 # Format: MOVE|direction|distance_cm|speed
                 move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
