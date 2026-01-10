@@ -68,8 +68,6 @@ void loop()
     Bridge.call("get_agi").result(agi);
     Bridge.call("get_rgb").result(rgb_str);
 
-    // Monitor.print("RGB string: ");
-    // Monitor.println(rgb_str);
     int r = 0, g = 0, b = 0;
     int firstComma = rgb_str.indexOf(',');
     int secondComma = rgb_str.indexOf(',', firstComma + 1);
@@ -81,7 +79,7 @@ void loop()
     }
 
     analogWrite(bluePin, b);
-    analogWrite(redPin, r);
+    analogWrite(redPin, r/1.2);
     analogWrite(greenPin, g/2);
 
     distance = sonar.ping_cm();
