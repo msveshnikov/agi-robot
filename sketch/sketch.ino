@@ -53,10 +53,10 @@ void setup()
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
-    pinMode(redPin, OUTPUT);
-    pinMode(greenPin, OUTPUT);
-    pinMode(bluePin, OUTPUT);
-    pinMode(resistorPin, INPUT_PULLUP);
+    // pinMode(redPin, OUTPUT);
+    // pinMode(greenPin, OUTPUT);
+    // pinMode(bluePin, OUTPUT);
+    pinMode(resistorPin, INPUT_PULLDOWN);
 
     matrix.begin();
     matrix.textFont(Font_5x7);
@@ -72,10 +72,11 @@ void loop()
     Bridge.call("get_right").result(right);
     Bridge.call("get_forward").result(forward);
     Bridge.call("get_agi").result(agi);
-
     Bridge.call("get_rgb").result(rgb_str);
 
     // Parse RGB string "r,g,b"
+    Monitor.print("RGB string: ");
+    Monitor.println(rgb_str);
     int r = 0, g = 0, b = 0;
     int firstComma = rgb_str.indexOf(',');
     int secondComma = rgb_str.indexOf(',', firstComma + 1);
@@ -86,9 +87,9 @@ void loop()
         b = rgb_str.substring(secondComma + 1).toInt();
     }
 
-    analogWrite(redPin, r);
-    analogWrite(greenPin, g);
-    analogWrite(bluePin, b);
+    analogWrite(redPin, 255);
+    analogWrite(greenPin, 255);
+    analogWrite(bluePin, 128);
 
     distance = sonar.ping_cm();
     Bridge.call("set_distance", distance);
