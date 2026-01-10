@@ -205,7 +205,7 @@ void loop()
                 Monitor.println(mvspd);
                 
                 // estimate ms per degree
-                float ms_per_deg_base = 30.0; // empirical base at speed 45
+                float ms_per_deg_base = 50.0; // empirical base at speed 45
                 float scale = (mvspd > 0) ? ((float)mvspd / 45.0) : 1.0;
                 unsigned long ms = (unsigned long)(ang * ms_per_deg_base / scale);
 
