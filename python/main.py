@@ -316,7 +316,7 @@ def agi_loop(distance):
                 logger.info("Keyword detected! Starting 5-second recording...")
     
                 # now record mic for 5 sec and save to file with proper WAV header
-                mic = Microphone(device='USB_MIC_1', rate=16000, channels=1, format='S16_LE', periodsize=1024)
+                mic = Microphone()
                 mic.start()
                 try:
                     audio_chunk_iterator = mic.stream()  # Returns a numpy array iterator
