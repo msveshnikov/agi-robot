@@ -106,33 +106,56 @@ def lang_callback(client: object, value: str):
         pass
 
 rgb = "0,0,0"
+rgb_values = {"hue": 0, "sat": 0, "bri": 0, "swi": False}
+
+def update_rgb_from_values():
+    global rgb
+    try:
+        swi = rgb_values.get("swi", False)
+        if isinstance(swi, str):
+            swi = (swi.lower() == "true")
+        
+        if not swi:
+            rgb = "0,0,0"
+        else:
+            h = float(rgb_values.get("hue", 0)) / 360.0
+            s = float(rgb_values.get("sat", 0)) / 100.0
+            v = float(rgb_values.get("bri", 0)) / 100.0
+            
+            r_float, g_float, b_float = colorsys.hsv_to_rgb(h, s, v)
+            rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
+            
+        logger.info(f"Updated RGB string: {rgb} from {rgb_values}")
+    except Exception as e:
+        logger.error(f"Error calculating RGB: {e}")
 
 def rgb_callback(client: object, value: dict):
-    global rgb
-    logger.info(f"RGB value updated from cloud: {value}")
-    # Value example: {"bri":"63","hue":"3","sat":"81","swi":"false"}
-    try:
-        if isinstance(value, dict):
-            swi = value.get("swi", False)
-            if isinstance(swi, str):
-                swi = (swi.lower() == "true")
-            
-            if not swi:
-                rgb = "0,0,0"
-            else:
-                h = float(value.get("hue", 0)) / 360.0
-                s = float(value.get("sat", 0)) / 100.0
-                v = float(value.get("bri", 0)) / 100.0
-                
-                # colorsys uses 0.0-1.0
-                r_float, g_float, b_float = colorsys.hsv_to_rgb(h, s, v)
-                rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
-                
-            logger.info(f"Converted CloudColoredLight to RGB string: {rgb}")
-        else:
-            logger.warning(f"Unexpected type for rgb callback: {type(value)}")
-    except Exception as e:
-        logger.error(f"Error processing rgb callback: {e}")
+    if isinstance(value, dict):
+        logger.info(f"RGB composite update: {value}")
+        for k in ["hue", "sat", "bri", "swi"]:
+            if k in value:
+                rgb_values[k] = value[k]
+        update_rgb_from_values()
+
+def rgb_hue_callback(client: object, value):
+    logger.info(f"RGB Hue update: {value}")
+    rgb_values["hue"] = value
+    update_rgb_from_values()
+
+def rgb_sat_callback(client: object, value):
+    logger.info(f"RGB Sat update: {value}")
+    rgb_values["sat"] = value
+    update_rgb_from_values()
+
+def rgb_bri_callback(client: object, value):
+    logger.info(f"RGB Bri update: {value}")
+    rgb_values["bri"] = value
+    update_rgb_from_values()
+
+def rgb_swi_callback(client: object, value):
+    logger.info(f"RGB Swi update: {value}")
+    rgb_values["swi"] = value
+    update_rgb_from_values()
 
 arduino_cloud.register("speed", on_write=speed_callback)
 arduino_cloud.register("back",  on_write=back_callback)
@@ -142,7 +165,14 @@ arduino_cloud.register("forward", on_write=forward_callback)
 arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
+
+# Register composite and individual RGB callbacks
 arduino_cloud.register("rgb", on_write=rgb_callback)
+arduino_cloud.register("rgb:hue", on_write=rgb_hue_callback)
+arduino_cloud.register("rgb:sat", on_write=rgb_sat_callback)
+arduino_cloud.register("rgb:bri", on_write=rgb_bri_callback)
+arduino_cloud.register("rgb:swi", on_write=rgb_swi_callback)
+
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
