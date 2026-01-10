@@ -129,14 +129,6 @@ def update_rgb_from_values():
     except Exception as e:
         logger.error(f"Error calculating RGB: {e}")
 
-def rgb_callback(client: object, value: dict):
-    if isinstance(value, dict):
-        logger.info(f"RGB composite update: {value}")
-        for k in ["hue", "sat", "bri", "swi"]:
-            if k in value:
-                rgb_values[k] = value[k]
-        update_rgb_from_values()
-
 def rgb_hue_callback(client: object, value):
     logger.info(f"RGB Hue update: {value}")
     rgb_values["hue"] = value
@@ -166,8 +158,7 @@ arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
 
-# Register composite and individual RGB callbacks
-arduino_cloud.register("rgb", on_write=rgb_callback)
+# Register individual RGB callbacks
 arduino_cloud.register("rgb:hue", on_write=rgb_hue_callback)
 arduino_cloud.register("rgb:sat", on_write=rgb_sat_callback)
 arduino_cloud.register("rgb:bri", on_write=rgb_bri_callback)

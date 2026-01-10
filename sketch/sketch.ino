@@ -72,7 +72,6 @@ void loop()
     Bridge.call("get_right").result(right);
     Bridge.call("get_forward").result(forward);
     Bridge.call("get_agi").result(agi);
-
     Bridge.call("get_rgb").result(rgb_str);
 
     // Parse RGB string "r,g,b"
