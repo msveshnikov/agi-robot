@@ -12,6 +12,7 @@ import io
 import base64
 import json
 import time
+import colorsys
      
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -106,10 +107,32 @@ def lang_callback(client: object, value: str):
 
 rgb = "0,0,0"
 
-def rgb_callback(client: object, value: str):
+def rgb_callback(client: object, value: dict):
     global rgb
     logger.info(f"RGB value updated from cloud: {value}")
-    rgb = value
+    # Value example: {"bri":"63","hue":"3","sat":"81","swi":"false"}
+    try:
+        if isinstance(value, dict):
+            swi = value.get("swi", False)
+            if isinstance(swi, str):
+                swi = (swi.lower() == "true")
+            
+            if not swi:
+                rgb = "0,0,0"
+            else:
+                h = float(value.get("hue", 0)) / 360.0
+                s = float(value.get("sat", 0)) / 100.0
+                v = float(value.get("bri", 0)) / 100.0
+                
+                # colorsys uses 0.0-1.0
+                r_float, g_float, b_float = colorsys.hsv_to_rgb(h, s, v)
+                rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
+                
+            logger.info(f"Converted CloudColoredLight to RGB string: {rgb}")
+        else:
+            logger.warning(f"Unexpected type for rgb callback: {type(value)}")
+    except Exception as e:
+        logger.error(f"Error processing rgb callback: {e}")
 
 arduino_cloud.register("speed", on_write=speed_callback)
 arduino_cloud.register("back",  on_write=back_callback)

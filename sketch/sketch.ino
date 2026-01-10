@@ -34,6 +34,7 @@ float duration, distance;
 const int redPin = 6;
 const int greenPin = 5;
 const int bluePin = 3;
+const int resistorPin=4;
 
 String rgb_str = "0,0,0";
 
@@ -55,6 +56,7 @@ void setup()
     pinMode(redPin, OUTPUT);
     pinMode(greenPin, OUTPUT);
     pinMode(bluePin, OUTPUT);
+    pinMode(resistorPin, INPUT_PULLUP);
 
     matrix.begin();
     matrix.textFont(Font_5x7);
