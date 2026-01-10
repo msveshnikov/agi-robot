@@ -241,12 +241,20 @@ Bridge.provide("set_humidity", set_humidity)
 play_sound("/home/arduino/1.wav")
 speak("Robot is ready")
 
-def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None) -> dict:
-    """Call the /llm_vision endpoint, sending distance, plan, and subplan. Returns parsed JSON dict or {}."""
+def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "") -> dict:
+    """Call the /llm_vision endpoint, sending distance, plan, subplan, and map. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
             movement_history = []
-        payload = {"distance": distance, "plan": plan, "subplan": subplan, "main_goal": MAIN_GOAL, "movement_history": movement_history, "lang": lang}
+        payload = {
+            "distance": distance,
+            "plan": plan,
+            "subplan": subplan,
+            "map": space_map,
+            "main_goal": MAIN_GOAL,
+            "movement_history": movement_history,
+            "lang": lang
+        }
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req, timeout=55) as response:
@@ -263,6 +271,7 @@ def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_
 # Internal subplan/context for AGI loop
 plan = ""
 subplan = ""
+space_map = ""
 movement_history = []
 
 
@@ -274,25 +283,28 @@ def agi_loop(distance):
       "sound": "casual",
       "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
       "plan": "updated global strategy",
-      "subplan": "updated context string"
+      "subplan": "updated context string",
+      "map": "updated map string"
     }
     """
     
     
-    global plan, subplan, forward, back, left, right, movement_history, rgb
+    global plan, subplan, space_map, forward, back, left, right, movement_history, rgb
     logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}")
 
-    resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history)
+    resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map)
     move_cmd = ""
     if not resp:
         return move_cmd
 
-    # Update subplan if provided
+    # Update state if provided
     try:
         if "plan" in resp and isinstance(resp["plan"], str):
             plan = resp["plan"]
         if "subplan" in resp and isinstance(resp["subplan"], str):
             subplan = resp["subplan"]
+        if "map" in resp and isinstance(resp["map"], str):
+            space_map = resp["map"]
     except Exception:
         pass
 
