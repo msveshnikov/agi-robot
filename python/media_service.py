@@ -207,6 +207,7 @@ def send_to_gemini(text, image_bytes, lang="en"):
             f"- speak: null or {{\"text\": \"...\"}} (keep it short and robotic. {lang_instruction})\n"
             "- sound: null or \"casual\" (to play a random sound)\n"
             "- move: null or {\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-100), \"angle_deg\": int (15-180)}\n"
+            "- rgb: null or string \"R,G,B\" (e.g. \"255,255,255\" for white). MANDATORY: If image is dark, set to \"255,255,255\". Else set to mood color.\n"
             "- plan: string (Global strategy/goal status)\n"
             "- subplan: string (Immediate tactical steps)\n"
             "- map: string (Text-based 2D map)\n"

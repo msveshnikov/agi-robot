@@ -279,7 +279,7 @@ def agi_loop(distance):
     """
     
     
-    global plan, subplan, forward, back, left, right, movement_history
+    global plan, subplan, forward, back, left, right, movement_history, rgb
     logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}")
 
     resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history)
@@ -313,6 +313,18 @@ def agi_loop(distance):
              play_random_sound()
     except Exception as e:
         logger.warning("Warning handling sound: %s", e)
+
+    # Handle RGB
+    try:
+        rgb_val = resp.get("rgb")
+        if rgb_val and isinstance(rgb_val, str):
+            # Validate format "R,G,B"
+            parts = rgb_val.split(',')
+            if len(parts) == 3:
+                 rgb = rgb_val
+                 logger.info(f"AGI set RGB to: {rgb}")
+    except Exception as e:
+        logger.warning("Warning handling rgb: %s", e)
 
 
     # Handle movement: build a short command string for MCU to execute and return it
