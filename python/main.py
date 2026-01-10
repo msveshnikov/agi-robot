@@ -26,8 +26,6 @@ last_speak_time = 0
 # Persistent main goal (remains for the robot forever)
 MAIN_GOAL = "Find the Christmas Tree in the room"
 
-# Control talkative behavior: announce intentions often
-last_intent_speak_time = 0
 
 def send_detections_to_ui(detections: dict):
   global last_speak_time

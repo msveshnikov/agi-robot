@@ -68,7 +68,6 @@ void loop()
     Bridge.call("get_agi").result(agi);
     Bridge.call("get_rgb").result(rgb_str);
 
-    // Parse RGB string "r,g,b"
     Monitor.print("RGB string: ");
     Monitor.println(rgb_str);
     int r = 0, g = 0, b = 0;
@@ -81,9 +80,9 @@ void loop()
         b = rgb_str.substring(secondComma + 1).toInt();
     }
 
-    analogWrite(redPin, r);
-    analogWrite(greenPin, g);
     analogWrite(bluePin, b);
+    analogWrite(redPin, r);
+    analogWrite(greenPin, g/2);
 
     distance = sonar.ping_cm();
     Bridge.call("set_distance", distance);
@@ -241,5 +240,6 @@ void loop()
     {
         right_servo.write(90);
         left_servo.write(90);
+        delay(100);
     }
 }
