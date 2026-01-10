@@ -240,7 +240,7 @@ play_sound("/home/arduino/1.wav")
 speak("Robot is ready")
 
 def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "") -> dict:
-    """Call the /llm_vision endpoint, sending distance, plan, subplan, and map. Returns parsed JSON dict or {}."""
+    """Call the /llm_vision endpoint, sending distance, plan, subplan, map, and audio if available. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
             movement_history = []
@@ -253,6 +253,22 @@ def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_
             "movement_history": movement_history,
             "lang": lang
         }
+        
+        # Include mic.wav if it exists
+        if os.path.exists("mic.wav"):
+            try:
+                with open("mic.wav", "rb") as audio_file:
+                    audio_data = audio_file.read()
+                    audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                    payload["audio"] = audio_base64
+                    payload["audio_format"] = "wav"
+                    logger.info("Including mic.wav in llm_vision request")
+                # Delete the file after reading it
+                os.remove("mic.wav")
+                logger.info("Deleted mic.wav after inclusion in payload")
+            except Exception as audio_err:
+                logger.warning(f"Could not read/delete mic.wav: {audio_err}")
+        
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
         with urllib.request.urlopen(req, timeout=55) as response:

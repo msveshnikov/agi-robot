@@ -139,5 +139,3 @@ The following variables are synchronized with the Arduino Cloud:
 -   **Ports**: 1x USB-C host for Arduino, 1x USB-A for Webcam with mic.
 
 # TODO
-
--   [x] listen to mic after keyword and send transcription to LLM model 

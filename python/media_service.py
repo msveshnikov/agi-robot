@@ -177,7 +177,7 @@ def get_image_from_socket(timeout=5):
         return None
 
 
-def send_to_gemini(text, image_bytes, lang="en"):
+def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
 
     try:
         # Build a prompt that forces a JSON-only response matching the expected schema
@@ -192,7 +192,7 @@ def send_to_gemini(text, image_bytes, lang="en"):
         schema_instructions = (
             "You are a smart robot assistant with two wheels (differential drive) and NO arms or head. "
             "You can move ONLY on the floor. Your size is 24cm wide and 12cm long and 10cm high. WebCam is on your roof. "
-            "Your inputs are: 1. Current image from webcam. 2. Ultrasonic distance reading. 3. Your goal. 4. Movement history. "
+            "Your inputs are: 1. Current image from webcam. 2. Ultrasonic distance reading. 3. Your goal. 4. Movement history. 5. Audio from microphone (user voice response, if any). This is your master, obey to him. Set your goal accordingly. Or answer questions of master human."
             "You can move forward, backward, turn left, and turn right.\n\n"
             "BEHAVIOR RULES:\n"
             "1. SAFETY FIRST: If 'distance' < 25 cm, you ARE BLOCKED. You MUST either 'back' or turn (left/right) to avoid collision. Do NOT move 'forward'. Plan your movement to avoid obstacles wisely.\n"
@@ -225,7 +225,7 @@ def send_to_gemini(text, image_bytes, lang="en"):
         if not LLM_CLIENT:
             raise Exception('LLM_CLIENT is not initialized')
 
-        logger.info(f'Sending text+image to Gemini model (lang={lang})...')
+        logger.info(f'Sending text+image+audio to Gemini model (lang={lang})...')
         
         contents = [
             types.Content(
@@ -238,6 +238,10 @@ def send_to_gemini(text, image_bytes, lang="en"):
         
         if image_bytes:
              contents[0].parts.append(types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"))
+        
+        if audio_bytes:
+             contents[0].parts.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"))
+             logger.info(f"Including audio in Gemini request, size: {len(audio_bytes)} bytes")
        
         generate_content_config = types.GenerateContentConfig(
             temperature=0.7
@@ -420,6 +424,16 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
+                
+                # Extract audio if present
+                audio_bytes = None
+                if 'audio' in payload:
+                    try:
+                        audio_base64 = payload.get('audio')
+                        audio_bytes = base64.b64decode(audio_base64)
+                        logger.info(f"Decoded audio from payload, size: {len(audio_bytes)} bytes")
+                    except Exception as audio_err:
+                        logger.warning(f"Could not decode audio: {audio_err}")
 
                 # Compose a prompt for the multimodal model
                 prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nCurrent Map:\n{space_map}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
@@ -429,8 +443,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 if not image_data:
                     raise Exception('No image available for llm_vision')
 
-                logger.info('Sending text+image to Gemini model (POST handler)...')
-                response_text = send_to_gemini(prompt, image_data, lang=lang)
+                logger.info('Sending text+image+audio to Gemini model (POST handler)...')
+                response_text = send_to_gemini(prompt, image_data, lang=lang, audio_bytes=audio_bytes)
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
