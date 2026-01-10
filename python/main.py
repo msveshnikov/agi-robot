@@ -313,7 +313,7 @@ def agi_loop(distance):
             text = sp.get("text")
             if text:
                 speak(text)
-                logger.info("Keyword detected! Starting 5-second recording...")
+                logger.info("Robot speaking!! Starting 10-second recording...")
     
                 # now record mic for 5 sec and save to file with proper WAV header
                 mic = Microphone()
@@ -330,7 +330,7 @@ def agi_loop(distance):
                         
                         for chunk in audio_chunk_iterator:
                             wf.writeframes(chunk.tobytes())
-                            if time.time() - start_time >= 5:
+                            if time.time() - start_time >= 10:
                                 break
                     logger.info("Recording finished and saved to mic.wav with WAV header")
                 finally:
