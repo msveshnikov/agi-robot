@@ -7,7 +7,8 @@ This project aims to create a highly interactive, autonomous robot utilizing **G
 ## Current Prototype Specifications
 
 -   **Core Hardware:** Arduino Uno Q (Microcontroller/Motor Control)
--   **Movement:** Two wheels with 360-degree movement capability (differential drive) - **Pins 11 (Left) & 10 (Right)**
+-   **Physical Dimensions:** 24cm wide, 12cm long, **10cm high**
+-   **Movement:** Two wheels with 360-degree movement capability (differential drive) - **Pins 11 (Left) & 10 (Right)**. Note: Robot can move **ONLY on the floor**.
 -   **Peripherals:** USB-C dongle (USB Camera with Mic, Bluetooth Speaker)
 -   **Sensors:**
     -   Proximity/Distance Sensor (Trig Pin 8, Echo Pin 9)
