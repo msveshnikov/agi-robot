@@ -80,7 +80,7 @@ void loop()
 
     analogWrite(bluePin, b);
     analogWrite(redPin, r/1.2);
-    analogWrite(greenPin, g/1.7);
+    analogWrite(greenPin, g/2);
 
     distance = sonar.ping_cm();
     Bridge.call("set_distance", distance);

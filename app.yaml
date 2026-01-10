@@ -7,8 +7,6 @@ bricks:
     variables:
       ARDUINO_DEVICE_ID: 1972122a-7197-42cc-8ccb-1f44e2234cf2
       ARDUINO_SECRET: "8tMau8RKJMg0a#xxAate2Q9@S"
-- arduino:keyword_spotting:
-    model: keyword-spotting-hey-arduino
 - arduino:video_object_detection:
     model: yolox-object-detection
 icon: 🛻
