@@ -11,14 +11,10 @@ import threading
 import json
 import re
 import ast
-
 import random
 import glob
 
-if sys.platform == 'win32':
-  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'C:\\My-progs\\Python\\agi-robot\\google.json'
-else:
-  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
 import logging
 

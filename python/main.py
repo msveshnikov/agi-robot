@@ -25,13 +25,9 @@ ui.on_message("override_th", lambda sid, threshold: detection_stream.override_th
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("robot.main")
 
-last_speak_time = 0
-
-MAIN_GOAL = "Find the Christmas Tree in the room"
-
+MAIN_GOAL = "Be helpful assistant to the master human"
 
 def send_detections_to_ui(detections: dict):
-  global last_speak_time
   for key, value in detections.items():
     entry = {
       "content": key,
