@@ -4,6 +4,8 @@ from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from arduino.app_bricks.arduino_cloud import ArduinoCloud
+from arduino.app_bricks.keyword_spotting import KeywordSpotting
+from mic import Microphone
 import urllib.request
 import urllib.parse
 import os
@@ -370,5 +372,31 @@ def agi_loop(distance):
 # expose agi_loop to the MCU
 Bridge.provide("agi_loop", agi_loop)
 App.start_brick(arduino_cloud)
+
+
+def on_keyword_detected():
+    """Callback function that handles a detected keyword."""
+    play_sound("/home/arduino/2.wav")
+    logger.info("Keyword detected! Starting 5-second recording...")
+    
+    # now record mic for 5 sec and save to file
+    mic = Microphone(device='USB_MIC_1', channels=1)
+    mic.start()
+    try:
+        audio_chunk_iterator = mic.stream()  # Returns a numpy array iterator
+        start_time = time.time()
+        
+        # Open file once for the duration of recording
+        with open("mic.wav", "wb") as f:
+            for chunk in audio_chunk_iterator:
+                f.write(chunk.tobytes())
+                if time.time() - start_time >= 5:
+                    break
+        logger.info("Recording finished and saved to mic.wav")
+    finally:
+        mic.stop()
+
+spotter = KeywordSpotting()
+spotter.on_detect("hey_arduino", on_keyword_detected)
 
 App.run()

@@ -140,5 +140,4 @@ The following variables are synchronized with the Arduino Cloud:
 
 # TODO
 
--   [x] listen to mic and send transcription to LLM model 
--   [x] RGB LED on roof with MCU control, to have light in dark room and just for fun
+-   [x] listen to mic after keyword and send transcription to LLM model 
