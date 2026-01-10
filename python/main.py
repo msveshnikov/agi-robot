@@ -15,6 +15,7 @@ import base64
 import json
 import time
 import colorsys
+import wave
      
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -314,20 +315,24 @@ def agi_loop(distance):
                 speak(text)
                 logger.info("Keyword detected! Starting 5-second recording...")
     
-                # now record mic for 5 sec and save to file
-                mic = Microphone(device='USB_MIC_1', channels=1)
+                # now record mic for 5 sec and save to file with proper WAV header
+                mic = Microphone(device='USB_MIC_1', rate=16000, channels=1, format='S16_LE', periodsize=1024)
                 mic.start()
                 try:
                     audio_chunk_iterator = mic.stream()  # Returns a numpy array iterator
                     start_time = time.time()
                     
-                    # Open file once for the duration of recording
-                    with open("mic.wav", "wb") as f:
+                    # Use wave module to write with header
+                    with wave.open("mic.wav", "wb") as wf:
+                        wf.setnchannels(1)
+                        wf.setsampwidth(2) # S16_LE is 2 bytes
+                        wf.setframerate(16000)
+                        
                         for chunk in audio_chunk_iterator:
-                            f.write(chunk.tobytes())
+                            wf.writeframes(chunk.tobytes())
                             if time.time() - start_time >= 5:
                                 break
-                    logger.info("Recording finished and saved to mic.wav")
+                    logger.info("Recording finished and saved to mic.wav with WAV header")
                 finally:
                     mic.stop()
                   
