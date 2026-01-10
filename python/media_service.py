@@ -201,7 +201,7 @@ def send_to_gemini(text, image_bytes, lang="en"):
             "4. MEMORY: Use 'movement_history', 'plan', and 'subplan' to avoid loops. If stuck, try a different action.\n"
             "5. REASONING: Briefly explain your visual analysis and strategy.\n"
             "6. PLANNING: Update 'plan' for the overall strategy (e.g., 'explore north side', 'approach green object') and 'subplan' for the immediate next few steps (e.g., 'turn right 30 degrees', 'move forward').\n"
-            "7. MAPPING: Create a simple text-mode 2D map of the environemnt in the 'map' field. Use ASCII characters to represent walls, obstacles, and clear paths.\n\n"
+            "7. MAPPING: Create and update a 2D text-mode map of the environment in the 'map' field. The map MUST be based on 1x1 meter blocks. Each block is represented by one letter (e.g., W: wall, S: sofa, D: door, R: robot, P: path, O: obstacle). You MUST include a legend explaining the letters used.\n\n"
             "RESPONSE FORMAT:\n"
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
             f"- speak: null or {{\"text\": \"...\"}} (keep it short and robotic. {lang_instruction})\n"
@@ -416,12 +416,13 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 distance = payload.get('distance')
                 plan = payload.get('plan', '')
                 subplan = payload.get('subplan', '')
+                space_map = payload.get('map', '')
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
 
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nCurrent Map:\n{space_map}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
 
                 image_data = get_image_from_socket(timeout=5)
 
