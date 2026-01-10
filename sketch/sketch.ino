@@ -56,7 +56,7 @@ void setup()
     // pinMode(redPin, OUTPUT);
     // pinMode(greenPin, OUTPUT);
     // pinMode(bluePin, OUTPUT);
-    pinMode(resistorPin, INPUT_PULLDOWN);
+    pinMode(resistorPin, INPUT_PULLUP);
 
     matrix.begin();
     matrix.textFont(Font_5x7);
@@ -87,9 +87,9 @@ void loop()
         b = rgb_str.substring(secondComma + 1).toInt();
     }
 
-    analogWrite(redPin, 255);
-    analogWrite(greenPin, 255);
-    analogWrite(bluePin, 128);
+    analogWrite(redPin, r);
+    analogWrite(greenPin, g);
+    analogWrite(bluePin, b);
 
     distance = sonar.ping_cm();
     Bridge.call("set_distance", distance);
