@@ -32,18 +32,11 @@ try:
 except ImportError:
     logger.warning("google-api-python-client not found. TTS will not work.")
 
-
 try:
     from google import genai
     from google.genai import types
 except ImportError:
     logger.warning("google-genai library not found. LLM will not work.")
-
-try:
-    import google.auth
-except ImportError:
-    pass
-
 
 
 def play_audio_file(filename):
@@ -68,8 +61,6 @@ def play_random_sound():
     except Exception as e:
         logger.error(f"Failed to play random sound: {e}", exc_info=True)
         return None
-
-
 
 PORT = 5000
 TTS_CACHE = {}
