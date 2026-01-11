@@ -210,7 +210,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "- memory: string (Persistent information to save forever)\n"
         )
         
-        current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        current_time_str = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
         prompt_text = f"CURRENT TIME: {current_time_str}\n\n{schema_instructions}\n\nInput context:\n{text}"
 
         init_llm()
