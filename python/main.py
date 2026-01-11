@@ -231,7 +231,7 @@ def set_humidity(h):
 Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
 
-play_sound("/sounds/startup.wav")
+play_sound("python/sounds/startup.wav")
 speak("Robot is ready")
 
 def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:
