@@ -41,7 +41,7 @@ except ImportError:
 
 def play_audio_file(filename):
     try:
-        subprocess.run(['aplay', filename], check=True)
+        subprocess.run(['aplay', filename], check=True) #Popen if no wait
         logger.info(f"Finished playing audio via aplay: {filename}")
     except Exception as e:
         logger.error(f"Failed to play audio: {e}", exc_info=True)
@@ -233,11 +233,11 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
              logger.info(f"Including audio in Gemini request, size: {len(audio_bytes)} bytes")
        
         generate_content_config = types.GenerateContentConfig(
-            temperature = 0.3
+            temperature = 1.0
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model = "gemini-2.5-flash", ## "gemini-3-flash-preview", ##"gemini-robotics-er-1.5-preview", 
+            model = "gemini-3-flash-preview", ## "gemini-3-flash-preview", ##"gemini-robotics-er-1.5-preview", 
             contents = contents,
             config = generate_content_config
         )

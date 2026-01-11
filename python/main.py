@@ -309,8 +309,6 @@ def save_memory(new_memory):
 
 load_memory()
 
-
-
 def agi_loop(distance):
     """Called from MCU. Sends distance + subplan to LLM-vision, handles JSON response.
 
@@ -371,7 +369,7 @@ def agi_loop(distance):
                         
                         for chunk in audio_chunk_iterator:
                             wf.writeframes(chunk.tobytes())
-                            if time.time() - start_time >= 10:
+                            if time.time() - start_time >= 5:
                                 break
                     logger.info("Recording finished and saved to mic.wav with WAV header")
                 finally:
