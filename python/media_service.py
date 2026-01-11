@@ -249,7 +249,6 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
         
         response_text = response.text if hasattr(response, 'text') else str(response)
 
-
         # Try to parse JSON and return parsed object if valid (same logic as before)
         try:
             return json.loads(response_text)
