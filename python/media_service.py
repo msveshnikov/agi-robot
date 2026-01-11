@@ -237,9 +237,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
        
         generate_content_config = types.GenerateContentConfig(
             temperature = 1.3,
-            tools = [types.Tool(google_search=types.GoogleSearchRetrieval())]
-            # add thinking and google grounding tools if needed
-
+            tools = [types.Tool(google_search=types.GoogleSearchRetrieval())],
+            thinking_config = types.ThinkingConfig(include_thoughts=False, thinking_budget=16000)
         )
 
         response = LLM_CLIENT.models.generate_content(
