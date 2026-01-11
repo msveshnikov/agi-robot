@@ -13,6 +13,7 @@ import re
 import ast
 import random
 import glob
+from datetime import datetime
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
@@ -208,8 +209,9 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "- map: string (Text-based 2D map with legend)\n"
             "- memory: string (Persistent information to save forever)\n"
         )
-
-        prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
+        
+        current_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        prompt_text = f"CURRENT TIME: {current_time_str}\n\n{schema_instructions}\n\nInput context:\n{text}"
 
         init_llm()
         if not LLM_CLIENT:
@@ -234,7 +236,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
              logger.info(f"Including audio in Gemini request, size: {len(audio_bytes)} bytes")
        
         generate_content_config = types.GenerateContentConfig(
-            temperature = 1.0
+            temperature = 1.0,
+            tools = [types.Tool(google_search=types.GoogleSearchRetrieval())]
         )
 
         response = LLM_CLIENT.models.generate_content(
