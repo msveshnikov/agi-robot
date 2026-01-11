@@ -235,7 +235,7 @@ Bridge.provide("set_humidity", set_humidity)
 play_sound("/home/arduino/1.wav")
 speak("Robot is ready")
 
-def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "") -> dict:
+def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:
     """Call the /llm_vision endpoint, sending distance, plan, subplan, map, and audio if available. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
@@ -245,6 +245,7 @@ def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_
             "plan": plan,
             "subplan": subplan,
             "map": space_map,
+            "memory": memory,
             "main_goal": MAIN_GOAL,
             "movement_history": movement_history,
             "lang": lang
@@ -283,6 +284,32 @@ plan = ""
 subplan = ""
 space_map = ""
 movement_history = []
+memory = ""
+
+MEMORY_FILE = "memory.txt"
+
+def load_memory():
+    global memory
+    if os.path.exists(MEMORY_FILE):
+        try:
+            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                memory = f.read()
+            logger.info("Memory loaded from %s", MEMORY_FILE)
+        except Exception as e:
+            logger.warning("Could not load memory: %s", e)
+
+def save_memory(new_memory):
+    global memory
+    memory = new_memory
+    try:
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            f.write(memory)
+        logger.info("Memory saved to %s", MEMORY_FILE)
+    except Exception as e:
+        logger.warning("Could not save memory: %s", e)
+
+load_memory()
+
 
 
 def agi_loop(distance):
@@ -294,15 +321,16 @@ def agi_loop(distance):
       "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
       "plan": "updated global strategy",
       "subplan": "updated context string",
-      "map": "updated map string"
+      "map": "updated map string",
+      "memory": "updated memory string"
     }
     """
     
     
-    global plan, subplan, space_map, forward, back, left, right, movement_history, rgb
-    logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}")
+    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb
+    logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
-    resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map)
+    resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
     move_cmd = ""
     if not resp:
         return move_cmd
@@ -315,6 +343,8 @@ def agi_loop(distance):
             subplan = resp["subplan"]
         if "map" in resp and isinstance(resp["map"], str):
             space_map = resp["map"]
+        if "memory" in resp and isinstance(resp["memory"], str):
+            save_memory(resp["memory"])
     except Exception:
         pass
 

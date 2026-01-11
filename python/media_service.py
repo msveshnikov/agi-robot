@@ -188,7 +188,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "4. MEMORY: Use 'movement_history', 'plan', and 'subplan' to avoid loops. If stuck, try a different action.\n"
             "5. REASONING: Briefly explain your visual analysis and strategy.\n"
             "6. PLANNING: Update 'plan' for the overall strategy (e.g., 'explore north side', 'approach green object') and 'subplan' for the immediate next few steps (e.g., 'turn right 30 degrees', 'move forward').\n"
-            "7. MAPPING: Create and update a 2D text-mode map of the environment in the 'map' field. The map MUST be based on 1x1 meter blocks. Each block is represented by one letter (e.g., W: wall, S: sofa, D: door, R: robot, P: path, O: obstacle). You MUST include a legend explaining the letters used.\n\n"
+            "7. MAPPING: Create and update a 2D text-mode map of the environment in the 'map' field. The map MUST be based on 1x1 meter blocks. Each block is represented by one letter (e.g., W: wall, S: sofa, D: door, R: robot, P: path, O: obstacle). You MUST include a legend explaining the letters used.\n"
+            "8. PERMANENT MEMORY: Use the 'memory' field to store information you want to remember FOREVER (owners' names, favorite places, previous events). This field is persisted to a file and will be provided to you in every request. Update it whenever you learn something important.\n\n"
             "RESPONSE FORMAT:\n"
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
             f"- speak: null or {{\"text\": \"...\"}} (keep it short and robotic. {lang_instruction})\n"
@@ -204,6 +205,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "- plan: string (Global strategy/goal status)\n"
             "- subplan: string (Immediate tactical steps)\n"
             "- map: string (Text-based 2D map)\n"
+            "- memory: string (Permanent information to remember forever)\n"
         )
 
         prompt_text = f"{schema_instructions}\n\nInput context:\n{text}"
@@ -235,7 +237,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model =  "gemini-3-flash-preview", ##"gemini-robotics-er-1.5-preview", 
+            model = "gemini-2.5-flash", ## "gemini-3-flash-preview", ##"gemini-robotics-er-1.5-preview", 
             contents = contents,
             config = generate_content_config
         )
@@ -408,6 +410,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 plan = payload.get('plan', '')
                 subplan = payload.get('subplan', '')
                 space_map = payload.get('map', '')
+                memory = payload.get('memory', '')
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
@@ -423,7 +426,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                         logger.warning(f"Could not decode audio: {audio_err}")
 
                 # Compose a prompt for the multimodal model
-                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nCurrent Map:\n{space_map}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
+                prompt = payload.get('prompt') or f"Main goal: {main_goal}\nPlan: {plan}\nSubplan: {subplan}\nMemory: {memory}\nCurrent Map:\n{space_map}\nDistance: {distance} cm\nMovement History: {movement_history}\nDescribe the scene visually, check for obstacles, and plan your next move to orient effectively in the room space."
 
                 image_data = get_image_from_socket(timeout=5)
 
