@@ -35,7 +35,7 @@ const int redPin = 3;
 const int greenPin = 5;
 const int bluePin = 6;
 
-String rgb_str = "0,0,0";
+String rgb_str = "255,0,255"; //activate before python
 
 void setup()
 {
