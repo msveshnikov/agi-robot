@@ -21,7 +21,6 @@ ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
 ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
 
-# Logging setup
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("robot.main")
 
@@ -97,7 +96,7 @@ def lang_callback(client: object, value: str):
     except Exception:
         pass
 
-rgb = "0,0,0"
+rgb = "255,0,255"
 rgb_values = {"hue": 0, "sat": 0, "bri": 0, "swi": False}
 
 def update_rgb_from_values():
@@ -232,7 +231,7 @@ def set_humidity(h):
 Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
 
-play_sound("/home/arduino/1.wav")
+play_sound("/sounds/startup.wav")
 speak("Robot is ready")
 
 def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:

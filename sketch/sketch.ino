@@ -56,6 +56,19 @@ void setup()
     matrix.textFont(Font_5x7);
     matrix.textScrollSpeed(100);
     matrix.clear();
+
+    // Flash red and blue for 5 seconds
+    for (int i = 0; i < 25; i++) {
+        analogWrite(redPin, 255);
+        analogWrite(bluePin, 0);
+        analogWrite(greenPin, 0);
+        delay(100);
+        analogWrite(redPin, 0);
+        analogWrite(bluePin, 255);
+        analogWrite(greenPin, 0);
+        delay(100);
+    }
+
 }
 
 void loop()
