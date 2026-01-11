@@ -233,11 +233,11 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
              logger.info(f"Including audio in Gemini request, size: {len(audio_bytes)} bytes")
        
         generate_content_config = types.GenerateContentConfig(
-            temperature = 0.3
+            temperature = 1.0
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model = "gemini-2.5-flash", ## "gemini-3-flash-preview", ##"gemini-robotics-er-1.5-preview", 
+            model = "gemini-3-flash-preview", ## "gemini-3-flash-preview", ##"gemini-robotics-er-1.5-preview", 
             contents = contents,
             config = generate_content_config
         )
