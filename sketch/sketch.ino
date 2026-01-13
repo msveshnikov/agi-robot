@@ -1,13 +1,7 @@
 #include <Arduino_RouterBridge.h>
-
-#include "ArduinoGraphics.h"
-#include "Arduino_LED_Matrix.h"
-
 #include <Modulino.h>
 #include <Servo.h>
 #include <NewPing.h>
-
-Arduino_LED_Matrix matrix;
 
 Servo right_servo;
 Servo left_servo;
@@ -52,11 +46,6 @@ void setup()
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
-    matrix.begin();
-    matrix.textFont(Font_5x7);
-    matrix.textScrollSpeed(100);
-    matrix.clear();
-
     // Flash red and blue for 5 seconds
     for (int i = 0; i < 25; i++) {
         analogWrite(redPin, 255);
@@ -68,7 +57,6 @@ void setup()
         analogWrite(greenPin, 0);
         delay(100);
     }
-
 }
 
 void loop()
