@@ -338,6 +338,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Random sound playback
 - [x] Proximity sensor integration
 - [x] Arduino Cloud variable synchronization
+- [x] Google grounding
 
 ### Future Enhancements
 - [ ] IMU integration for better orientation tracking (compass)
