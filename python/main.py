@@ -328,9 +328,9 @@ def agi_loop(distance):
     logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
     resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
-    move_cmd = ""
+    
     if not resp:
-        return move_cmd
+        return ""
 
     # Update state if provided
     try:
