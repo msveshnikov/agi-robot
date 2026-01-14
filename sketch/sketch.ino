@@ -31,9 +31,9 @@ const int bluePin = 6;
 
 String rgb_str = "255,0,255"; //activate before python
 
-void getDistance() {
+float getDistance() {
     float d = sonar.ping_cm();
-    Bridge.result(d);
+    return d;
 }
 
 void setRGB(String rgb_str) {
