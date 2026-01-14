@@ -235,7 +235,7 @@ play_sound("/home/arduino/ArduinoApps/robot/python/sounds/startup.wav")
 speak("Robot is ready")
 
 def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:
-    """Call the /llm_vision endpoint, sending distance, plan, subplan, map, and audio if available. Returns parsed JSON dict or {}."""
+    """Call the /llm_vision endpoint, sending distance, plan, subplan, space_map, and audio if available. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
             movement_history = []
@@ -243,7 +243,7 @@ def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_
             "distance": distance,
             "plan": plan,
             "subplan": subplan,
-            "map": space_map,
+            "space_map": space_map,
             "memory": memory,
             "main_goal": MAIN_GOAL,
             "movement_history": movement_history,
@@ -318,7 +318,7 @@ def agi_loop(distance):
       "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
       "plan": "updated global strategy",
       "subplan": "updated context string",
-      "map": "updated map string",
+      "space_map": "updated map string",
       "memory": "updated memory string"
     }
     """
@@ -338,12 +338,58 @@ def agi_loop(distance):
             plan = resp["plan"]
         if "subplan" in resp and isinstance(resp["subplan"], str):
             subplan = resp["subplan"]
-        if "map" in resp and isinstance(resp["map"], str):
-            space_map = resp["map"]
+        if "space_map" in resp and isinstance(resp["space_map"], str):
+            space_map = resp["space_map"]
         if "memory" in resp and isinstance(resp["memory"], str):
             save_memory(resp["memory"])
     except Exception:
         pass
+
+    # Handle RGB
+    try:
+        rgb_val = resp.get("rgb")
+        if rgb_val and isinstance(rgb_val, str):
+            # Validate format "R,G,B"
+            parts = rgb_val.split(',')
+            if len(parts) == 3:
+                 rgb = rgb_val
+                 logger.info(f"AGI set RGB to: {rgb}")
+    except Exception as e:
+        logger.warning("Warning handling rgb: %s", e)
+
+    # Handle sound
+    try:
+        snd = resp.get("sound")
+        if snd == "casual":
+             play_random_sound()
+    except Exception as e:
+        logger.warning("Warning handling sound: %s", e)
+
+
+    # Handle movement: build a short command string for MCU to execute and return it
+    try:
+        mv = resp.get("move")
+        if mv and isinstance(mv, dict):
+            # Expected keys: command (forward|back|left|right), distance_cm, angle_deg
+            cmd = mv.get("command")
+            mv_distance = mv.get("distance_cm")
+            angle = mv.get("angle_deg")
+            chosen_speed = 50
+            if cmd in ("forward", "back") and mv_distance is not None:
+                # Format: MOVE|direction|distance_cm|speed
+                move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
+            elif cmd in ("left", "right") and angle is not None:
+                # Format: TURN|direction|angle_deg|speed
+                move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
+            elif cmd == "stop":
+                move_cmd = "STOP"
+            
+            # Add to history if a valid move command was generated
+            if move_cmd:
+                movement_history.append(mv)
+
+    except Exception as e:
+        logger.warning("Warning handling move: %s", e)
 
     # Handle speaking
     try:
@@ -377,52 +423,6 @@ def agi_loop(distance):
                   
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
-
-    # Handle sound
-    try:
-        snd = resp.get("sound")
-        if snd == "casual":
-             play_random_sound()
-    except Exception as e:
-        logger.warning("Warning handling sound: %s", e)
-
-    # Handle RGB
-    try:
-        rgb_val = resp.get("rgb")
-        if rgb_val and isinstance(rgb_val, str):
-            # Validate format "R,G,B"
-            parts = rgb_val.split(',')
-            if len(parts) == 3:
-                 rgb = rgb_val
-                 logger.info(f"AGI set RGB to: {rgb}")
-    except Exception as e:
-        logger.warning("Warning handling rgb: %s", e)
-
-
-    # Handle movement: build a short command string for MCU to execute and return it
-    try:
-        mv = resp.get("move")
-        if mv and isinstance(mv, dict):
-            # Expected keys: command (forward|back|left|right), distance_cm, angle_deg
-            cmd = mv.get("command")
-            mv_distance = mv.get("distance_cm")
-            angle = mv.get("angle_deg")
-            chosen_speed = 50
-            if cmd in ("forward", "back") and mv_distance is not None:
-                # Format: MOVE|direction|distance_cm|speed
-                move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
-            elif cmd in ("left", "right") and angle is not None:
-                # Format: TURN|direction|angle_deg|speed
-                move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
-            elif cmd == "stop":
-                move_cmd = "STOP"
-            
-            # Add to history if a valid move command was generated
-            if move_cmd:
-                movement_history.append(mv)
-
-    except Exception as e:
-        logger.warning("Warning handling move: %s", e)
 
     return move_cmd
 

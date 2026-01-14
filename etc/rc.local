@@ -15,5 +15,3 @@ aplay -D pulse /home/arduino/ArduinoApps/robot/python/sounds/mixkit-arcade-retro
 
 cd /home/arduino/ArduinoApps/robot/python/
 python3 media_service.py
-
-

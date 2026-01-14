@@ -207,7 +207,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "  - \"128,0,128\" (Purple): EXCITED / SPECIAL DISCOVERY\n"
             "- plan: string (High-level reasoning, visual summary, and strategic goal status)\n"
             "- subplan: string (Tactical implementation of the current move)\n"
-            "- map: string (Text-based 2D map with legend)\n"
+            "- space_map: string (Text-based 2D map with legend)\n"
             "- memory: string (Persistent information to save forever)\n"
         )
         
@@ -414,7 +414,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 distance = payload.get('distance')
                 plan = payload.get('plan', '')
                 subplan = payload.get('subplan', '')
-                space_map = payload.get('map', '')
+                space_map = payload.get('space_map', '')
                 memory = payload.get('memory', '')
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
