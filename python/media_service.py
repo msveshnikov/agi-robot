@@ -40,10 +40,12 @@ except ImportError:
     logger.warning("google-genai library not found. LLM will not work.")
 
 
-def play_audio_file(filename):
+def play_audio_file(filename, wait=True):
     try:
-        #subprocess.Popen(['aplay', filename]) #nowait
-        subprocess.run(['aplay', '-D', 'pulse', filename], check=True) #wait
+        if wait:
+            subprocess.run(['aplay', '-D', 'pulse', filename], check=True) #wait
+        else:
+            subprocess.Popen(['aplay', '-D', 'pulse', filename]) #nowait
         logger.info(f"Finished playing audio via aplay: {filename}")
     except Exception as e:
         logger.error(f"Failed to play audio: {e}", exc_info=True)
@@ -58,7 +60,7 @@ def play_random_sound():
             return None
         
         filename = random.choice(files)
-        play_audio_file(filename)
+        play_audio_file(filename, wait=False)
         return filename
     except Exception as e:
         logger.error(f"Failed to play random sound: {e}", exc_info=True)
@@ -196,7 +198,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
             f"- speak: {{\"text\": \"...\"}} or null (concise, robotic but friendly speech. {lang_instruction})\n"
             "- sound: \"casual\" or null (to attract attention or signal small success)\n"
-            "- move: {{\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-100), \"angle_deg\": int (15-180)}} or null\n"
+            "- move: {{\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-300), \"angle_deg\": int (10-180)}} or null\n"
             "- rgb: \"R,G,B\" string. MANDATORY. Use this mood logic:\n"
             "  - \"255,255,255\" (White): NEUTRAL / READY\n"
             "  - \"0,255,0\" (Green): HAPPY / SUCCESS / TARGET REACHED\n"
@@ -292,7 +294,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
             
             if filename:
                 try:
-                    play_audio_file(filename)
+                    play_audio_file(filename, wait=False)
                     
                     self.send_response(200)
                     self.send_header('Content-type', 'text/plain')
