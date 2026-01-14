@@ -1,0 +1,15 @@
+[Unit]
+Description=Robot autostart
+ConditionPathExists=/etc/rc.local
+
+[Service]
+User=arduino
+Group=arduino
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=journal
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

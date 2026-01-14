@@ -1,0 +1,19 @@
+#!/bin/sh
+sleep 20s
+export GEMINI_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxSg
+
+bluetoothctl connect 41:42:2E:86:2A:B3
+sleep 5s
+
+mkdir /run/user/1000
+chmod 700 /run/user/1000
+mkdir /run/user/1000/pulse
+chmod 700 /run/user/1000/pulse
+export XDG_RUNTIME_DIR=/run/user/1000
+
+aplay -D pulse /home/arduino/ArduinoApps/robot/python/sounds/mixkit-arcade-retro-game-over-213.wav
+
+cd /home/arduino/ArduinoApps/robot/python/
+python3 media_service.py
+
+
