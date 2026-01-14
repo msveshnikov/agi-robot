@@ -29,31 +29,36 @@ const int redPin = 3;
 const int greenPin = 5;
 const int bluePin = 6;
 
-String rgb_str = "255,0,255"; //activate before python
+String rgb_str = "255,0,255"; // activate before python
 
-float getDistance() {
+float getDistance()
+{
     float d = sonar.ping_cm();
     return d;
 }
 
-void setRGB(String rgb_str) {
+void setRGB(String rgb_str)
+{
     int r = 0, g = 0, b = 0;
     int firstComma = rgb_str.indexOf(',');
     int secondComma = rgb_str.indexOf(',', firstComma + 1);
-    
-    if (firstComma != -1 && secondComma != -1) {
+
+    if (firstComma != -1 && secondComma != -1)
+    {
         r = rgb_str.substring(0, firstComma).toInt();
         g = rgb_str.substring(firstComma + 1, secondComma).toInt();
         b = rgb_str.substring(secondComma + 1).toInt();
     }
 
     analogWrite(bluePin, b);
-    analogWrite(redPin, r/1.2);
-    analogWrite(greenPin, g/2);
+    analogWrite(redPin, r / 1.2);
+    analogWrite(greenPin, g / 2);
 }
 
-void move(String mvcmd) {
-    if (mvcmd.length() == 0) return;
+void move(String mvcmd, boolean stop)
+{
+    if (mvcmd.length() == 0)
+        return;
 
     Monitor.print("Executing move cmd: ");
     Monitor.println(mvcmd);
@@ -83,7 +88,7 @@ void move(String mvcmd) {
         Monitor.print(dist);
         Monitor.print(" spd=");
         Monitor.println(mvspd);
-        
+
         // estimate time by speed
         float base_cm_per_sec = 20.0; // at speed ~45
         float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
@@ -106,8 +111,11 @@ void move(String mvcmd) {
             delay(ms);
         }
         // stop
-        right_servo.write(90);
-        left_servo.write(90);
+        if (stop)
+        {
+            right_servo.write(90);
+            left_servo.write(90);
+        }
     }
     else if (verb == "TURN")
     {
@@ -124,7 +132,7 @@ void move(String mvcmd) {
         Monitor.print(ang);
         Monitor.print(" spd=");
         Monitor.println(mvspd);
-        
+
         // estimate ms per degree
         float ms_per_deg_base = 40.0; // empirical base at speed 45
         float scale = (mvspd > 0) ? ((float)mvspd / 45.0) : 1.0;
@@ -144,8 +152,11 @@ void move(String mvcmd) {
             left_servo.write(90 + mvspd);
             delay(ms);
         }
-        right_servo.write(90);
-        left_servo.write(90);
+        if (stop)
+        {
+            right_servo.write(90);
+            left_servo.write(90);
+        }
     }
     else if (verb == "STOP")
     {
@@ -175,7 +186,8 @@ void setup()
     pinMode(echoPin, INPUT);
 
     // Flash red and blue for 5 seconds
-    for (int i = 0; i < 25; i++) {
+    for (int i = 0; i < 25; i++)
+    {
         analogWrite(redPin, 255);
         analogWrite(bluePin, 0);
         analogWrite(greenPin, 0);
@@ -210,35 +222,23 @@ void loop()
 
     if (left)
     {
-        Monitor.print("Action: LEFT, speed=");
-        Monitor.println(speed);
-        right_servo.write(90 - speed);
-        left_servo.write(90 - speed);
-        delay(1000);
+        Monitor.print("Action: LEFT");
+        move("TURN|left|20|" + String(speed), false);
     }
     else if (right)
     {
-        Monitor.print("Action: RIGHT, speed=");
-        Monitor.println(speed);
-        right_servo.write(90 + speed);
-        left_servo.write(90 + speed);
-        delay(1000);
+        Monitor.print("Action: RIGHT");
+        move("TURN|right|20|" + String(speed), false);
     }
     else if (forward)
     {
-        Monitor.print("Action: FORWARD, speed=");
-        Monitor.println(speed);
-        right_servo.write(90 - speed);
-        left_servo.write(90 + speed);
-        delay(1000);
+        Monitor.print("Action: FORWARD");
+        move("MOVE|forward|20|" + String(speed), false);
     }
     else if (back)
     {
-        Monitor.print("Action: BACK, speed=");
-        Monitor.println(speed);
-        right_servo.write(90 + speed);
-        left_servo.write(90 - speed);
-        delay(1000);
+        Monitor.print("Action: BACK");
+        move("MOVE|back|20|" + String(speed), false);
     }
     else if (agi)
     {
@@ -250,9 +250,6 @@ void loop()
             distance = 1000; // no echo, set to max
         String mvcmd;
         Bridge.call("agi_loop", distance).result(mvcmd);
-        Monitor.print("AGI cmd: ");
-        Monitor.println(mvcmd);
-        move(mvcmd);
     }
     else
     {

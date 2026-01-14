@@ -354,6 +354,7 @@ def agi_loop(distance):
             if len(parts) == 3:
                  rgb = rgb_val
                  logger.info(f"AGI set RGB to: {rgb}")
+        Bridge.notify("setRGB", rgb)
     except Exception as e:
         logger.warning("Warning handling rgb: %s", e)
 
@@ -387,7 +388,7 @@ def agi_loop(distance):
             # Add to history if a valid move command was generated
             if move_cmd:
                 movement_history.append(mv)
-
+            Bridge.notify("move", move_cmd, True)
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
 
@@ -424,7 +425,7 @@ def agi_loop(distance):
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
 
-    return move_cmd
+    return ""
 
 
 # expose agi_loop to the MCU
