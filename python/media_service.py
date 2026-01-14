@@ -42,7 +42,8 @@ except ImportError:
 
 def play_audio_file(filename):
     try:
-        subprocess.run(['aplay', filename], check=True) #Popen if no wait
+        #subprocess.Popen(['aplay', filename]) #nowait
+        subprocess.run(['aplay', '-D', 'pulse', filename], check=True) #nowait
         logger.info(f"Finished playing audio via aplay: {filename}")
     except Exception as e:
         logger.error(f"Failed to play audio: {e}", exc_info=True)
