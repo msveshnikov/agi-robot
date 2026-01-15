@@ -117,7 +117,6 @@ def update_rgb_from_values():
             rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
             
         logger.info(f"Updated RGB string: {rgb} from {rgb_values}")
-        Bridge.notify("setRGB", rgb)
     except Exception as e:
         logger.error(f"Error calculating RGB: {e}")
 
@@ -160,6 +159,30 @@ arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
 
+def get_speed():
+    return speed
+
+def get_back():
+    return back
+
+def get_left():
+    return left
+
+def get_right():
+    return right
+
+def get_forward():
+    return forward
+
+def get_agi():
+    return agi
+
+def get_rgb():
+    return rgb
+
+def set_distance(d):
+    arduino_cloud.distance = int(d)
+
 def play_sound(filename):
     try:
         query = urllib.parse.urlencode({'filename': filename})
@@ -188,9 +211,16 @@ def speak(text):
         logger.warning(f"Could not call speak service: {e}")
 
 
-
-def set_distance(d):
-  arduino_cloud.distance = int(d)
+Bridge.provide("play_sound", play_sound)
+Bridge.provide("speak", speak)
+Bridge.provide("get_speed", get_speed)
+Bridge.provide("get_back", get_back)
+Bridge.provide("get_left", get_left)
+Bridge.provide("get_right", get_right)
+Bridge.provide("get_forward", get_forward)
+Bridge.provide("get_agi", get_agi)
+Bridge.provide("get_rgb", get_rgb)
+Bridge.provide("set_distance", set_distance)
 
 def set_temperature(t):
   arduino_cloud.temperature = t
@@ -200,7 +230,6 @@ def set_humidity(h):
 
 Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
-Bridge.provide("set_distance", set_distance)
 
 play_sound("/home/arduino/ArduinoApps/robot/python/sounds/startup.wav")
 speak("Robot is ready")
@@ -280,7 +309,7 @@ def save_memory(new_memory):
 
 load_memory()
 
-def agi_loop():
+def agi_loop(distance):
     """Called from MCU. Sends distance + subplan to LLM-vision, handles JSON response.
 
     {
@@ -294,9 +323,7 @@ def agi_loop():
     }
     """
     
-    distance = 0
-    Bridge.call("getDistance").result(distance)
-
+    
     global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb
     logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
@@ -401,25 +428,8 @@ def agi_loop():
     return ""
 
 
+# expose agi_loop to the MCU
+Bridge.provide("agi_loop", agi_loop)
 App.start_brick(arduino_cloud)
 
-def loop():
-  global speed, back, left, right, forward, agi
-  
-  if left:
-      Bridge.notify("move", f"TURN|left|20|{speed}", False)
-  elif right:
-      Bridge.notify("move", f"TURN|right|20|{speed}", False)
-  elif forward:
-      Bridge.notify("move", f"MOVE|forward|20|{speed}", False)
-  elif back:
-      Bridge.notify("move", f"MOVE|back|20|{speed}", False)
-  elif agi:
-      agi_loop()
-  else:
-      Bridge.notify("move", "STOP", True)
-  
-  time.sleep(0.1)
-  
-
-App.run(user_loop=loop)
+App.run()
