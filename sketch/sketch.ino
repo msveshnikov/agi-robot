@@ -3,6 +3,11 @@
 #include <Servo.h>
 #include <NewPing.h>
 
+Servo right_servo;
+Servo left_servo;
+
+ModulinoThermo thermo;
+NewPing sonar(trigPin, echoPin, 1000);
 
 const int trigPin = 8;
 const int echoPin = 9;
@@ -12,11 +17,6 @@ const int right_wheel = 10;
 const int redPin = 3;
 const int greenPin = 5;
 const int bluePin = 6;
-
-Servo right_servo;
-Servo left_servo;
-ModulinoThermo thermo;
-NewPing sonar(trigPin, echoPin, 1000);
 
 float getDistance()
 {
@@ -192,7 +192,7 @@ void loop()
 
     if (currentMillis - previousMillis > interval)
     {
-        float distance = sonar.ping_cm();
+        distance = sonar.ping_cm();
         Bridge.call("set_distance", distance);
 
         float temperature = thermo.getTemperature();
