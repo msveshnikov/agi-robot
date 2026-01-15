@@ -183,24 +183,16 @@ void setup()
     }
 }
 
-unsigned long previousMillis = 0UL;
-unsigned long interval = 1000UL;
-
 void loop()
 {
-    unsigned long currentMillis = millis();
+    distance = sonar.ping_cm();
+    Bridge.call("set_distance", distance);
 
-    if (currentMillis - previousMillis > interval)
-    {
-        distance = sonar.ping_cm();
-        Bridge.call("set_distance", distance);
+    float temperature = thermo.getTemperature();
+    Bridge.call("set_temperature", temperature);
 
-        float temperature = thermo.getTemperature();
-        Bridge.call("set_temperature", temperature);
+    float humidity = thermo.getHumidity();
+    Bridge.call("set_humidity", humidity);
 
-        float humidity = thermo.getHumidity();
-        Bridge.call("set_humidity", humidity);
-
-        previousMillis = currentMillis;
-    }
+    millis(1000);
 }
