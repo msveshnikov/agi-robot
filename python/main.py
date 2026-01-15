@@ -188,6 +188,7 @@ def speak(text):
         logger.warning(f"Could not call speak service: {e}")
 
 
+
 def set_distance(d):
   arduino_cloud.distance = int(d)
 
@@ -293,8 +294,8 @@ def agi_loop():
     }
     """
     
-    distance = 0.0
-    distance = Bridge.call("getDistance").result(distance)
+    distance = 0
+    Bridge.call("getDistance").result(distance)
 
     global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb
     logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
@@ -407,19 +408,19 @@ def loop():
     logger.debug(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
     
     if left:
-        Bridge.notify("move", f"TURN|left|20|{speed}", True)
+        Bridge.notify("move", f"TURN|left|20|{speed}", False)
     elif right:
-        Bridge.notify("move", f"TURN|right|20|{speed}", True)
+        Bridge.notify("move", f"TURN|right|20|{speed}", False)
     elif forward:
-        Bridge.notify("move", f"MOVE|forward|20|{speed}", True)
+        Bridge.notify("move", f"MOVE|forward|20|{speed}", False)
     elif back:
-        Bridge.notify("move", f"MOVE|back|20|{speed}", True)
+        Bridge.notify("move", f"MOVE|back|20|{speed}", False)
     elif agi:
         agi_loop()
     else:
         Bridge.notify("move", "STOP", True)
     
-    time.sleep(1)
+    time.sleep(0.1)
   
 
 App.run(user_loop=loop)

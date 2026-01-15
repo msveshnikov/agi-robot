@@ -3,6 +3,7 @@
 #include <Servo.h>
 #include <NewPing.h>
 
+
 const int trigPin = 8;
 const int echoPin = 9;
 const int left_wheel = 11;
@@ -21,9 +22,7 @@ float getDistance()
 {
     float d = sonar.ping_cm();
     if (d == 0)
-    {
         d = 1000;
-    }
     return d;
 }
 
@@ -184,16 +183,24 @@ void setup()
     }
 }
 
+unsigned long previousMillis = 0UL;
+unsigned long interval = 1000UL;
+
 void loop()
 {
-    float distance = sonar.ping_cm();
-    Bridge.call("set_distance", distance);
+    unsigned long currentMillis = millis();
 
-    float temperature = thermo.getTemperature();
-    Bridge.call("set_temperature", temperature);
+    if (currentMillis - previousMillis > interval)
+    {
+        float distance = sonar.ping_cm();
+        Bridge.call("set_distance", distance);
 
-    float humidity = thermo.getHumidity();
-    Bridge.call("set_humidity", humidity);
+        float temperature = thermo.getTemperature();
+        Bridge.call("set_temperature", temperature);
 
-    delay(1000);
+        float humidity = thermo.getHumidity();
+        Bridge.call("set_humidity", humidity);
+
+        previousMillis = currentMillis;
+    }
 }
