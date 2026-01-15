@@ -404,23 +404,22 @@ def agi_loop():
 App.start_brick(arduino_cloud)
 
 def loop():
-    global speed, back, left, right, forward, agi
-    logger.debug(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
-    
-    if left:
-        Bridge.notify("move", f"TURN|left|20|{speed}", False)
-    elif right:
-        Bridge.notify("move", f"TURN|right|20|{speed}", False)
-    elif forward:
-        Bridge.notify("move", f"MOVE|forward|20|{speed}", False)
-    elif back:
-        Bridge.notify("move", f"MOVE|back|20|{speed}", False)
-    elif agi:
-        agi_loop()
-    else:
-        Bridge.notify("move", "STOP", True)
-    
-    time.sleep(0.1)
+  global speed, back, left, right, forward, agi
+  
+  if left:
+      Bridge.notify("move", f"TURN|left|20|{speed}", False)
+  elif right:
+      Bridge.notify("move", f"TURN|right|20|{speed}", False)
+  elif forward:
+      Bridge.notify("move", f"MOVE|forward|20|{speed}", False)
+  elif back:
+      Bridge.notify("move", f"MOVE|back|20|{speed}", False)
+  elif agi:
+      agi_loop()
+  else:
+      Bridge.notify("move", "STOP", True)
+  
+  time.sleep(0.1)
   
 
 App.run(user_loop=loop)
