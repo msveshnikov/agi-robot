@@ -293,8 +293,7 @@ def agi_loop():
     }
     """
     
-    distance = 0.0
-    distance = Bridge.call("getDistance").result(distance)
+    distance = Bridge.call("getDistance")
 
     global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb
     logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")

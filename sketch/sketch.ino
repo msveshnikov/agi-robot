@@ -19,6 +19,7 @@ NewPing sonar(trigPin, echoPin, 1000);
 
 float getDistance()
 {
+    Monitor.println("getDistance");
     float d = sonar.ping_cm();
     if (d == 0)
     {
@@ -187,13 +188,13 @@ void setup()
 void loop()
 {
     float distance = sonar.ping_cm();
-    Bridge.call("set_distance", distance);
+    Bridge.notify("set_distance", distance);
 
     float temperature = thermo.getTemperature();
-    Bridge.call("set_temperature", temperature);
+    Bridge.notify("set_temperature", temperature);
 
     float humidity = thermo.getHumidity();
-    Bridge.call("set_humidity", humidity);
+    Bridge.notify("set_humidity", humidity);
 
     delay(1000);
 }
