@@ -60,9 +60,6 @@ void move(String mvcmd, boolean stop)
     if (mvcmd.length() == 0)
         return;
 
-    Monitor.print("Executing move cmd: ");
-    Monitor.println(mvcmd);
-
     // expected formats:
     // MOVE|forward|20|45  -> direction, distance_cm, speed
     // TURN|left|45|45    -> direction, angle_deg, speed
@@ -82,12 +79,6 @@ void move(String mvcmd, boolean stop)
         String spdStr = mvcmd.substring(p2 + 1);
         int dist = distStr.toInt();
         int mvspd = spdStr.toInt();
-        Monitor.print("AGI MOVE verb parsed: ");
-        Monitor.print(dir);
-        Monitor.print(" dist=");
-        Monitor.print(dist);
-        Monitor.print(" spd=");
-        Monitor.println(mvspd);
 
         // estimate time by speed
         float base_cm_per_sec = 20.0; // at speed ~45
@@ -98,14 +89,12 @@ void move(String mvcmd, boolean stop)
 
         if (dir == "forward")
         {
-            Monitor.println("AGI executing MOVE forward\n");
             right_servo.write(90 - mvspd);
             left_servo.write(90 + mvspd);
             delay(ms);
         }
         else if (dir == "back")
         {
-            Monitor.println("AGI executing MOVE back\n");
             right_servo.write(90 + mvspd);
             left_servo.write(90 - mvspd);
             delay(ms);
@@ -126,12 +115,6 @@ void move(String mvcmd, boolean stop)
         String spdStr = mvcmd.substring(p2 + 1);
         int ang = angStr.toInt();
         int mvspd = spdStr.toInt();
-        Monitor.print("AGI TURN verb parsed: ");
-        Monitor.print(dir);
-        Monitor.print(" ang=");
-        Monitor.print(ang);
-        Monitor.print(" spd=");
-        Monitor.println(mvspd);
 
         // estimate ms per degree
         float ms_per_deg_base = 40.0; // empirical base at speed 45
@@ -140,14 +123,12 @@ void move(String mvcmd, boolean stop)
 
         if (dir == "left")
         {
-            Monitor.println("AGI executing TURN left\n");
             right_servo.write(90 - mvspd);
             left_servo.write(90 - mvspd);
             delay(ms);
         }
         else if (dir == "right")
         {
-            Monitor.println("AGI executing TURN right\n");
             right_servo.write(90 + mvspd);
             left_servo.write(90 + mvspd);
             delay(ms);
@@ -160,7 +141,6 @@ void move(String mvcmd, boolean stop)
     }
     else if (verb == "STOP")
     {
-        Monitor.println("AGI STOP\n");
         right_servo.write(90);
         left_servo.write(90);
     }

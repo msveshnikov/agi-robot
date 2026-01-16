@@ -5,7 +5,6 @@ from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from arduino.app_bricks.arduino_cloud import ArduinoCloud
 from arduino.app_peripherals.microphone import Microphone
-
 import urllib.request
 import urllib.parse
 import os
@@ -431,5 +430,4 @@ def agi_loop(distance):
 # expose agi_loop to the MCU
 Bridge.provide("agi_loop", agi_loop)
 App.start_brick(arduino_cloud)
-
 App.run()
