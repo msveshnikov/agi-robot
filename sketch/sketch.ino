@@ -19,7 +19,6 @@ NewPing sonar(trigPin, echoPin, 1000);
 
 float getDistance()
 {
-    // Monitor.println("getDistance");
     float d = sonar.ping_cm();
     if (d == 0)
     {
@@ -30,8 +29,6 @@ float getDistance()
 
 void setRGB(String rgb_str)
 {
-    // Monitor.print("setRGB: ");
-    // Monitor.println(rgb_str);
     int r = 0, g = 0, b = 0;
     int firstComma = rgb_str.indexOf(',');
     int secondComma = rgb_str.indexOf(',', firstComma + 1);
@@ -52,14 +49,6 @@ void move(String mvcmd, boolean stop)
 {
     if (mvcmd.length() == 0)
         return;
-
-    // Monitor.print("Executing move cmd: ");
-    // Monitor.println(mvcmd);
-
-    // expected formats:
-    // MOVE|forward|20|45  -> direction, distance_cm, speed
-    // TURN|left|45|45    -> direction, angle_deg, speed
-    // STOP
     int idx1 = mvcmd.indexOf('|');
     String verb = mvcmd;
     if (idx1 != -1)
@@ -67,7 +56,6 @@ void move(String mvcmd, boolean stop)
 
     if (verb == "MOVE")
     {
-        // parse parts
         int p1 = mvcmd.indexOf('|', idx1 + 1);
         int p2 = mvcmd.indexOf('|', p1 + 1);
         String dir = mvcmd.substring(idx1 + 1, p1);
@@ -75,13 +63,6 @@ void move(String mvcmd, boolean stop)
         String spdStr = mvcmd.substring(p2 + 1);
         int dist = distStr.toInt();
         int mvspd = spdStr.toInt();
-        // Monitor.print("MOVE verb parsed: ");
-        // Monitor.print(dir);
-        // Monitor.print(" dist=");
-        // Monitor.print(dist);
-        // Monitor.print(" spd=");
-        // Monitor.println(mvspd);
-
         // estimate time by speed
         float base_cm_per_sec = 20.0; // at speed ~45
         float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
@@ -116,12 +97,6 @@ void move(String mvcmd, boolean stop)
         String spdStr = mvcmd.substring(p2 + 1);
         int ang = angStr.toInt();
         int mvspd = spdStr.toInt();
-        // Monitor.print("AGI TURN verb parsed: ");
-        // Monitor.print(dir);
-        // Monitor.print(" ang=");
-        // Monitor.print(ang);
-        // Monitor.print(" spd=");
-        // Monitor.println(mvspd);
 
         // estimate ms per degree
         float ms_per_deg_base = 40.0; // empirical base at speed 45
@@ -148,7 +123,6 @@ void move(String mvcmd, boolean stop)
     }
     else if (verb == "STOP")
     {
-        // Monitor.println("AGI STOP\n");
         right_servo.write(90);
         left_servo.write(90);
     }
@@ -157,8 +131,6 @@ void move(String mvcmd, boolean stop)
 void setup()
 {
     Bridge.begin();
-   // Monitor.begin();
-
     Modulino.begin(Wire1);
     thermo.begin();
 

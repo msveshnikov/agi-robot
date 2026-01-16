@@ -419,7 +419,7 @@ def loop():
         else:
             Bridge.notify("move", "STOP", True)
         
-        time.sleep(1)
+        time.sleep(0.2)
 
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
