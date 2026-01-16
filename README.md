@@ -339,6 +339,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Proximity sensor integration
 - [x] Arduino Cloud variable synchronization
 - [x] Google grounding
+- [x] Persistent conversation memory across sessions
 
 ### Future Enhancements
 - [ ] IMU integration for better orientation tracking (compass)
@@ -347,5 +348,4 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [ ] Battery level monitoring and low-power warnings
 - [ ] Enhanced object recognition with custom models
 - [ ] Multi-step task planning with checkpoints
-- [x] Persistent conversation memory across sessions
 - [ ] Video recording of navigation sessions

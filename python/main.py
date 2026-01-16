@@ -399,26 +399,30 @@ def agi_loop():
     return ""
 
 
-App.start_brick(arduino_cloud)
+#App.start_brick(arduino_cloud)
 
 def loop():
     global speed, back, left, right, forward, agi
-    logger.debug(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
-    
-    if left:
-        Bridge.notify("move", f"TURN|left|20|{speed}", True)
-    elif right:
-        Bridge.notify("move", f"TURN|right|20|{speed}", True)
-    elif forward:
-        Bridge.notify("move", f"MOVE|forward|20|{speed}", True)
-    elif back:
-        Bridge.notify("move", f"MOVE|back|20|{speed}", True)
-    elif agi:
-        agi_loop()
-    else:
-        Bridge.notify("move", "STOP", True)
-    
-    time.sleep(1)
+    logger.warning(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
+    try:
+        
+        if left:
+            Bridge.notify("move", f"TURN|left|20|{speed}", True)
+        elif right:
+            Bridge.notify("move", f"TURN|right|20|{speed}", True)
+        elif forward:
+            Bridge.notify("move", f"MOVE|forward|20|{speed}", True)
+        elif back:
+            Bridge.notify("move", f"MOVE|back|20|{speed}", True)
+        elif agi:
+            agi_loop()
+        else:
+            Bridge.notify("move", "STOP", True)
+        
+        time.sleep(1)
+
+    except Exception as e:
+        logger.error(f"Error in main loop: {e}")    
   
 
 App.run(user_loop=loop)
