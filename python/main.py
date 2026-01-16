@@ -5,7 +5,6 @@ from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from arduino.app_bricks.arduino_cloud import ArduinoCloud
 from arduino.app_peripherals.microphone import Microphone
-
 import urllib.request
 import urllib.parse
 import os
@@ -301,7 +300,7 @@ def agi_loop():
     resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
     
     if not resp:
-        return ""
+        return
 
     # Update state if provided
     try:
@@ -396,11 +395,6 @@ def agi_loop():
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
 
-    return ""
-
-
-#App.start_brick(arduino_cloud)
-
 def loop():
     global speed, back, left, right, forward, agi
     logger.warning(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
@@ -423,6 +417,7 @@ def loop():
 
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
-  
 
+
+App.start_brick(arduino_cloud)
 App.run(user_loop=loop)
