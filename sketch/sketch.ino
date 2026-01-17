@@ -74,7 +74,17 @@ void move(String mvcmd, boolean stop)
         {
             right_servo.write(90 - mvspd);
             left_servo.write(90 + mvspd);
-            delay(ms);
+            unsigned long startTime = millis();
+            while (millis() - startTime < ms)
+            {
+                if (getDistance() < 10)
+                {
+                    right_servo.write(90);
+                    left_servo.write(90);
+                    break;
+                }
+                delay(50);
+            }
         }
         else if (dir == "back")
         {
