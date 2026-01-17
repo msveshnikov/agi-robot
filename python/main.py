@@ -401,13 +401,13 @@ def loop():
     try:
         
         if left:
-            Bridge.call("move", f"TURN|left|20|{speed}", True)
+            Bridge.call("move", f"TURN|left|20|{speed}", False)
         elif right:
-            Bridge.call("move", f"TURN|right|20|{speed}", True)
+            Bridge.call("move", f"TURN|right|20|{speed}", False)
         elif forward:
-            Bridge.call("move", f"MOVE|forward|20|{speed}", True)
+            Bridge.call("move", f"MOVE|forward|20|{speed}", False)
         elif back:
-            Bridge.call("move", f"MOVE|back|20|{speed}", True)
+            Bridge.call("move", f"MOVE|back|20|{speed}", False)
         elif agi:
             agi_loop()
         else:
