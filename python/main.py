@@ -411,7 +411,7 @@ def loop():
         elif agi:
             agi_loop()
         else:
-            Bridge.notify("move", "STOP", True)
+            Bridge.call("move", "STOP", True)
         
         time.sleep(0.2)
 
