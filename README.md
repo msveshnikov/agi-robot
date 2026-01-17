@@ -345,7 +345,4 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [ ] IMU integration for better orientation tracking (compass)
 - [ ] SLAM-based persistent spatial memory
 - [ ] Manipulator arm for object interaction
-- [ ] Battery level monitoring and low-power warnings
-- [ ] Enhanced object recognition with custom models
-- [ ] Multi-step task planning with checkpoints
 - [ ] Video recording of navigation sessions
