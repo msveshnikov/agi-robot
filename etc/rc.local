@@ -1,6 +1,7 @@
 #!/bin/sh
 export GEMINI_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxSg
 bluetoothctl connect 41:42:2E:86:2A:B3
+sleep 5s
 mkdir /run/user/1000
 chmod 700 /run/user/1000
 mkdir /run/user/1000/pulse

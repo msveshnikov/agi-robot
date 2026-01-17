@@ -3,37 +3,27 @@
 #include <Servo.h>
 #include <NewPing.h>
 
-Servo right_servo;
-Servo left_servo;
-
-ModulinoThermo thermo;
-
 const int trigPin = 8;
 const int echoPin = 9;
 const int left_wheel = 11;
 const int right_wheel = 10;
 
-NewPing sonar(trigPin, echoPin, 1000);
-
-int speed = 45; // 0..90
-
-boolean back = false;
-boolean left = false;
-boolean right = false;
-boolean forward = false;
-boolean agi = false;
-
-float duration, distance;
-
 const int redPin = 3;
 const int greenPin = 5;
 const int bluePin = 6;
 
-String rgb_str = "255,0,255"; // activate before python
+Servo right_servo;
+Servo left_servo;
+ModulinoThermo thermo;
+NewPing sonar(trigPin, echoPin, 1000);
 
 float getDistance()
 {
     float d = sonar.ping_cm();
+    if (d == 0)
+    {
+        d = 1000;
+    }
     return d;
 }
 
@@ -59,11 +49,6 @@ void move(String mvcmd, boolean stop)
 {
     if (mvcmd.length() == 0)
         return;
-
-    // expected formats:
-    // MOVE|forward|20|45  -> direction, distance_cm, speed
-    // TURN|left|45|45    -> direction, angle_deg, speed
-    // STOP
     int idx1 = mvcmd.indexOf('|');
     String verb = mvcmd;
     if (idx1 != -1)
@@ -71,7 +56,6 @@ void move(String mvcmd, boolean stop)
 
     if (verb == "MOVE")
     {
-        // parse parts
         int p1 = mvcmd.indexOf('|', idx1 + 1);
         int p2 = mvcmd.indexOf('|', p1 + 1);
         String dir = mvcmd.substring(idx1 + 1, p1);
@@ -79,7 +63,6 @@ void move(String mvcmd, boolean stop)
         String spdStr = mvcmd.substring(p2 + 1);
         int dist = distStr.toInt();
         int mvspd = spdStr.toInt();
-
         // estimate time by speed
         float base_cm_per_sec = 20.0; // at speed ~45
         float cm_per_sec = base_cm_per_sec * ((mvspd > 0) ? ((float)mvspd / 45.0) : 1.0);
@@ -99,7 +82,6 @@ void move(String mvcmd, boolean stop)
             left_servo.write(90 - mvspd);
             delay(ms);
         }
-        // stop
         if (stop)
         {
             right_servo.write(90);
@@ -149,8 +131,6 @@ void move(String mvcmd, boolean stop)
 void setup()
 {
     Bridge.begin();
-    Monitor.begin();
-
     Modulino.begin(Wire1);
     thermo.begin();
 
@@ -181,60 +161,14 @@ void setup()
 
 void loop()
 {
-    Bridge.call("get_speed").result(speed);
-    Bridge.call("get_back").result(back);
-    Bridge.call("get_left").result(left);
-    Bridge.call("get_right").result(right);
-    Bridge.call("get_forward").result(forward);
-    Bridge.call("get_agi").result(agi);
-    Bridge.call("get_rgb").result(rgb_str);
-
-    setRGB(rgb_str);
-
-    distance = sonar.ping_cm();
-    Bridge.call("set_distance", distance);
+    float distance = sonar.ping_cm();
+    Bridge.notify("set_distance", distance);
 
     float temperature = thermo.getTemperature();
-    Bridge.call("set_temperature", temperature);
+    Bridge.notify("set_temperature", temperature);
 
     float humidity = thermo.getHumidity();
-    Bridge.call("set_humidity", humidity);
+    Bridge.notify("set_humidity", humidity);
 
-    if (left)
-    {
-        Monitor.print("Action: LEFT");
-        move("TURN|left|20|" + String(speed), false);
-    }
-    else if (right)
-    {
-        Monitor.print("Action: RIGHT");
-        move("TURN|right|20|" + String(speed), false);
-    }
-    else if (forward)
-    {
-        Monitor.print("Action: FORWARD");
-        move("MOVE|forward|20|" + String(speed), false);
-    }
-    else if (back)
-    {
-        Monitor.print("Action: BACK");
-        move("MOVE|back|20|" + String(speed), false);
-    }
-    else if (agi)
-    {
-        right_servo.write(90);
-        left_servo.write(90);
-        Monitor.print("Action: AGI loop, distance=");
-        Monitor.println(distance);
-        if (distance == 0)
-            distance = 1000; // no echo, set to max
-        String mvcmd;
-        Bridge.call("agi_loop", distance).result(mvcmd);
-    }
-    else
-    {
-        right_servo.write(90);
-        left_servo.write(90);
-        delay(100);
-    }
+    delay(1000);
 }
