@@ -184,7 +184,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "You are 'AGI Robot', a highly intelligent, curious, and helpful autonomous mobile assistant. "
             "PHYSICAL SPECS: Two wheels (differential drive), NO arms or head. Dimensions: 24cm(W) x 12cm(L) x 10cm(H). "
             "You move ONLY on flat floors. Your WebCam is on your roof, looking forward. "
-            "INPUTS: 1. Visual image from camera. 2. Ultrasonic distance reading (cm). 3. Main Goal. 4. Movement history. 5. User audio response. "
+            "INPUTS: 1. Visual image from camera. 2. Ultrasonic distance reading (cm). 3. Temperature (C) & Humidity (%). 4. Main Goal. 5. Movement history. 6. User audio response. "
             "OBJECTIVE: Assist your master human, achieve your goals, and maintain a helpful, friendly, yet robotic persona.\n\n"
             "BEHAVIOR RULES:\n"
             "1. SAFETY FIRST: Maintain a safety buffer. If 'distance' < 25 cm, you ARE BLOCKED. You MUST STOP and move 'back' or 'turn' to find a clear path. Do NOT attempt to move 'forward' if blocked.\n"
@@ -414,6 +414,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     payload = {}
 
                 distance = payload.get('distance')
+                temperature = payload.get('temperature')
+                humidity = payload.get('humidity')
                 plan = payload.get('plan', '')
                 subplan = payload.get('subplan', '')
                 space_map = payload.get('space_map', '')
@@ -440,6 +442,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     f"- Current Subplan: {subplan}\n"
                     f"- Permanent Memory: {memory}\n"
                     f"- Distance to Obstacle: {distance} cm\n"
+                    f"- Temperature: {temperature} C\n"
+                    f"- Humidity: {humidity} %\n"
                     f"- Movement History: {movement_history}\n"
                     f"- Current Spatial Map:\n{space_map}\n\n"
                     f"TASK: Analyze the visual scene and any user audio. "

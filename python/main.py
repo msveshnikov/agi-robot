@@ -203,13 +203,15 @@ Bridge.provide("set_distance", set_distance)
 play_sound("/home/arduino/ArduinoApps/robot/python/sounds/startup.wav")
 speak("Robot is ready")
 
-def ask_llm_vision(distance: float, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:
+def ask_llm_vision(distance: float, temperature: float = None, humidity: float = None, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:
     """Call the /llm_vision endpoint, sending distance, plan, subplan, space_map, and audio if available. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
             movement_history = []
         payload = {
             "distance": distance,
+            "temperature": temperature,
+            "humidity": humidity,
             "plan": plan,
             "subplan": subplan,
             "space_map": space_map,
@@ -293,11 +295,13 @@ def agi_loop():
     """
     
     distance = Bridge.call("getDistance")
+    temperature = getattr(arduino_cloud, 'temperature', None)
+    humidity = getattr(arduino_cloud, 'humidity', None)
 
     global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb
-    logger.info(f"AGI loop called with distance: {distance}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
+    logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
-    resp = ask_llm_vision(distance=distance, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
+    resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
     
     if not resp:
         return
