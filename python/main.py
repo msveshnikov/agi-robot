@@ -158,6 +158,11 @@ arduino_cloud.register("rgb:swi", on_write=rgb_swi_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
+arduino_cloud.register("plan")
+arduino_cloud.register("subplan")
+arduino_cloud.register("space_map")
+arduino_cloud.register("movement_history")
+arduino_cloud.register("memory")
 
 def play_sound(filename):
     try:
@@ -398,6 +403,17 @@ def agi_loop():
                   
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
+
+    # Sync variables to Arduino Cloud
+    try:
+        arduino_cloud.plan = plan
+        arduino_cloud.subplan = subplan
+        arduino_cloud.space_map = space_map
+        arduino_cloud.movement_history = json.dumps(movement_history)
+        arduino_cloud.memory = memory
+        logger.info("Synced variables to Arduino Cloud")
+    except Exception as e:
+        logger.warning(f"Error syncing to cloud: {e}")
 
 def loop():
     global speed, back, left, right, forward, agi
