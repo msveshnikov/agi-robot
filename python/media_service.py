@@ -155,6 +155,23 @@ def get_image_from_socket(timeout=5):
         server_url = os.environ.get('IMAGE_SERVER_URL', 'http://localhost:4912')
         sio.connect(server_url)
         done.wait(timeout)
+
+        if result['data']:
+            try:
+                save_dir = '/home/arduino/google-drive/robot'
+                if not os.path.exists(save_dir):
+                    os.makedirs(save_dir, exist_ok=True)
+                
+                # Use timestamp for unique filename
+                filename = f"img_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
+                filepath = os.path.join(save_dir, filename)
+                
+                with open(filepath, 'wb') as f:
+                    f.write(result['data'])
+                logger.info(f"Saved image to {filepath}")
+            except Exception as e:
+                logger.warning(f"Failed to save image to {save_dir}: {e}")
+
         try:
             sio.disconnect()
         except Exception:
