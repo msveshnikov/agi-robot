@@ -146,7 +146,7 @@ def run_keyword_detection():
             
             detected = False
             for key in prediction:
-                if "hey_jarvis" in key and prediction[key] > 0.5:
+                if "hey_jarvis" in key and prediction[key] > 0.3:
                     detected = True
                     break
             
