@@ -84,7 +84,7 @@ def record_audio(filename="mic.wav", duration=5):
     chunk = 1024
     format = pyaudio.paInt16
     channels = 1
-    rate = 16000 
+    rate = 44000 
     
     p = pyaudio.PyAudio()
     
@@ -172,7 +172,7 @@ def run_keyword_detection():
                     logger.error(f"Error recording audio: {e}")
 
                 try:
-                    play_audio_file(sound_path, wait=True)
+                    play_audio_file(sound_path, wait=False)
                 except Exception as e:
                     logger.warning(f"Failed to play end sound: {e}")
                 
