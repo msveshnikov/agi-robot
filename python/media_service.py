@@ -159,7 +159,7 @@ def run_keyword_detection():
                 mic_stream.stop_stream()
                 mic_stream.close()
                 
-                sound_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sounds', 'mixkit-retro-game-notification-212.wav')
+                sound_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sounds', 'mixkit-arcade-retro-game-over-213.wav')
                 try:
                     play_audio_file(sound_path, wait=True)
                 except Exception as e:
