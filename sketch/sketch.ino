@@ -158,20 +158,13 @@ void setup()
     // Make rainbow two times
     for (int i = 0; i < 2; i++)
     {
-        // Red
-        analogWrite(redPin, 255); analogWrite(greenPin, 0); analogWrite(bluePin, 0); delay(300);
-        // Orange
-        analogWrite(redPin, 255); analogWrite(greenPin, 127); analogWrite(bluePin, 0); delay(300);
-        // Yellow
-        analogWrite(redPin, 255); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(300);
-        // Green
-        analogWrite(redPin, 0); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(300);
-        // Blue
-        analogWrite(redPin, 0); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(300);
-        // Indigo
-        analogWrite(redPin, 75); analogWrite(greenPin, 0); analogWrite(bluePin, 130); delay(300);
-        // Violet
-        analogWrite(redPin, 143); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(300);
+        analogWrite(redPin, 255); analogWrite(greenPin, 0); analogWrite(bluePin, 0); delay(100);
+        analogWrite(redPin, 255); analogWrite(greenPin, 127); analogWrite(bluePin, 0); delay(100);
+        analogWrite(redPin, 255); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(100);
+        analogWrite(redPin, 0); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(100);
+        analogWrite(redPin, 0); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(100);
+        analogWrite(redPin, 75); analogWrite(greenPin, 0); analogWrite(bluePin, 130); delay(100);
+        analogWrite(redPin, 143); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(100);
     }
 }
 
