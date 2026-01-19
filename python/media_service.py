@@ -14,6 +14,11 @@ import ast
 import random
 import glob
 from datetime import datetime
+import pvporcupine
+from pvrecorder import PvRecorder
+import wave
+import struct
+import pyaudio
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
@@ -69,6 +74,73 @@ def play_random_sound():
 PORT = 5000
 TTS_CACHE = {}
 LLM_CLIENT = None
+
+# Porcupine Settings
+ACCESS_KEY = "AGZmmzS1sra7sqGAvlyYtKXWP+HUsZe7K1JMBxztnQp+o0iMiaHa3w==" 
+KEYWORD = 'jarvis' 
+
+def record_audio(filename="mic.wav", duration=5):
+    """Refactored from keyword_detection.py"""
+    chunk = 1024
+    format = pyaudio.paInt16
+    channels = 1
+    rate = 16000 
+    
+    p = pyaudio.PyAudio()
+    
+    logger.info(">> Recording command...")
+    stream = p.open(format=format, channels=channels, rate=rate, input=True, frames_per_buffer=chunk)
+    frames = []
+
+    for _ in range(0, int(rate / chunk * duration)):
+        data = stream.read(chunk)
+        frames.append(data)
+
+    logger.info(">> Recording finished.")
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
+    wf = wave.open(filename, 'wb')
+    wf.setnchannels(channels)
+    wf.setsampwidth(p.get_sample_size(format))
+    wf.setframerate(rate)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+
+def run_keyword_detection():
+    logger.info(f"Starting Keyword Detection for '{KEYWORD}'...")
+    try:
+        porcupine = pvporcupine.create(access_key=ACCESS_KEY, keywords=[KEYWORD])
+        recorder = PvRecorder(frame_length=porcupine.frame_length)
+        recorder.start()
+
+        logger.info(f">> Listening... Say '{KEYWORD}'")
+
+        while True:
+            pcm = recorder.read()
+            keyword_index = porcupine.process(pcm)
+            
+            if keyword_index >= 0:
+                logger.info(f">> Keyword '{KEYWORD}' detected!")
+                
+                recorder.stop()
+                try:
+                    record_audio(filename="mic.wav")
+                except Exception as e:
+                    logger.error(f"Error recording audio: {e}")
+                
+                logger.info(f">> Resuming listening for '{KEYWORD}'...")
+                recorder.start()
+                
+    except Exception as e:
+        logger.error(f"Keyword detection failed: {e}")
+    finally:
+        try:
+            if 'recorder' in locals(): recorder.delete()
+            if 'porcupine' in locals(): porcupine.delete()
+        except:
+            pass
 
 def init_llm():
     global LLM_CLIENT
@@ -441,7 +513,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
                 
-                # Extract audio if present
+                # Extract audio if present or check file on disk
                 audio_bytes = None
                 if 'audio' in payload:
                     try:
@@ -450,6 +522,14 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                         logger.info(f"Decoded audio from payload, size: {len(audio_bytes)} bytes")
                     except Exception as audio_err:
                         logger.warning(f"Could not decode audio: {audio_err}")
+                elif os.path.exists("mic.wav"):
+                    try:
+                        with open("mic.wav", "rb") as f:
+                            audio_bytes = f.read()
+                        logger.info(f"Read audio from disk (mic.wav), size: {len(audio_bytes)} bytes")
+                        os.remove("mic.wav") # Clean up after reading
+                    except Exception as e:
+                         logger.warning(f"Could not read mic.wav from disk: {e}")
 
                 # Compose a prompt for the multimodal model
                 prompt = payload.get('prompt') or (
@@ -495,6 +575,11 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     socketserver.TCPServer.allow_reuse_address = True
+    
+    # Start keyword detection in background
+    kw_thread = threading.Thread(target=run_keyword_detection, daemon=True)
+    kw_thread.start()
+
     with socketserver.TCPServer(("", PORT), MediaServiceHandler) as httpd:
         logger.info(f"Media and LLM service running on http://localhost:{PORT}")
         try:

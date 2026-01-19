@@ -4,7 +4,7 @@ from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from arduino.app_bricks.arduino_cloud import ArduinoCloud
-from arduino.app_peripherals.microphone import Microphone
+
 import urllib.request
 import urllib.parse
 import os
@@ -14,7 +14,7 @@ import base64
 import json
 import time
 import colorsys
-import wave
+
      
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -226,20 +226,7 @@ def ask_llm_vision(distance: float, temperature: float = None, humidity: float =
             "lang": lang
         }
         
-        # Include mic.wav if it exists
-        if os.path.exists("mic.wav"):
-            try:
-                with open("mic.wav", "rb") as audio_file:
-                    audio_data = audio_file.read()
-                    audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                    payload["audio"] = audio_base64
-                    payload["audio_format"] = "wav"
-                    logger.info("Including mic.wav in llm_vision request")
-                # Delete the file after reading it
-                os.remove("mic.wav")
-                logger.info("Deleted mic.wav after inclusion in payload")
-            except Exception as audio_err:
-                logger.warning(f"Could not read/delete mic.wav: {audio_err}")
+
         
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(f"http://172.17.0.1:5000/llm_vision", data=data, headers={"Content-Type":"application/json"})
@@ -378,28 +365,7 @@ def agi_loop():
             text = sp.get("text")
             if text:
                 speak(text)
-                logger.info("Robot speaking!! Starting 10-second recording...")
-    
-                # now record mic for 5 sec and save to file with proper WAV header
-                mic = Microphone()
-                mic.start()
-                try:
-                    audio_chunk_iterator = mic.stream()  # Returns a numpy array iterator
-                    start_time = time.time()
-                    
-                    # Use wave module to write with header
-                    with wave.open("mic.wav", "wb") as wf:
-                        wf.setnchannels(1)
-                        wf.setsampwidth(2) # S16_LE is 2 bytes
-                        wf.setframerate(16000)
-                        
-                        for chunk in audio_chunk_iterator:
-                            wf.writeframes(chunk.tobytes())
-                            if time.time() - start_time >= 5:
-                                break
-                    logger.info("Recording finished and saved to mic.wav with WAV header")
-                finally:
-                    mic.stop()
+
                   
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
