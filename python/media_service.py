@@ -125,10 +125,22 @@ def run_keyword_detection():
                 logger.info(f">> Keyword '{KEYWORD}' detected!")
                 
                 recorder.stop()
+                
+                sound_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sounds', 'mixkit-retro-game-notification-212.wav')
+                try:
+                    play_audio_file(sound_path, wait=True)
+                except Exception as e:
+                    logger.warning(f"Failed to play start sound: {e}")
+
                 try:
                     record_audio(filename="mic.wav")
                 except Exception as e:
                     logger.error(f"Error recording audio: {e}")
+
+                try:
+                    play_audio_file(sound_path, wait=True)
+                except Exception as e:
+                    logger.warning(f"Failed to play end sound: {e}")
                 
                 logger.info(f">> Resuming listening for '{KEYWORD}'...")
                 recorder.start()
