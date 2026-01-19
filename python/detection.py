@@ -19,7 +19,7 @@ CHUNK = 1280 # openWakeWord любит куски по 1280 сэмплов (80 �
 audio = pyaudio.PyAudio()
 mic_stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
-print("🎧 Скажите 'Hey Jarvis'...")
+print(" Скажите 'Hey Jarvis'...")
 
 try:
     while True:
@@ -32,7 +32,7 @@ try:
         # prediction - это словарь, например {'hey_jarvis': 0.002}
         # Проверяем уверенность модели (обычно > 0.5 считается срабатыванием)
         if prediction["hey_jarvis"] > 0.5:
-            print("🤖 О! Вы меня позвали! (Запускаю запись...)")
+            print("О! Вы меня позвали! (Запускаю запись...")
             
             # --- ТУТ ВАШ КОД ДЛЯ ЗАПИСИ (как в примере выше) ---
             # Не забудьте сбросить буфер модели, чтобы она не сработала дважды подряд
