@@ -81,7 +81,7 @@ LLM_CLIENT = None
 
 def record_audio(filename="mic.wav", duration=5):
     """Refactored from keyword_detection.py"""
-    chunk = 1024
+    chunk = 1280
     format = pyaudio.paInt16
     channels = 1
     rate = 44000 
@@ -125,7 +125,6 @@ def run_keyword_detection():
         # 2. Init model
         model = Model(
             wakeword_model_paths=jarvis_paths,
-            # inference_framework="onnx" 
         )
 
         FORMAT = pyaudio.paInt16
