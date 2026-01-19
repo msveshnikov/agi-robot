@@ -3,7 +3,7 @@ import pyaudio
 from vosk import Model, KaldiRecognizer
 
 # Скачайте модель "vosk-model-small-ru-0.22" и распакуйте в папку 'model'
-model = Model("model")
+model = Model("C:\\My-progs\\Python\\agi-robot\\python\\model")
 rec = KaldiRecognizer(model, 16000)
 
 p = pyaudio.PyAudio()
@@ -17,5 +17,5 @@ while True:
     if rec.AcceptWaveform(data):
         result = json.loads(rec.Result())
         text = result.get('text', '')
-        if "робот" in text or "джарвис" in text:
+        if "robot" in text or "jarvis" in text:
             print("Распознано ключевое слово!")

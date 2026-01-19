@@ -1,12 +1,14 @@
 import pyaudio
 import numpy as np
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 from openwakeword.model import Model
 
 # Загружаем модель (она скачается сама при первом запуске)
 # Можно выбрать: 'hey_jarvis', 'alexa', 'hey_mycroft', 'hey_google'
 model = Model(
     wakeword_models=["hey_jarvis"], 
-    inference_framework="tflite"
+    inference_framework="onnx"
 )
 # Настройки микрофона
 FORMAT = pyaudio.paInt16
