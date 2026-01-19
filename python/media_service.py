@@ -14,8 +14,9 @@ import ast
 import random
 import glob
 from datetime import datetime
-import pvporcupine
-from pvrecorder import PvRecorder
+import openwakeword
+from openwakeword.model import Model
+import numpy as np
 import wave
 import struct
 import pyaudio
@@ -76,8 +77,7 @@ TTS_CACHE = {}
 LLM_CLIENT = None
 
 # Porcupine Settings
-ACCESS_KEY = "AGZmmzS1sra7sqGAvlyYtKXWP+HUsZe7K1JMBxztnQp+o0iMiaHa3w==" 
-KEYWORD = 'jarvis' 
+ 
 
 def record_audio(filename="mic.wav", duration=5):
     """Refactored from keyword_detection.py"""
@@ -109,22 +109,55 @@ def record_audio(filename="mic.wav", duration=5):
     wf.close()
 
 def run_keyword_detection():
-    logger.info(f"Starting Keyword Detection for '{KEYWORD}'...")
+    logger.info(f"Starting Keyword Detection for 'hey_jarvis'...")
     try:
-        porcupine = pvporcupine.create(access_key=ACCESS_KEY, keywords=[KEYWORD])
-        recorder = PvRecorder(frame_length=porcupine.frame_length)
-        recorder.start()
+        # 1. Get model paths
+        all_model_paths = openwakeword.get_pretrained_model_paths()
+        jarvis_paths = [path for path in all_model_paths if "hey_jarvis" in path]
+        
+        if not jarvis_paths:
+            logger.error("❌ Error: Model 'hey_jarvis' not found in installed files.")
+            logger.info(f"Available models: {all_model_paths}")
+            return
 
-        logger.info(f">> Listening... Say '{KEYWORD}'")
+        logger.info(f"✅ Loading model from: {jarvis_paths[0]}")
+        
+        # 2. Init model
+        model = Model(
+            wakeword_model_paths=jarvis_paths,
+            # inference_framework="onnx" 
+        )
+
+        FORMAT = pyaudio.paInt16
+        CHANNELS = 1
+        RATE = 16000
+        CHUNK = 1280
+        
+        audio = pyaudio.PyAudio()
+        mic_stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+
+        logger.info(">> Listening... Say 'Hey Jarvis'")
 
         while True:
-            pcm = recorder.read()
-            keyword_index = porcupine.process(pcm)
+            # Read audio
+            data = np.frombuffer(mic_stream.read(CHUNK), dtype=np.int16)
             
-            if keyword_index >= 0:
-                logger.info(f">> Keyword '{KEYWORD}' detected!")
+            # Prediction
+            prediction = model.predict(data)
+            
+            detected = False
+            for key in prediction:
+                if "hey_jarvis" in key and prediction[key] > 0.5:
+                    detected = True
+                    break
+            
+            if detected:
+                logger.info(f"🤖 >> Keyword 'hey_jarvis' detected!")
+                model.reset()
                 
-                recorder.stop()
+                # Close stream to release microphone for record_audio
+                mic_stream.stop_stream()
+                mic_stream.close()
                 
                 sound_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sounds', 'mixkit-retro-game-notification-212.wav')
                 try:
@@ -133,6 +166,7 @@ def run_keyword_detection():
                     logger.warning(f"Failed to play start sound: {e}")
 
                 try:
+                    # record_audio uses its own PyAudio instance, so we released the resource
                     record_audio(filename="mic.wav")
                 except Exception as e:
                     logger.error(f"Error recording audio: {e}")
@@ -142,15 +176,19 @@ def run_keyword_detection():
                 except Exception as e:
                     logger.warning(f"Failed to play end sound: {e}")
                 
-                logger.info(f">> Resuming listening for '{KEYWORD}'...")
-                recorder.start()
-                
+                logger.info(f">> Resuming listening for 'hey_jarvis'...")
+                # Re-open stream
+                mic_stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+
     except Exception as e:
         logger.error(f"Keyword detection failed: {e}")
     finally:
         try:
-            if 'recorder' in locals(): recorder.delete()
-            if 'porcupine' in locals(): porcupine.delete()
+            if 'mic_stream' in locals() and mic_stream.is_active():
+                mic_stream.stop_stream()
+                mic_stream.close()
+            if 'audio' in locals():
+                audio.terminate()
         except:
             pass
 
