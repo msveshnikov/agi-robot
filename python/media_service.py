@@ -81,10 +81,10 @@ LLM_CLIENT = None
 
 def record_audio(filename="mic.wav", duration=5):
     """Refactored from keyword_detection.py"""
-    chunk = 1280
+    chunk = 3280
     format = pyaudio.paInt16
     channels = 1
-    rate = 44000 
+    rate = 48000
     
     p = pyaudio.PyAudio()
     
