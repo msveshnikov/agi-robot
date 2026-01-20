@@ -9,7 +9,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 - 🤖 **Autonomous Navigation**: LLM-driven pathfinding with obstacle avoidance and spatial mapping
 - 👁️ **Computer Vision**: Real-time image analysis for object detection and scene understanding
 - 🎤 **Voice Interaction**: Records user responses after speaking, sends audio to LLM for context-aware replies
-- 🗣️ **Multi-language TTS**: Supports English, Russian, and Czech with Google WaveNet voices
+- 🗣️ **Multi-language TTS**: Supports English, Russian, Czech, and Italian with Google WaveNet voices
 - 🌈 **Emotional Expression**: RGB LED "mood" changes based on robot's state (thinking, happy, cautious, etc.)
 - 📊 **Cloud Integration**: Arduino Cloud for remote monitoring and control
 - 🧠 **Memory & Planning**: Maintains movement history, spatial maps, and hierarchical plans to avoid loops
@@ -62,7 +62,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
         -   **GET `/play`**: Plays audio files via `aplay` (parameter: `filename`)
         -   **GET `/play_random`**: Plays a random sound from the `sounds` directory
         -   **GET `/speak`**: Text-to-Speech using Google Cloud TTS with WaveNet voices (parameters: `text`, `lang`)
-            - Supports multiple languages: English (`en-US-Neural2-D`), Russian (`ru-RU-Wavenet-D`), Czech (`cs-CZ-Wavenet-A`)
+            - Supports multiple languages: English (`en-US-Neural2-D`), Russian (`ru-RU-Wavenet-D`), Czech (`cs-CZ-Wavenet-A`), Italian (`it-IT-Wavenet-A`)
             - Implements caching to avoid re-synthesizing the same text
         -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini 2.5 Flash (currently using `gemini-3-flash-preview` model)
             - Returns JSON with: `speak`, `sound`, `move`, `rgb`, `plan`, `subplan`, `map`
@@ -163,7 +163,7 @@ The following variables are synchronized with the Arduino Cloud:
         -   `rgb:bri` (0-100): Brightness percentage
         -   `rgb:swi` (bool): Switch on/off
         -   The Python code converts HSV to RGB string format (e.g., "255,128,0") and sends to MCU
-    -   `lang` (str): Language code for TTS (en, ru, cz).
+    -   `lang` (str): Language code for TTS (en, ru, cz, it).
 
 -   **Read-Only (Telemetry):**
     -   `distance` (int): Distance measured by the ultrasonic sensor (cm).
@@ -275,7 +275,7 @@ The model returns a JSON object with:
 
 ### Action Execution
 
-1. **Speech**: Uses Google TTS with language-specific WaveNet voices (en/ru/cz)
+1. **Speech**: Uses Google TTS with language-specific WaveNet voices (en/ru/cz/it)
 2. **Audio Recording**: Captures 10s of audio after speaking for next iteration
 3. **Sound Effects**: Plays random sound from `sounds/` directory
 4. **RGB Mood**: Updates LED color (White=neutral, Green=happy, Red=blocked, Blue=thinking, Yellow=curious, Orange=cautious)
@@ -330,7 +330,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 ### Completed Features ✓
 - [x] RGB LED control with HSV from Arduino Cloud
-- [x] Multi-language TTS (English, Russian, Czech)
+- [x] Multi-language TTS (English, Russian, Czech, Italian)
 - [x] Audio recording after speech for user responses
 - [x] Movement history tracking
 - [x] Spatial mapping hints to LLM

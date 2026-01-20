@@ -194,6 +194,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in RUSSIAN language."
         elif lang == 'cz' or lang == 'cs':
             lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in CZECH language."
+        elif lang == 'it':
+            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ITALIAN language."
         else:
             lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ENGLISH language."
 
@@ -368,6 +370,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                             voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-D'}
                         elif lang == 'cz' or lang == 'cs':
                             voice = {'languageCode': 'cs-CZ', 'name': 'cs-CZ-Wavenet-A'}
+                        elif lang == 'it':
+                            voice = {'languageCode': 'it-IT', 'name': 'it-IT-Wavenet-A'}
                         else:
                             # Default to English
                             voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-D'}
