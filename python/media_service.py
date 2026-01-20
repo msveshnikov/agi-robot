@@ -84,7 +84,7 @@ def record_audio(filename="mic.wav", duration=5):
     chunk = 1280
     format = pyaudio.paInt16
     channels = 1
-    rate = 44000 
+    rate = 16000 
     
     p = pyaudio.PyAudio()
     
