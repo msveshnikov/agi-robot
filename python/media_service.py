@@ -81,10 +81,10 @@ LLM_CLIENT = None
 
 def record_audio(filename="mic.wav", duration=5):
     """Refactored from keyword_detection.py"""
-    chunk = 1280
+    chunk = 3280
     format = pyaudio.paInt16
     channels = 1
-    rate = 16000 
+    rate = 48000
     
     p = pyaudio.PyAudio()
     
@@ -146,7 +146,7 @@ def run_keyword_detection():
             
             detected = False
             for key in prediction:
-                if "hey_jarvis" in key and prediction[key] > 0.5:
+                if "hey_jarvis" in key and prediction[key] > 0.3:
                     detected = True
                     break
             
