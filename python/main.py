@@ -354,7 +354,7 @@ def agi_loop():
             cmd = mv.get("command")
             mv_distance = mv.get("distance_cm")
             angle = mv.get("angle_deg")
-            chosen_speed = 50
+            chosen_speed = speed
             if cmd in ("forward", "back") and mv_distance is not None:
                 # Format: MOVE|direction|distance_cm|speed
                 move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
@@ -380,7 +380,7 @@ def agi_loop():
                 speak(text)
                 logger.info("Robot speaking!! Starting 10-second recording...")
     
-                # now record mic for 5 sec and save to file with proper WAV header
+                # now record mic for 7 sec and save to file with proper WAV header
                 mic = Microphone()
                 mic.start()
                 try:
@@ -395,7 +395,7 @@ def agi_loop():
                         
                         for chunk in audio_chunk_iterator:
                             wf.writeframes(chunk.tobytes())
-                            if time.time() - start_time >= 5:
+                            if time.time() - start_time >= 7:
                                 break
                     logger.info("Recording finished and saved to mic.wav with WAV header")
                 finally:
@@ -417,7 +417,7 @@ def agi_loop():
 
 def loop():
     global speed, back, left, right, forward, agi
-    logger.warning(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
+    #logger.warning(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
     try:
         
         if left:
@@ -433,7 +433,7 @@ def loop():
         else:
             Bridge.call("move", "STOP", True)
         
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
