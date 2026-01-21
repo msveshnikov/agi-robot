@@ -1,6 +1,6 @@
 # AGI Robot
 
-This project creates a **fully autonomous, LLM-powered mobile robot** that uses **Google Gemini 2.5 Flash** for real-time decision-making, navigation, and human interaction. The robot combines computer vision, distance sensing, and multi-modal AI to explore environments, accomplish goals, and engage in natural conversations.
+This project creates a **fully autonomous, LLM-powered mobile robot** that uses **Google Gemini 3 Flash (Preview)** for real-time decision-making, navigation, and human interaction. The robot combines computer vision, distance sensing, and multi-modal AI to explore environments, accomplish goals, and engage in natural conversations.
 
 ![alt text](image-1.png)
 
@@ -26,7 +26,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
     -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
     -   RGB LED (Pins 3, 5, 6) for mood expression
 -   **Power:** PowerBank 10000 mAh
--   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 2.5 Flash), Arduino Cloud
+-   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview), Arduino Cloud
 -   **Connectivity:** WiFi required for API access
 
 **Functionality:** The robot operates autonomously using an AGI loop: captures images, measures distance, consults the LLM, speaks responses, records user audio, and executes movement commands. All decisions are made by the AI model based on visual input, sensor data, goals, and conversation context.
@@ -50,7 +50,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 ### 2. Software Architecture and Code Structure
 
 -   **Python Logic (`main.py`):**
-    -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, records audio responses, and consults the Gemini 2.5 Flash model via `media_service.py` to decide on actions.
+    -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, records audio responses, and consults the Gemini 3 Flash (Preview) model via `media_service.py` to decide on actions.
     -   **Audio Recording**: After the robot speaks, it records 10 seconds of audio from the microphone to capture user responses, saved as `mic.wav` with proper WAV headers.
     -   **Object Detection**: Uses `VideoObjectDetection` to identify objects in real-time and announce them (`send_detections_to_ui`).
     -   **Arduino Cloud**: Synchronizes state variables (`speed`, `agi`, `goal`, `lang`, `rgb`) and telemetry (`distance`, `temperature`, `humidity`).
@@ -64,10 +64,12 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
         -   **GET `/speak`**: Text-to-Speech using Google Cloud TTS with WaveNet voices (parameters: `text`, `lang`)
             - Supports multiple languages: English (`en-US-Neural2-D`), Russian (`ru-RU-Wavenet-D`), Czech (`cs-CZ-Wavenet-A`), Italian (`it-IT-Wavenet-A`)
             - Implements caching to avoid re-synthesizing the same text
-        -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini 2.5 Flash (currently using `gemini-3-flash-preview` model)
+        -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini 3 Flash (Currently `gemini-3-flash-preview` model)
             - Returns JSON with: `speak`, `sound`, `move`, `rgb`, `plan`, `subplan`, `map`
             - Receives images via Socket.IO from the webcam service
+            - **Image Logging**: Saves incoming images to `/home/arduino/google-drive/robot` for debugging/dataset creation
             - Includes sophisticated prompt engineering for robot behavior and safety rules
+            - **Reasoning**: Uses a thinking budget (16k tokens) for complex chain-of-thought processing
 
 -   **Arduino MCU (`sketch.ino`):**
     -   **Libraries Used**: `Arduino_RouterBridge`, `Arduino_LED_Matrix`, `Modulino`, `Servo`, `NewPing`
@@ -222,10 +224,11 @@ agi-robot/
 On initialization, the robot:
 1. Connects to Arduino Cloud and synchronizes variables
 2. Initializes the webcam object detection stream
-3. Plays a startup sound (`/home/arduino/1.wav` on Linux)
-4. Speaks "Robot is ready" in the configured language
-5. Sets default goal: **"Be helpful assistant to the master human"**
-6. Begins listening for cloud variable changes (AGI mode, manual controls, goal updates)
+3. **RGB Rainbow**: Performs a color cycle sequence on the LED to indicate hardware readiness
+4. Plays a startup sound
+5. Speaks "Robot is ready" in the configured language
+6. Sets default goal: **"Be helpful assistant to the master human"**
+7. Begins listening for cloud variable changes (AGI mode, manual controls, goal updates)
 
 ### Default Main Goal
 
@@ -247,9 +250,9 @@ The AGI Loop is the core autonomous decision-making cycle of the robot. It opera
 
 ### LLM Decision-Making
 
-The robot sends all inputs to **Gemini 2.5 Flash** (currently `gemini-3-flash-preview` model) with a sophisticated prompt that includes:
+The robot sends all inputs to **Gemini 3 Flash (Preview)** (currently `gemini-3-flash-preview` model) with a sophisticated prompt that includes:
 
--   **Safety Rules**: Must stop or turn if distance < 25cm to avoid collisions
+-   **Safety Rules**: Must stop or turn if distance < 25cm to avoid collisions (Hardware failsafe stops motors at <10cm)
 -   **Navigation Strategy**: Systematic scanning by turning 30-60 degrees, approaching targets
 -   **Social Behavior**: Use casual sounds to attract human attention
 -   **Memory Management**: Use history to avoid loops and repeated actions
