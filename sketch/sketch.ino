@@ -138,6 +138,21 @@ void move(String mvcmd, boolean stop)
     }
 }
 
+void panic(int speed)
+{
+  if (getDistance() > 25) {
+    right_servo.write(90 - speed);
+    left_servo.write(90 + speed);
+  } else {
+    right_servo.write(90 + speed);
+    left_servo.write(90 - speed);
+    delay(2000);
+    right_servo.write(90 - speed);
+    left_servo.write(90 - speed);
+    delay(1000);
+  }
+}
+
 void setup()
 {
     Bridge.begin();
@@ -147,6 +162,7 @@ void setup()
     Bridge.provide("getDistance", getDistance);
     Bridge.provide("setRGB", setRGB);
     Bridge.provide("move", move);
+    Bridge.provide("panic", panic);
 
     pinMode(right_wheel, OUTPUT);
     pinMode(left_wheel, OUTPUT);

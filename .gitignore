@@ -1,10 +1,6 @@
-
-
-# ignore app cache folder
 .cache/
 google.json
 python/__pycache__/
 .vscode/
-
 mic.wav
 memory.txt

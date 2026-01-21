@@ -42,12 +42,18 @@ back = False
 left = False
 right = False
 forward = False
+panic= False
 agi = False
 
 def speed_callback(client: object, value: int):
     global speed
     logger.info(f"Speed value updated from cloud: {value}")
     speed = value
+
+def panic_callback(client: object, value: bool):
+    global panic
+    logger.info(f"Panic value updated from cloud: {value}")
+    panic = value
 
 def back_callback(client: object, value: bool):
     global back
@@ -141,6 +147,7 @@ def rgb_swi_callback(client: object, value):
     update_rgb_from_values()
 
 arduino_cloud.register("speed", on_write=speed_callback)
+arduino_cloud.register("panic", on_write=panic_callback)
 arduino_cloud.register("back",  on_write=back_callback)
 arduino_cloud.register("left",  on_write=left_callback)
 arduino_cloud.register("right", on_write=right_callback)
@@ -430,6 +437,8 @@ def loop():
             Bridge.call("move", f"MOVE|back|20|{speed}", False)
         elif agi:
             agi_loop()
+        elif panic:
+            Bridge.call("panic", speed)
         else:
             Bridge.call("move", "STOP", True)
         
