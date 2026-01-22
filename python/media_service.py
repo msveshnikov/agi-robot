@@ -196,6 +196,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in CZECH language."
         elif lang == 'it':
             lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ITALIAN language."
+        elif lang == 'de':
+            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in GERMAN language."
         else:
             lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ENGLISH language."
 
