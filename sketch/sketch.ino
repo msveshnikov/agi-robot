@@ -144,6 +144,7 @@ void panic(int speed)
     right_servo.write(90 - speed);
     left_servo.write(90 + speed);
   } else {
+    Bridge.notify("play_panic_sound", 0);
     right_servo.write(90 + speed);
     left_servo.write(90 - speed);
     delay(2000);
