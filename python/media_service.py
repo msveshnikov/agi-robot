@@ -367,14 +367,16 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                         
                         # Select voice based on language
                         if lang == 'ru':
-                            voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-D'}
+                            voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Chirp3-HD-Charon'}
                         elif lang == 'cz' or lang == 'cs':
-                            voice = {'languageCode': 'cs-CZ', 'name': 'cs-CZ-Wavenet-A'}
+                            voice = {'languageCode': 'cs-CZ', 'name': 'cs-CZ-Chirp3-HD-Enceladus'}
                         elif lang == 'it':
-                            voice = {'languageCode': 'it-IT', 'name': 'it-IT-Wavenet-A'}
+                            voice = {'languageCode': 'it-IT', 'name': 'it-IT-Chirp-HD-D'}
+                        elif lang == 'de':
+                            voice = {'languageCode': 'de-DE', 'name': 'de-DE-Chirp-HD-D'}
                         else:
                             # Default to English
-                            voice = {'languageCode': 'en-US', 'name': 'en-US-Neural2-D'}
+                            voice = {'languageCode': 'en-US', 'name': 'en-GB-Chirp3-HD-Umbriel'}
 
                         audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
