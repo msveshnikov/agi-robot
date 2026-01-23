@@ -17,7 +17,7 @@ base_thickness = 2;     // [mm] Толщина пластины
 inner_diameter = 13.5;  // [mm] Внутренний диаметр
 wall_thickness = 2;     // [mm] Толщина стенки
 cyl_height = 9;         // [mm] Высота выступающей части цилиндра
-tilt_angle = 20;        // [deg] Угол наклона от вертикали
+tilt_angle = 15;        // [deg] Угол наклона от вертикали
 
 // Автоматический расчет внешнего диаметра
 outer_diameter = inner_diameter + (wall_thickness * 2); // 17.5 мм
