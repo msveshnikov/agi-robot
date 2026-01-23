@@ -13,6 +13,7 @@ import re
 import ast
 import random
 import glob
+import requests
 from datetime import datetime
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
@@ -38,6 +39,58 @@ try:
     from google.genai import types
 except ImportError:
     logger.warning("google-genai library not found. LLM will not work.")
+
+
+def send_telegram_alarm(message):
+    """
+    Send an alarm message to the admin via Telegram.
+    Similar to the adminTelegram function in the JavaScript example.
+    Requires TELEGRAM_KEY and ADMIN_ID environment variables.
+    """
+    try:
+        telegram_key = os.environ.get('TELEGRAM_KEY')
+        admin_id = os.environ.get('ADMIN_ID')
+        admin_id2 = os.environ.get('ADMIN_ID2')
+        
+        if not telegram_key:
+            logger.warning("TELEGRAM_KEY not set. Cannot send alarm to Telegram.")
+            return
+        
+        url = f"https://api.telegram.org/bot{telegram_key}/sendMessage"
+        
+        # Send to primary admin
+        if admin_id:
+            try:
+                payload = {
+                    'chat_id': admin_id,
+                    'text': f"🚨 ROBOT ALARM 🚨\n\n{message}"
+                }
+                response = requests.post(url, json=payload, timeout=10)
+                if response.status_code == 200:
+                    logger.info(f"Alarm sent to admin (ID: {admin_id})")
+                else:
+                    logger.error(f"Failed to send alarm to admin: {response.status_code} - {response.text}")
+            except Exception as e:
+                logger.error(f"Error sending alarm to primary admin: {e}")
+        
+        # Send to secondary admin
+        if admin_id2:
+            try:
+                payload = {
+                    'chat_id': admin_id2,
+                    'text': f"🚨 ROBOT ALARM 🚨\n\n{message}"
+                }
+                response = requests.post(url, json=payload, timeout=10)
+                if response.status_code == 200:
+                    logger.info(f"Alarm sent to admin2 (ID: {admin_id2})")
+                else:
+                    logger.error(f"Failed to send alarm to admin2: {response.status_code} - {response.text}")
+            except Exception as e:
+                logger.error(f"Error sending alarm to secondary admin: {e}")
+                
+    except Exception as e:
+        logger.error(f"Failed to send Telegram alarm: {e}", exc_info=True)
+
 
 
 def play_audio_file(filename, wait=True):
@@ -484,6 +537,13 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
 
                 logger.info('Sending text+image+audio to Gemini model (POST handler)...')
                 response_text = send_to_gemini(prompt, image_data, lang=lang, audio_bytes=audio_bytes)
+
+                # Check if there's an alarm in the response
+                if isinstance(response_text, dict) and 'alarm' in response_text:
+                    alarm_message = response_text.get('alarm')
+                    if alarm_message and alarm_message.strip():
+                        logger.warning(f"ALARM detected: {alarm_message}")
+                        send_telegram_alarm(alarm_message)
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
