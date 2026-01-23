@@ -476,6 +476,32 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Missing 'text' parameter. Usage: /speak?text=Hello")
         
+        elif parsed_url.path == '/telegram':
+            query_components = urllib.parse.parse_qs(parsed_url.query)
+            message = query_components.get('message', [None])[0]
+            
+            if message:
+                try:
+                    logger.info(f"Sending Telegram alarm: {message}")
+                    send_telegram_alarm(message)
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(f"Telegram alarm sent: {message}".encode('utf-8'))
+                    
+                except Exception as e:
+                    logger.error(f"Error sending Telegram alarm: {e}", exc_info=True)
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(f"Error sending Telegram alarm: {e}".encode('utf-8'))
+            else:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b"Missing 'message' parameter. Usage: /telegram?message=Your alarm message")
+        
         else:
             self.send_response(404)
             self.end_headers()
