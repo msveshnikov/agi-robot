@@ -379,7 +379,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                             voice = {'languageCode': 'de-DE', 'name': 'de-DE-Chirp-HD-D'}
                         else:
                             # Default to English
-                            voice = {'languageCode': 'en-US', 'name': 'en-GB-Chirp3-HD-Umbriel'}
+                            voice = {'languageCode': 'en-US', 'name': 'en-US-Chirp3-HD-Zubenelgenubi'}
 
                         audio_config = {'audioEncoding': 'LINEAR16', 'volumeGainDb': 10.0} # +10dB for "speak loud"
 
