@@ -31,6 +31,30 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 
 **Functionality:** The robot operates autonomously using an AGI loop: captures images, measures distance, consults the LLM, speaks responses, records user audio, and executes movement commands. All decisions are made by the AI model based on visual input, sensor data, goals, and conversation context.
 
+## Project Cost
+
+Below is a table listing all main components, their approximate cost (in USD, based on AliExpress prices), and the total amount.
+
+| Component | Description | Cost (USD) |
+| :-------- | :---------- | ---------: |
+| **Arduino Uno Q** | Main microcontroller of the project | $44 |
+| **Webcam** | Cheap Chinese USB webcam (for visual input) | $3 |
+| **USB Dongle (Adapter)** | For connecting webcam and PD | $3 |
+| **Ultrasonic Sensor** | For distance measurement (e.g., HC-SR04) | $1.5 |
+| **Bluetooth Speaker** | For audio output or feedback | $2.5 |
+| **Solderless Breadboard and Wires** | For prototyping and component connections | $5 |
+| **3D Printing Plastic** | About 200 grams (for case, mounts, etc., at ~$15/kg) | $3 |
+| **3D Printer** | Gift, not counted :) | $0 |
+| **Total Project Cost** | | **$64** |
+
+As shown in the table, the total project cost is a very affordable **$64 USD**. This clearly demonstrates that implementing interesting and functional DIY solutions doesn't always require significant investments.
+
+**Arduino Board:** The main portion of the budget goes to the controller. Choosing more budget-friendly boards (e.g., ESP32 or ESP8266, if functionality allows) could further reduce this expense.
+
+**Peripherals:** The webcam, dongle, sensor, and speaker are typical representatives of inexpensive yet fully functional modules widely available on the market.
+
+**Consumables:** The cost of 3D printing plastic and basic prototyping elements (breadboard, wires) is also minimal.
+
 ---
 
 ## Design Ideas and Future Considerations

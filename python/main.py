@@ -335,7 +335,7 @@ def agi_loop():
             space_map = resp["space_map"]
         if "memory" in resp and isinstance(resp["memory"], str):
             save_memory(resp["memory"])
-        if "alarm" in resp and isinstance(resp["alarm"], bool):
+        if "alarm" in resp:
             alarm = resp["alarm"]
     except Exception:
         pass
@@ -394,7 +394,7 @@ def agi_loop():
             text = sp.get("text")
             if text:
                 speak(text)
-                logger.info("Robot speaking!! Starting 10-second recording...")
+                logger.info("Robot spoke!! Starting 7-second recording...")
     
                 # now record mic for 7 sec and save to file with proper WAV header
                 mic = Microphone()

@@ -136,7 +136,7 @@ void move(String mvcmd, boolean stop)
         right_servo.write(90);
         left_servo.write(90);
     }
-}
+} 
 
 void panic(int speed)
 {

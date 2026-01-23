@@ -72,21 +72,6 @@ def send_telegram_alarm(message):
                     logger.error(f"Failed to send alarm to admin: {response.status_code} - {response.text}")
             except Exception as e:
                 logger.error(f"Error sending alarm to primary admin: {e}")
-        
-        # Send to secondary admin
-        if admin_id2:
-            try:
-                payload = {
-                    'chat_id': admin_id2,
-                    'text': f"🚨 ROBOT ALARM 🚨\n\n{message}"
-                }
-                response = requests.post(url, json=payload, timeout=10)
-                if response.status_code == 200:
-                    logger.info(f"Alarm sent to admin2 (ID: {admin_id2})")
-                else:
-                    logger.error(f"Failed to send alarm to admin2: {response.status_code} - {response.text}")
-            except Exception as e:
-                logger.error(f"Error sending alarm to secondary admin: {e}")
                 
     except Exception as e:
         logger.error(f"Failed to send Telegram alarm: {e}", exc_info=True)
