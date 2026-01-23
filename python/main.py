@@ -44,6 +44,7 @@ right = False
 forward = False
 panic= False
 agi = False
+alarm = False
 
 def speed_callback(client: object, value: int):
     global speed
@@ -155,6 +156,7 @@ arduino_cloud.register("forward", on_write=forward_callback)
 arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
+arduino_cloud.register("alarm")
 
 # Register individual RGB callbacks
 arduino_cloud.register("rgb:hue", on_write=rgb_hue_callback)
@@ -315,7 +317,7 @@ def agi_loop():
     temperature = getattr(arduino_cloud, 'temperature', None)
     humidity = getattr(arduino_cloud, 'humidity', None)
 
-    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb
+    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
     resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
@@ -333,6 +335,8 @@ def agi_loop():
             space_map = resp["space_map"]
         if "memory" in resp and isinstance(resp["memory"], str):
             save_memory(resp["memory"])
+        if "alarm" in resp and isinstance(resp["alarm"], bool):
+            alarm = resp["alarm"]
     except Exception:
         pass
 
@@ -423,6 +427,7 @@ def agi_loop():
         arduino_cloud.space_map = space_map
         arduino_cloud.movement_history = json.dumps(movement_history)
         arduino_cloud.memory = memory
+        arduino_cloud.alarm = alarm
         logger.info("Synced variables to Arduino Cloud")
     except Exception as e:
         logger.warning(f"Error syncing to cloud: {e}")

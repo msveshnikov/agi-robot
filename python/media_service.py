@@ -232,6 +232,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "- subplan: string (Tactical implementation of the current move)\n"
             "- space_map: string (Text-based 2D map with legend)\n"
             "- memory: string (Persistent information to save forever)\n"
+            "- alarm: string (non empty string ONLY if you need human help or critical dangerous condition)\n"
         )
         
         current_time_str = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
@@ -369,7 +370,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                         
                         # Select voice based on language
                         if lang == 'ru':
-                            voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Chirp3-HD-Charon'}
+                            voice = {'languageCode': 'ru-RU', 'name': 'ru-RU-Wavenet-D'}
                         elif lang == 'cz' or lang == 'cs':
                             voice = {'languageCode': 'cs-CZ', 'name': 'cs-CZ-Chirp3-HD-Enceladus'}
                         elif lang == 'it':
