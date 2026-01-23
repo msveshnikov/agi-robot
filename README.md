@@ -308,10 +308,9 @@ The system requires the following environment variables:
     - Linux: `/home/arduino/google.json`
     - Windows: `C:\My-progs\Python\agi-robot\google.json`
 -   **`GEMINI_KEY`**: Google Gemini API key for LLM access
--   **`IMAGE_SERVER_URL`** (optional): Socket.IO server URL for webcam feed (default: `http://localhost:4912`)
+-   **`IMAGE_SERVER_URL`** (optional): Socket.IO server URL for webcam feed (default: `http://localhost:4912`, coming from video detection brick)
 -   **`TELEGRAM_KEY`** (optional): Telegram Bot API token for alarm notifications
 -   **`ADMIN_ID`** (optional): Telegram chat ID for receiving robot alarms
--   **`ADMIN_ID2`** (optional): Secondary Telegram chat ID for alarm redundancy
 
 ### File Structure
 
@@ -450,7 +449,6 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 ---
 
-## TODO
 
 ### Completed Features ✓
 - [x] RGB LED control with HSV from Arduino Cloud
@@ -470,8 +468,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Image logging to Google Drive
 - [x] Temperature and humidity monitoring
 
-### Future Enhancements
-- [ ] IMU integration for better orientation tracking (compass)
-- [ ] SLAM-based persistent spatial memory
+## TODO
+
+- [ ] IMU + magnetometer integration for better orientation tracking
 - [ ] Manipulator arm for object interaction
-- [ ] Video recording of navigation sessions
