@@ -9,11 +9,13 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 - 🤖 **Autonomous Navigation**: LLM-driven pathfinding with obstacle avoidance and spatial mapping
 - 👁️ **Computer Vision**: Real-time image analysis for object detection and scene understanding
 - 🎤 **Voice Interaction**: Records user responses after speaking, sends audio to LLM for context-aware replies
-- 🗣️ **Multi-language TTS**: Supports English, Russian, Czech, and Italian with Google WaveNet voices
+- 🗣️ **Multi-language TTS**: Supports English, Russian, Czech, Italian, and German with Google Chirp3/Chirp-HD voices
 - 🌈 **Emotional Expression**: RGB LED "mood" changes based on robot's state (thinking, happy, cautious, etc.)
 - 📊 **Cloud Integration**: Arduino Cloud for remote monitoring and control
-- 🧠 **Memory & Planning**: Maintains movement history, spatial maps, and hierarchical plans to avoid loops
+- 🧠 **Memory & Planning**: Maintains movement history, spatial maps, and hierarchical plans with file-based persistence
 - 🎵 **Sound Effects**: Plays contextual sounds to attract attention or express personality
+- 🚨 **Safety Features**: Panic mode for emergency navigation and Telegram alarm notifications
+- 📸 **Data Logging**: Automatic image capture to Google Drive for training datasets
 
 ## Current Prototype Specifications
 
@@ -85,28 +87,43 @@ As shown in the table, the total project cost is a very affordable **$64 USD**. 
     -   **HTTP Server** (Port 5000) with the following endpoints:
         -   **GET `/play`**: Plays audio files via `aplay` (parameter: `filename`)
         -   **GET `/play_random`**: Plays a random sound from the `sounds` directory
-        -   **GET `/speak`**: Text-to-Speech using Google Cloud TTS with WaveNet voices (parameters: `text`, `lang`)
-            - Supports multiple languages: English (`en-US-Neural2-D`), Russian (`ru-RU-Wavenet-D`), Czech (`cs-CZ-Wavenet-A`), Italian (`it-IT-Wavenet-A`)
+        -   **GET `/speak`**: Text-to-Speech using Google Cloud TTS (parameters: `text`, `lang`)
+            - Supports multiple languages:
+              - English: `en-US-Chirp3-HD-Zubenelgenubi`
+              - Russian: `ru-RU-Wavenet-D`
+              - Czech: `cs-CZ-Chirp3-HD-Enceladus`
+              - Italian: `it-IT-Chirp-HD-D`
+              - German: `de-DE-Chirp-HD-D`
             - Implements caching to avoid re-synthesizing the same text
+            - Audio output: LINEAR16 with +10dB volume gain for clarity
+        -   **GET `/telegram`**: Sends alarm messages to admin via Telegram Bot (parameter: `message`)
+            - Requires `TELEGRAM_KEY` and `ADMIN_ID` environment variables
         -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini 3 Flash (Currently `gemini-3-flash-preview` model)
-            - Returns JSON with: `speak`, `sound`, `move`, `rgb`, `plan`, `subplan`, `map`
-            - Receives images via Socket.IO from the webcam service
-            - **Image Logging**: Saves incoming images to `/home/arduino/google-drive/robot` for debugging/dataset creation
+            - Returns JSON with: `speak`, `sound`, `move`, `rgb`, `plan`, `subplan`, `map`, `memory`, `alarm`
+            - Receives images via Socket.IO from the webcam service (default: `http://localhost:4912`)
+            - **Image Logging**: Saves all incoming images to `/home/arduino/google-drive/robot` with timestamps for debugging/dataset creation
             - Includes sophisticated prompt engineering for robot behavior and safety rules
             - **Reasoning**: Uses a thinking budget (16k tokens) for complex chain-of-thought processing
+            - **Alarm System**: Automatically sends Telegram notifications when LLM detects critical/dangerous conditions
 
 -   **Arduino MCU (`sketch.ino`):**
-    -   **Libraries Used**: `Arduino_RouterBridge`, `Arduino_LED_Matrix`, `Modulino`, `Servo`, `NewPing`
+    -   **Libraries Used**: `Arduino_RouterBridge`, `Modulino`, `Servo`, `NewPing`
     -   **Main Loop Operations**:
-        1. Retrieves cloud variables (`speed`, `back`, `left`, `right`, `forward`, `agi`, `rgb`) via Bridge
-        2. Reads ultrasonic distance sensor (NewPing library)
-        3. Reads temperature and humidity from Modulino Thermo (I2C)
-        4. Updates Arduino Cloud telemetry variables
-        5. Executes movement commands (manual or AGI-driven)
+        1. Reads ultrasonic distance sensor (NewPing library) every 1 second
+        2. Reads temperature and humidity from Modulino Thermo (I2C)
+        3. Updates Arduino Cloud telemetry via Bridge notifications (`set_distance`, `set_temperature`, `set_humidity`)
+    -   **Python Control Loop** (`main.py`):
+        - Executes movement commands based on cloud variables (`speed`, `back`, `left`, `right`, `forward`, `panic`, `agi`)
+        - Priority order: Manual controls → Panic mode → AGI mode → Stop
     -   **Manual Control**: Individual direction booleans (`back`, `left`, `right`, `forward`) with configurable speed
-    -   **AGI Mode**: Calls `agi_loop()` bridge function, parses returned command string (MOVE/TURN/STOP), executes movement with calibrated timing
-    -   **RGB Parsing**: Converts "R,G,B" string to individual values, applies color correction for LED hardware characteristics
-    -   **LED Matrix**: Available for future visual feedback (currently unused)
+    -   **Panic Mode**: Emergency navigation mode - moves forward if clear (>25cm), otherwise backs up, plays random sound, and rotates
+    -   **AGI Mode**: Calls `agi_loop()` function in Python, receives LLM decisions, executes complex multi-step commands
+    -   **RGB Parsing**: Converts "R,G,B" string to individual values, applies hardware color correction (Red÷1.2, Green÷2, Blue×1)
+    -   **Movement Calibration**:
+        - Linear: ~20 cm/sec at speed 45
+        - Rotation: ~40 ms/degree (empirical)
+        - Safety: Stops forward movement if distance < 10cm
+    -   **Bridge Functions Exposed**: `getDistance()`, `setRGB(string)`, `move(string, bool)`, `panic(int)`
 
 ### 3. Interaction and Autonomy Features
 
@@ -189,12 +206,19 @@ The following variables are synchronized with the Arduino Cloud:
         -   `rgb:bri` (0-100): Brightness percentage
         -   `rgb:swi` (bool): Switch on/off
         -   The Python code converts HSV to RGB string format (e.g., "255,128,0") and sends to MCU
-    -   `lang` (str): Language code for TTS (en, ru, cz, it).
+    -   `lang` (str): Language code for TTS (en, ru, cz/cs, it, de).
+    -   `panic` (bool): Emergency navigation mode toggle.
 
 -   **Read-Only (Telemetry):**
     -   `distance` (int): Distance measured by the ultrasonic sensor (cm).
     -   `temperature` (float): Temperature from Modulino sensor (Celsius).
     -   `humidity` (float): Humidity from Modulino sensor (%).
+    -   `plan` (str): Current global strategy/reasoning from LLM.
+    -   `subplan` (str): Current tactical action description.
+    -   `space_map` (str): Text-based 2D spatial map.
+    -   `movement_history` (str): JSON array of past movement commands.
+    -   `memory` (str): Persistent facts/knowledge learned by the robot.
+    -   `alarm` (str): Current alarm status/message (empty = no alarm).
 
 ![alt text](image-3.png)
 
@@ -229,6 +253,9 @@ The system requires the following environment variables:
     - Windows: `C:\My-progs\Python\agi-robot\google.json`
 -   **`GEMINI_KEY`**: Google Gemini API key for LLM access
 -   **`IMAGE_SERVER_URL`** (optional): Socket.IO server URL for webcam feed (default: `http://localhost:4912`)
+-   **`TELEGRAM_KEY`** (optional): Telegram Bot API token for alarm notifications
+-   **`ADMIN_ID`** (optional): Telegram chat ID for receiving robot alarms
+-   **`ADMIN_ID2`** (optional): Secondary Telegram chat ID for alarm redundancy
 
 ### File Structure
 
@@ -237,7 +264,9 @@ agi-robot/
 ├── python/
 │   ├── main.py              # Main robot control logic
 │   ├── media_service.py     # HTTP server for TTS, LLM, and audio
-│   └── sounds/              # Directory for random sound effects (.wav files)
+│   ├── sounds/              # Directory for random sound effects (.wav files)
+│   ├── memory.txt           # Persistent memory storage (auto-created)
+│   └── mic.wav              # Temporary audio recording (auto-deleted after use)
 ├── sketch/
 │   └── sketch.ino           # Arduino MCU firmware
 └── google.json              # Google Cloud credentials
@@ -292,21 +321,33 @@ The model returns a JSON object with:
 {
   "speak": {"text": "What I want to say"},
   "sound": "casual",
-  "move": {"command": "forward|back|left|right|stop", "distance_cm": 20-100, "angle_deg": 15-180},
+  "move": {"command": "forward|back|left|right|stop", "distance_cm": 20-300, "angle_deg": 10-180},
   "rgb": "R,G,B",
   "plan": "Global strategy description",
   "subplan": "Immediate next steps",
-  "map": "Text-based spatial map with legend"
+  "map": "Text-based spatial map with legend",
+  "memory": "Updated persistent knowledge",
+  "alarm": "Critical condition description (or empty string)"
 }
 ```
 
 ### Action Execution
 
-1. **Speech**: Uses Google TTS with language-specific WaveNet voices (en/ru/cz/it)
-2. **Audio Recording**: Captures 10s of audio after speaking for next iteration
-3. **Sound Effects**: Plays random sound from `sounds/` directory
-4. **RGB Mood**: Updates LED color (White=neutral, Green=happy, Red=blocked, Blue=thinking, Yellow=curious, Orange=cautious)
-5. **Movement**: Sends command to MCU for execution
+1. **Speech**: Uses Google TTS with language-specific Chirp/WaveNet voices (en/ru/cz/it/de)
+2. **Audio Recording**: Captures 7 seconds of audio after speaking to capture user response (16kHz, 16-bit WAV)
+3. **Sound Effects**: Plays random sound from `sounds/` directory to attract attention
+4. **RGB Mood**: Updates LED color based on robot's emotional state:
+   - White (255,255,255): Neutral/Ready
+   - Green (0,255,0): Happy/Success
+   - Red (255,0,0): Blocked/Frustrated
+   - Blue (0,0,255): Thinking/Processing
+   - Yellow (255,255,0): Curious/Searching
+   - Orange (255,165,0): Cautious/Obstacle Nearby
+   - Purple (128,0,128): Excited/Special Discovery
+5. **Movement**: Sends command string to MCU via Bridge notification
+6. **Memory**: Saves updated memory to `memory.txt` for persistence across sessions
+7. **Alarm**: If alarm is non-empty, sends Telegram notification to admin
+8. **Cloud Sync**: Updates all state variables to Arduino Cloud for remote monitoring
 
 ## MCU Command Protocol
 
@@ -365,8 +406,13 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Random sound playback
 - [x] Proximity sensor integration
 - [x] Arduino Cloud variable synchronization
-- [x] Google grounding
-- [x] Persistent conversation memory across sessions
+- [x] Google grounding for real-time web search
+- [x] Persistent conversation memory across sessions (file-based)
+- [x] Panic mode for emergency navigation
+- [x] Telegram alarm notifications
+- [x] German language TTS support
+- [x] Image logging to Google Drive
+- [x] Temperature and humidity monitoring
 
 ### Future Enhancements
 - [ ] IMU integration for better orientation tracking (compass)
