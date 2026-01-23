@@ -445,10 +445,10 @@ def loop():
             Bridge.call("move", f"MOVE|forward|20|{speed}", False)
         elif back:
             Bridge.call("move", f"MOVE|back|20|{speed}", False)
-        elif agi:
-            agi_loop()
         elif panic:
             Bridge.call("panic", speed)
+        elif agi:
+            agi_loop()
         else:
             Bridge.call("move", "STOP", True)
         
