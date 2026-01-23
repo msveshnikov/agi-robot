@@ -15,6 +15,7 @@ import json
 import time
 import colorsys
 import wave
+import threading
      
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -146,6 +147,59 @@ def rgb_swi_callback(client: object, value):
     logger.info(f"RGB Swi update: {value}")
     rgb_values["swi"] = value
     update_rgb_from_values()
+
+# Rainbow effect for listening mode
+rainbow_stop_event = None
+rainbow_thread = None
+
+def rainbow_effect(stop_event, interval=0.1):
+    """Cycles through rainbow colors on the RGB LED until stop_event is set."""
+    hue = 0.0
+    while not stop_event.is_set():
+        # Convert HSV to RGB (full saturation and brightness)
+        r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+        rgb_string = f"{int(r * 255)},{int(g * 255)},{int(b * 255)}"
+        
+        try:
+            Bridge.notify("setRGB", rgb_string)
+        except Exception as e:
+            logger.warning(f"Error setting RGB during rainbow: {e}")
+        
+        # Increment hue (wrap around at 1.0)
+        hue = (hue + 0.02) % 1.0
+        time.sleep(interval)
+    
+    # When stopping, turn off LED
+    try:
+        Bridge.notify("setRGB", "0,0,0")
+    except Exception:
+        pass
+
+def rainbow_while_listening():
+    """Start a background rainbow effect. Returns a stop function to call when done."""
+    global rainbow_stop_event, rainbow_thread
+    
+    # Stop any existing rainbow
+    if rainbow_stop_event and rainbow_thread:
+        rainbow_stop_event.set()
+        rainbow_thread.join(timeout=1.0)
+    
+    # Start new rainbow effect
+    rainbow_stop_event = threading.Event()
+    rainbow_thread = threading.Thread(target=rainbow_effect, args=(rainbow_stop_event,), daemon=True)
+    rainbow_thread.start()
+    logger.info("Rainbow effect started")
+    
+    def stop_rainbow():
+        global rainbow_stop_event, rainbow_thread
+        if rainbow_stop_event:
+            rainbow_stop_event.set()
+            if rainbow_thread:
+                rainbow_thread.join(timeout=1.0)
+            logger.info("Rainbow effect stopped")
+    
+    return stop_rainbow
+
 
 arduino_cloud.register("speed", on_write=speed_callback)
 arduino_cloud.register("panic", on_write=panic_callback)
@@ -396,6 +450,9 @@ def agi_loop():
                 speak(text)
                 logger.info("Robot spoke!! Starting dynamic recording (up to 15 seconds)...")
     
+                # Start rainbow effect while listening
+                stop_rainbow = rainbow_while_listening()
+                
                 # Record mic with dynamic duration extension based on audio level
                 mic = Microphone()
                 mic.start()
@@ -460,6 +517,9 @@ def agi_loop():
                     logger.info(f"Recording finished after {time.time() - start_time:.1f} seconds and saved to mic.wav")
                 finally:
                     mic.stop()
+                    # Stop rainbow effect when recording is done
+                    stop_rainbow()
+                    logger.info("Rainbow effect stopped after recording")
                   
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
