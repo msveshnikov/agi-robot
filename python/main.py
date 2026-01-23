@@ -394,14 +394,20 @@ def agi_loop():
             text = sp.get("text")
             if text:
                 speak(text)
-                logger.info("Robot spoke!! Starting 7-second recording...")
+                logger.info("Robot spoke!! Starting dynamic recording (up to 15 seconds)...")
     
-                # now record mic for 7 sec and save to file with proper WAV header
+                # Record mic with dynamic duration extension based on audio level
                 mic = Microphone()
                 mic.start()
                 try:
+                    import numpy as np
+                    
                     audio_chunk_iterator = mic.stream()  # Returns a numpy array iterator
                     start_time = time.time()
+                    max_duration = 15  # Maximum recording duration in seconds
+                    min_duration = 7   # Initial recording duration
+                    current_max = min_duration
+                    last_second_chunks = []
                     
                     # Use wave module to write with header
                     with wave.open("mic.wav", "wb") as wf:
@@ -411,9 +417,47 @@ def agi_loop():
                         
                         for chunk in audio_chunk_iterator:
                             wf.writeframes(chunk.tobytes())
-                            if time.time() - start_time >= 7:
-                                break
-                    logger.info("Recording finished and saved to mic.wav with WAV header")
+                            elapsed = time.time() - start_time
+                            
+                            # Keep track of chunks in the last second
+                            last_second_chunks.append(chunk)
+                            
+                            # Check if we've reached the current maximum duration
+                            if elapsed >= current_max:
+                                # Calculate audio level for the last second
+                                if last_second_chunks:
+                                    # Combine all chunks from the last second
+                                    last_second_audio = np.concatenate(last_second_chunks)
+                                    
+                                    # Calculate RMS (Root Mean Square) and convert to dB
+                                    rms = np.sqrt(np.mean(last_second_audio.astype(np.float32)**2))
+                                    # Convert to dB (reference: max value for int16)
+                                    if rms > 0:
+                                        db_level = 20 * np.log10(rms / 32768.0) + 90  # Normalize to ~0-90 dB range
+                                    else:
+                                        db_level = 0
+                                    
+                                    logger.info(f"Audio level at {elapsed:.1f}s: {db_level:.1f} dB")
+                                    
+                                    # If last second was not silent (>45 dB) and we haven't reached max, extend by 1 second
+                                    if db_level > 45 and current_max < max_duration:
+                                        current_max += 1
+                                        logger.info(f"Audio detected, extending recording to {current_max} seconds")
+                                        last_second_chunks = []  # Reset for next second
+                                    else:
+                                        # Either silent or reached max duration
+                                        if db_level <= 45:
+                                            logger.info("Silence detected, stopping recording")
+                                        break
+                                else:
+                                    break
+                            
+                            # Keep only the last second worth of chunks (approximately)
+                            # Assuming chunks are small, keep last ~50 chunks (rough estimate)
+                            if len(last_second_chunks) > 50:
+                                last_second_chunks.pop(0)
+                    
+                    logger.info(f"Recording finished after {time.time() - start_time:.1f} seconds and saved to mic.wav")
                 finally:
                     mic.stop()
                   
