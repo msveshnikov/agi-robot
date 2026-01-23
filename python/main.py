@@ -197,6 +197,7 @@ def rainbow_while_listening():
             if rainbow_thread:
                 rainbow_thread.join(timeout=1.0)
             logger.info("Rainbow effect stopped")
+            Bridge.notify("setRGB", rgb)
     
     return stop_rainbow
 
