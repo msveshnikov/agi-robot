@@ -240,6 +240,62 @@ The following variables are synchronized with the Arduino Cloud:
     -   `python-socketio[client]` (Image streaming)
     -   `aplay` (Audio playback utility)
 
+## Setting Up Autostart on Debian
+
+To automatically start `media_service.py` on boot in Debian, the repository includes systemd service configuration files in the `etc/` folder.
+
+### Installation Steps
+
+1. **Copy the rc.local script** to `/etc/`:
+   ```bash
+   sudo cp etc/rc.local /etc/rc.local
+   sudo chmod +x /etc/rc.local
+   ```
+
+2. **Edit `/etc/rc.local`** to update paths and credentials:
+   ```bash
+   sudo nano /etc/rc.local
+   ```
+   
+   Update the following variables:
+   - `GEMINI_KEY`: Your Google Gemini API key
+   - Bluetooth MAC address (if using different speaker)
+   - Paths to match your installation directory
+
+3. **Copy the systemd service** file:
+   ```bash
+   sudo cp etc/rc-local.service /etc/systemd/system/rc-local.service
+   ```
+
+4. **Enable and start the service**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable rc-local.service
+   sudo systemctl start rc-local.service
+   ```
+
+5. **Check service status**:
+   ```bash
+   sudo systemctl status rc-local.service
+   ```
+
+### What the Script Does
+
+The `rc.local` script performs the following on boot:
+- Waits 20 seconds for system initialization
+- Sets the `GEMINI_KEY` environment variable
+- Connects to the Bluetooth speaker (via `bluetoothctl`)
+- Creates required runtime directories for PulseAudio (`/run/user/1000/pulse`)
+- Plays a startup sound to confirm audio is working
+- Starts `media_service.py` from the Python directory
+
+### Troubleshooting
+
+- **Check logs**: `journalctl -u rc-local.service -f`
+- **Manual test**: Run `/etc/rc.local start` as the arduino user
+- **Bluetooth issues**: Verify speaker MAC address with `bluetoothctl devices`
+- **Audio issues**: Test with `aplay -l` to confirm sound card detection
+
 ---
 
 ## Configuration
