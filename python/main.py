@@ -463,7 +463,7 @@ def agi_loop():
                     audio_chunk_iterator = mic.stream()  # Returns a numpy array iterator
                     start_time = time.time()
                     max_duration = 15  # Maximum recording duration in seconds
-                    min_duration = 7   # Initial recording duration
+                    min_duration = 3   # Initial recording duration
                     current_max = min_duration
                     last_second_chunks = []
                     
