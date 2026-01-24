@@ -358,13 +358,14 @@ def agi_loop():
     """Called from MCU. Sends distance + subplan to LLM-vision, handles JSON response.
 
     {
-      "speak": {"text": "...",
+      "speak": {"text": "..."},
       "sound": "casual",
-      "move": {"command": "forward|back|left|right|stop",  "distance_cm": integer, "angle_deg": integer },
+      "moves": [{"command": "forward|back|left|right|stop", "distance_cm": integer, "angle_deg": integer}, ...],
       "plan": "updated global strategy",
       "subplan": "updated context string",
       "space_map": "updated map string",
-      "memory": "updated memory string"
+      "memory": "updated memory string",
+      "alarm": "alarm message if needed"
     }
     """
     
@@ -417,28 +418,69 @@ def agi_loop():
         logger.warning("Warning handling sound: %s", e)
 
 
-    # Handle movement: build a short command string for MCU to execute and return it
+    # Handle movement: process array of movement commands
     try:
-        mv = resp.get("move")
-        if mv and isinstance(mv, dict):
-            # Expected keys: command (forward|back|left|right), distance_cm, angle_deg
-            cmd = mv.get("command")
-            mv_distance = mv.get("distance_cm")
-            angle = mv.get("angle_deg")
-            chosen_speed = speed
-            if cmd in ("forward", "back") and mv_distance is not None:
-                # Format: MOVE|direction|distance_cm|speed
-                move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
-            elif cmd in ("left", "right") and angle is not None:
-                # Format: TURN|direction|angle_deg|speed
-                move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
-            elif cmd == "stop":
-                move_cmd = "STOP"
-            
-            # Add to history if a valid move command was generated
-            if move_cmd:
-                movement_history.append(mv)
-            Bridge.notify("move", move_cmd, True)
+        moves = resp.get("moves")
+        if moves and isinstance(moves, list):
+            # Process each movement command in sequence
+            for idx, mv in enumerate(moves):
+                if not isinstance(mv, dict):
+                    logger.warning(f"Move command at index {idx} is not a dict, skipping")
+                    continue
+                
+                # Expected keys: command (forward|back|left|right), distance_cm, angle_deg
+                cmd = mv.get("command")
+                mv_distance = mv.get("distance_cm")
+                angle = mv.get("angle_deg")
+                chosen_speed = speed
+                move_cmd = None
+                
+                if cmd in ("forward", "back") and mv_distance is not None:
+                    # Format: MOVE|direction|distance_cm|speed
+                    move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
+                elif cmd in ("left", "right") and angle is not None:
+                    # Format: TURN|direction|angle_deg|speed
+                    move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
+                elif cmd == "stop":
+                    move_cmd = "STOP"
+                
+                # Execute the move command and wait for completion
+                if move_cmd:
+                    logger.info(f"Executing move {idx + 1}/{len(moves)}: {move_cmd}")
+                    # Add to history
+                    movement_history.append(mv)
+                    # Execute the command and wait (stop=True for all but the last command)
+                    is_last_move = (idx == len(moves) - 1)
+                    Bridge.call("move", move_cmd, True)
+                    
+                    # Add a small delay between moves for stability
+                    if not is_last_move:
+                        time.sleep(0.2)
+        
+        # Also support single 'move' command for backward compatibility
+        elif "move" in resp:
+            mv = resp.get("move")
+            if mv and isinstance(mv, dict):
+                # Expected keys: command (forward|back|left|right), distance_cm, angle_deg
+                cmd = mv.get("command")
+                mv_distance = mv.get("distance_cm")
+                angle = mv.get("angle_deg")
+                chosen_speed = speed
+                move_cmd = None
+                
+                if cmd in ("forward", "back") and mv_distance is not None:
+                    # Format: MOVE|direction|distance_cm|speed
+                    move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{chosen_speed}"
+                elif cmd in ("left", "right") and angle is not None:
+                    # Format: TURN|direction|angle_deg|speed
+                    move_cmd = f"TURN|{cmd}|{int(angle)}|{chosen_speed}"
+                elif cmd == "stop":
+                    move_cmd = "STOP"
+                
+                # Add to history if a valid move command was generated
+                if move_cmd:
+                    movement_history.append(mv)
+                    Bridge.notify("move", move_cmd, True)
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
 

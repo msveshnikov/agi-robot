@@ -257,7 +257,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
             f"- speak: {{\"text\": \"...\"}} or null (concise, robotic but friendly speech. {lang_instruction})\n"
             "- sound: \"casual\" or null (to attract attention or signal small success)\n"
-            "- move: {{\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-300), \"angle_deg\": int (10-180)}} or null\n"
+            "- moves: ARRAY of movement commands [{\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-300), \"angle_deg\": int (10-180)}] or null. You can specify multiple sequential moves (e.g., turn left, move forward, turn right). Max 5 moves per response.\n"
             "- rgb: \"R,G,B\" string. MANDATORY. Use this mood logic:\n"
             "  - \"255,255,255\" (White): NEUTRAL / READY\n"
             "  - \"0,255,0\" (Green): HAPPY / SUCCESS / TARGET REACHED\n"
