@@ -3,7 +3,7 @@ from arduino.app_utils import Bridge
 from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
-from arduino.app_bricks.arduino_cloud import ArduinoCloud
+from arduino.app_bricks.arduino_cloud import ArduinoCloud, ColoredLight
 from arduino.app_peripherals.microphone import Microphone
 import urllib.request
 import urllib.parse
@@ -104,49 +104,30 @@ def lang_callback(client: object, value: str):
         pass
 
 rgb = "255,0,255"
-rgb_values = {"hue": 0, "sat": 0, "bri": 0, "swi": False}
 
-def update_rgb_from_values():
+def rgb_callback(client: object, value):
+    """Callback function to handle RGB light updates from cloud."""
     global rgb
     try:
-        swi = rgb_values.get("swi", False)
+        # value is a dict with keys: hue, sat, bri, swi
+        swi = value.get("swi", False)
         if isinstance(swi, str):
             swi = (swi.lower() == "true")
         
         if not swi:
             rgb = "0,0,0"
         else:
-            h = float(rgb_values.get("hue", 0)) / 360.0
-            s = float(rgb_values.get("sat", 0)) / 100.0
-            v = float(rgb_values.get("bri", 0)) / 100.0
+            h = float(value.get("hue", 0)) / 360.0
+            s = float(value.get("sat", 0)) / 100.0
+            v = float(value.get("bri", 0)) / 100.0
             
             r_float, g_float, b_float = colorsys.hsv_to_rgb(h, s, v)
             rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
             
-        logger.info(f"Updated RGB string: {rgb} from {rgb_values}")
+        logger.info(f"RGB value updated from cloud: {rgb}")
         Bridge.notify("setRGB", rgb)
     except Exception as e:
-        logger.error(f"Error calculating RGB: {e}")
-
-def rgb_hue_callback(client: object, value):
-    logger.info(f"RGB Hue update: {value}")
-    rgb_values["hue"] = value
-    update_rgb_from_values()
-
-def rgb_sat_callback(client: object, value):
-    logger.info(f"RGB Sat update: {value}")
-    rgb_values["sat"] = value
-    update_rgb_from_values()
-
-def rgb_bri_callback(client: object, value):
-    logger.info(f"RGB Bri update: {value}")
-    rgb_values["bri"] = value
-    update_rgb_from_values()
-
-def rgb_swi_callback(client: object, value):
-    logger.info(f"RGB Swi update: {value}")
-    rgb_values["swi"] = value
-    update_rgb_from_values()
+        logger.error(f"Error handling RGB update: {e}")
 
 # Rainbow effect for listening mode
 rainbow_stop_event = None
@@ -213,11 +194,9 @@ arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
 arduino_cloud.register("alarm")
 
-# Register individual RGB callbacks
-arduino_cloud.register("rgb:hue", on_write=rgb_hue_callback)
-arduino_cloud.register("rgb:sat", on_write=rgb_sat_callback)
-arduino_cloud.register("rgb:bri", on_write=rgb_bri_callback)
-arduino_cloud.register("rgb:swi", on_write=rgb_swi_callback)
+# Register RGB as a single ColoredLight
+arduino_cloud.register(ColoredLight("rgb", swi=True, on_write=rgb_callback))
+
 
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
