@@ -110,16 +110,16 @@ def rgb_callback(client: object, value):
     global rgb
     try:
         # value is a dict with keys: hue, sat, bri, swi
-        swi = value.get("swi", False)
+        swi = value.swi
         if isinstance(swi, str):
             swi = (swi.lower() == "true")
         
         if not swi:
             rgb = "0,0,0"
         else:
-            h = float(value.get("hue", 0)) / 360.0
-            s = float(value.get("sat", 0)) / 100.0
-            v = float(value.get("bri", 0)) / 100.0
+            h = float(value.hue) / 360.0
+            s = float(value.sat) / 100.0
+            v = float(value.bri) / 100.0
             
             r_float, g_float, b_float = colorsys.hsv_to_rgb(h, s, v)
             rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
