@@ -28,7 +28,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
     -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
     -   RGB LED (Pins 3, 5, 6) for mood expression
 -   **Power:** PowerBank 10000 mAh
--   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview), Arduino Cloud
+-   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview), Arduino Cloud, Pydantic (Structured Outputs)
 -   **Connectivity:** WiFi required for API access
 
 **Functionality:** The robot operates autonomously using an AGI loop: captures images, measures distance, consults the LLM, speaks responses, records user audio, and executes movement commands. All decisions are made by the AI model based on visual input, sensor data, goals, and conversation context.
@@ -370,17 +370,19 @@ The robot sends all inputs to **Gemini 3 Flash (Preview)** (currently `gemini-3-
 
 ### LLM Response Format
 
-The model returns a JSON object with:
+The model returns a structured JSON object validated by Pydantic schemas:
 
 ```json
 {
   "speak": {"text": "What I want to say"},
   "sound": "casual",
-  "move": {"command": "forward|back|left|right|stop", "distance_cm": 20-300, "angle_deg": 10-180},
+  "moves": [
+    {"command": "forward|back|left|right|stop", "distance_cm": 20-300, "angle_deg": 10-180}
+  ],
   "rgb": "R,G,B",
   "plan": "Global strategy description",
   "subplan": "Immediate next steps",
-  "map": "Text-based spatial map with legend",
+  "space_map": "Text-based spatial map with legend",
   "memory": "Updated persistent knowledge",
   "alarm": "Critical condition description (or empty string)"
 }
@@ -467,6 +469,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] German language TTS support
 - [x] Image logging to Google Drive
 - [x] Temperature and humidity monitoring
+- [x] Structured Outputs (Pydantic) for type-safe LLM responses
 
 ## TODO
 

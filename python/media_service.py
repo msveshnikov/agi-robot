@@ -15,6 +15,8 @@ import random
 import glob
 import requests
 from datetime import datetime
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
@@ -28,6 +30,58 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("SoundService")
+
+# ===== PYDANTIC SCHEMAS FOR STRUCTURED OUTPUTS =====
+
+class SpeakResponse(BaseModel):
+    """Structured speech output for the robot"""
+    text: str = Field(description="The text the robot should speak. Must be in the requested language.")
+
+class MoveCommand(BaseModel):
+    """A single movement command for the robot"""
+    command: str = Field(description="Movement command: 'forward', 'back', 'left', 'right', or 'stop'")
+    distance_cm: Optional[int] = Field(default=None, description="Distance in centimeters for forward/back (20-300)")
+    angle_deg: Optional[int] = Field(default=None, description="Angle in degrees for left/right turns (10-180)")
+
+class RobotResponse(BaseModel):
+    """Complete structured response from the AGI robot LLM"""
+    speak: Optional[SpeakResponse] = Field(
+        default=None,
+        description="Speech output for the robot, or null for silence"
+    )
+    sound: Optional[str] = Field(
+        default=None,
+        description="Sound effect to play: 'casual' to attract attention, or null"
+    )
+    moves: Optional[List[MoveCommand]] = Field(
+        default=None,
+        description="Array of sequential movement commands (max 5), or null to stay still"
+    )
+    rgb: str = Field(
+        description="RGB LED color as 'R,G,B' string. MANDATORY. Use colors to express mood: "
+                    "White(255,255,255)=Neutral/Ready, Green(0,255,0)=Happy/Success, "
+                    "Red(255,0,0)=Blocked/Frustrated, Blue(0,0,255)=Thinking, "
+                    "Yellow(255,255,0)=Curious/Searching, Orange(255,165,0)=Cautious, "
+                    "Purple(128,0,128)=Excited"
+    )
+    plan: str = Field(
+        description="High-level strategic reasoning, visual summary, and goal status"
+    )
+    subplan: str = Field(
+        description="Tactical implementation details for the current move"
+    )
+    space_map: str = Field(
+        description="Text-based 2D spatial map (R=Robot, W=Wall, O=Obstacle, P=Path, T=Target)"
+    )
+    memory: str = Field(
+        description="Persistent information to remember forever (never delete, only add/update)"
+    )
+    alarm: Optional[str] = Field(
+        default=None,
+        description="Non-empty ONLY if human help needed or critical dangerous condition detected"
+    )
+
+# ===== END SCHEMAS =====
 
 try:
     from googleapiclient.discovery import build
@@ -224,22 +278,26 @@ def get_image_from_socket(timeout=5):
 
 
 def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
-
+    """
+    Send a request to Gemini with structured output using Pydantic schema.
+    Returns a validated RobotResponse object (as a dict).
+    """
     try:
-        # Build a prompt that forces a JSON-only response matching the expected schema
+        # Build language-specific instruction for the speak field
         lang_instruction = ""
         if lang == 'ru':
-            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in RUSSIAN language."
+            lang_instruction = "IMPORTANT: The content of the 'speak.text' field MUST be in RUSSIAN language."
         elif lang == 'cz' or lang == 'cs':
-            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in CZECH language."
+            lang_instruction = "IMPORTANT: The content of the 'speak.text' field MUST be in CZECH language."
         elif lang == 'it':
-            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ITALIAN language."
+            lang_instruction = "IMPORTANT: The content of the 'speak.text' field MUST be in ITALIAN language."
         elif lang == 'de':
-            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in GERMAN language."
+            lang_instruction = "IMPORTANT: The content of the 'speak.text' field MUST be in GERMAN language."
         else:
-            lang_instruction = "IMPORTANT: The content of the 'speak' field MUST be in ENGLISH language."
+            lang_instruction = "IMPORTANT: The content of the 'speak.text' field MUST be in ENGLISH language."
 
-        schema_instructions = (
+        # System instructions define the persona and rules
+        system_instructions = (
             "You are 'AGI Robot', a highly intelligent, curious, and helpful autonomous mobile assistant. "
             "PHYSICAL SPECS: Two wheels (differential drive), NO arms or head. Dimensions: 24cm(W) x 12cm(L) x 10cm(H). "
             "You move ONLY on flat floors. Your WebCam is on your roof, looking forward. "
@@ -252,35 +310,18 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
             "4. MOOD & EXPRESSION: Use the 'rgb' LED to signal your internal state. Align your color with your current action or mood. Be proactive in updating your mood.\n"
             "5. LOGICAL PLANNING: Use 'plan' to explain your long-term strategy and what you see in the image. Use 'subplan' for the immediate tactical moves (e.g., 'Moving forward carefully', 'Turning to avoid the chair').\n"
             "6. SPATIAL AWARENESS: Maintain a 2D text-based map (1 block = 0.5x0.5 meter). Mark yourself (R), walls (W), obstacles (O), paths (P), and targets (T). Update the map based on your movement history and visual observations.\n"
-            "7. CONTINUOUS LEARNING: Use 'memory' to store important facts (e.g., 'The kitchen is to the left', 'The master's name is Max'). This data persists across all sessions. Update it whenever you learn something significant. Never delete info from memory. Only add new/update existing info.\n\n"
-            "RESPONSE FORMAT:\n"
-            "Return ONLY a single valid JSON object (no markdown, no extra text) with these exact keys:\n"
-            f"- speak: {{\"text\": \"...\"}} or null (concise, robotic but friendly speech. {lang_instruction})\n"
-            "- sound: \"casual\" or null (to attract attention or signal small success)\n"
-            "- moves: ARRAY of movement commands [{\"command\": \"forward\"|\"back\"|\"left\"|\"right\"|\"stop\", \"distance_cm\": int (20-300), \"angle_deg\": int (10-180)}] or null. You can specify multiple sequential moves (e.g., turn left, move forward, turn right). Max 5 moves per response.\n"
-            "- rgb: \"R,G,B\" string. MANDATORY. Use this mood logic:\n"
-            "  - \"255,255,255\" (White): NEUTRAL / READY\n"
-            "  - \"0,255,0\" (Green): HAPPY / SUCCESS / TARGET REACHED\n"
-            "  - \"255,0,0\" (Red): BLOCKED / FRUSTRATED / STUCK\n"
-            "  - \"0,0,255\" (Blue): THINKING / ANALYZING / PROCESSING\n"
-            "  - \"255,255,0\" (Yellow): CURIOUS / SEARCHING / SCANNING\n"
-            "  - \"255,165,0\" (Orange): CAUTIOUS / OBSTACLE NEARBY\n"
-            "  - \"128,0,128\" (Purple): EXCITED / SPECIAL DISCOVERY\n"
-            "- plan: string (High-level reasoning, visual summary, and strategic goal status)\n"
-            "- subplan: string (Tactical implementation of the current move)\n"
-            "- space_map: string (Text-based 2D map with legend)\n"
-            "- memory: string (Persistent information to save forever)\n"
-            "- alarm: string (non empty string ONLY if you need human help or critical dangerous condition)\n"
+            "7. CONTINUOUS LEARNING: Use 'memory' to store important facts (e.g., 'The kitchen is to the left', 'The master's name is Max'). This data persists across all sessions. Update it whenever you learn something significant. Never delete info from memory. Only add new/update existing info.\n"
+            f"{lang_instruction}\n"
         )
         
         current_time_str = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
-        prompt_text = f"CURRENT TIME: {current_time_str}\n\n{schema_instructions}\n\nInput context:\n{text}"
+        prompt_text = f"CURRENT TIME: {current_time_str}\n\nInput context:\n{text}"
 
         init_llm()
         if not LLM_CLIENT:
             raise Exception('LLM_CLIENT is not initialized')
 
-        logger.info(f'Sending text+image+audio to Gemini model (lang={lang})...')
+        logger.info(f'Sending text+image+audio to Gemini model with structured output (lang={lang})...')
         
         contents = [
             types.Content(
@@ -298,39 +339,34 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
              contents[0].parts.append(types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav"))
              logger.info(f"Including audio in Gemini request, size: {len(audio_bytes)} bytes")
        
+        # Configure Gemini for structured output
         generate_content_config = types.GenerateContentConfig(
-            temperature = 1.3,
-            tools = [types.Tool(google_search=types.GoogleSearchRetrieval())],
-            thinking_config = types.ThinkingConfig(include_thoughts=False, thinking_budget=16000)
+            temperature=1.0, # Lower temperature for more reliable structured output
+            tools=[types.Tool(google_search=types.GoogleSearchRetrieval())],
+            # Note: thinking_config might conflict with structured outputs on some models, 
+            # but is generally fine. Keeping it low budget or disabling if issues arise.
+            thinking_config=types.ThinkingConfig(include_thoughts=False, thinking_budget=16000),
+            system_instruction=system_instructions,
+            response_mime_type="application/json",
+            response_schema=RobotResponse.model_json_schema(),
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model = "gemini-3-flash-preview", ## "gemini-3-pro-preview", ##"gemini-robotics-er-1.5-preview", 
-            contents = contents,
-            config = generate_content_config
+            model="gemini-3-flash-preview", 
+            contents=contents,
+            config=generate_content_config
         )
         
         response_text = response.text if hasattr(response, 'text') else str(response)
-
-        # Try to parse JSON and return parsed object if valid (same logic as before)
+        
+        # Pydantic validation handles the parsing
         try:
-            return json.loads(response_text)
-        except Exception:
-            try:
-                val = ast.literal_eval(response_text)
-                if isinstance(val, (dict, list)):
-                    return val
-            except Exception:
-                pass
-
-            m = re.search(r"\{[\s\S]*\}", response_text)
-            if m:
-                try:
-                    return json.loads(m.group(0))
-                except Exception:
-                    pass
-
-        raise Exception('Gemini returned non-JSON or unparsable response')
+            robot_response = RobotResponse.model_validate_json(response_text)
+            logger.info("Successfully validated structured response.")
+            return robot_response.model_dump()
+        except Exception as e:
+            logger.error(f"Pydantic validation failed: {e}. Raw response: {response_text}")
+            raise
 
     except Exception as e:
         logger.error(f"Failed to call Gemini API: {e}", exc_info=True)
