@@ -1,40 +1,134 @@
 // --- CABIN DIMENSIONS / РАЗМЕРЫ КАБИНЫ ---
-cabin_length = 220;          // [мм] Length (front to back) / Длина
-cabin_width = 120;           // [мм] Width (side to side) / Ширина
-cabin_height = 40;           // [мм] Height / Высота
-wall_thickness = 3;          // [мм] Wall thickness / Толщина стенок
-taper_angle = 70;            // [градусы] Taper angle (narrowing to top) / Угол сужения кверху
+cabin_length = 220;          // [mm] Length (front to back) / Длина
+cabin_width = 120;           // [mm] Width (side to side) / Ширина
+cabin_height = 40;           // [mm] Height / Высота
+wall_thickness = 3;          // [mm] Wall thickness / Толщина стенок
+taper_angle = 70;            // [degrees] Taper angle (angle from ground) / Угол от земли
 
 // --- MOUNTING SOCKETS / МОНТАЖНЫЕ ВПАДИНЫ ---
-socket_size = 10;            // [мм] Socket size (1x1 cm) / Размер впадины
-socket_depth = 5;            // [мм] Socket depth (0.5 cm) / Глубина впадины
+socket_size = 10;            // [mm] Socket size
+socket_depth = 5;            // [mm] Socket depth
 
 // --- BATTERY SHELF / ПОЛКА ДЛЯ БАТАРЕИ ---
-shelf_thickness = 3;         // [мм] Shelf thickness / Толщина полки
-shelf_distance_from_roof = 3; // [мм] Distance from roof to shelf definition / Отступ
-shelf_drop_offset = 15;      // [mm] Extra drop used in your original code / Дополнительное смещение вниз
-battery_cable_dia = 15;      // [мм] Battery cable hole / Отверстие для шнура батареи
-rear_cutout_width = 80;      // [мм] Rear cutout width / Ширина выреза сзади
-rear_cutout_height = 15;     // [мм] Rear cutout height / Высота выреза сзади
+shelf_thickness = 3;         // [mm]
+shelf_distance_from_roof = 3; // [mm]
+shelf_drop_offset = 15;      // [mm]
+battery_cable_dia = 15;      // [mm]
+rear_cutout_width = 80;      // [mm]
+rear_cutout_height = 15;     // [mm]
 
 // --- DISTANCE SENSOR / ДАТЧИК РАССТОЯНИЯ ---
-sensor_hole_dia = 16.5;      // [мм] Sensor hole diameter / Диаметр отверстия датчика
-sensor_spacing = 26;         // [мм] Distance between sensor holes / Расстояние между отверстиями
-sensor_height = 40;          // [мм] Height from bottom / Высота от низа
+sensor_hole_dia = 16.5;      // [mm]
+sensor_spacing = 26;         // [mm]
+sensor_height = 40;          // [mm]
 
 // --- ROOF CAMERA / КАМЕРА НА КРЫШЕ ---
-camera_hole_dia = 13.5;      // [мм] Camera hole diameter / Диаметр отверстия камеры
-camera_cable_dia = 18;       // [мм] Camera cable hole / Отверстие для шнура камеры
-camera_position = 30;        // [мм] Distance from front / Расстояние от передней части
-cable_offset = 20;           // [мм] Distance behind camera / Расстояние за камерой
+camera_hole_dia = 13.5;      // [mm]
+camera_cable_dia = 18;       // [mm]
+camera_position = 30;        // [mm]
+cable_offset = 20;           // [mm]
+
+// --- TEXT SETTINGS / НАСТРОЙКИ ТЕКСТА ---
+text_depth = 1.0;            // [mm] Emboss/Deboss depth
+font_style = "Liberation Sans:style=Bold"; 
 
 // --- QUALITY / КАЧЕСТВО ---
-$fn = 60;                    // Circle resolution / Разрешение окружностей
+$fn = 60;                    
 
 /* =====================================================================
  *                         MODULES / МОДУЛИ
  * =====================================================================
  */
+
+// FIXED: Module to place objects flush on the 70-degree tapered walls
+module place_on_surface(h, side) {
+    // Calculate how far the wall has receded at height h
+    // tan(theta) = Opp/Adj -> Adj = Opp/tan(theta)
+    offset_at_h = h / tan(taper_angle);
+    
+    // The rotation needed is exactly the taper angle (or negative)
+    // to align the Z-axis (text face) with the wall normal.
+    rot_angle = taper_angle; 
+
+    if (side == "roof") {
+        translate([0, 0, cabin_height])
+        children();
+    }
+    else if (side == "right") {
+        // Y positive side
+        y_pos = (cabin_width / 2) - offset_at_h;
+        translate([0, y_pos, h])
+        rotate([-rot_angle, 0, 0]) // Rotate -70 deg around X
+        children();
+    }
+    else if (side == "left") {
+        // Y negative side
+        y_pos = -(cabin_width / 2) + offset_at_h;
+        translate([0, y_pos, h])
+        rotate([rot_angle, 0, 0]) // Rotate +70 deg around X
+        rotate([0, 0, 180])       // Flip text to read correctly from outside
+        children();
+    }
+    else if (side == "front") {
+        // X positive side
+        x_pos = (cabin_length / 2) - offset_at_h;
+        translate([x_pos, 0, h])
+        rotate([0, rot_angle, 0]) // Tilt back
+        rotate([0, 0, 90])        // Align text with Y axis
+        children();
+    }
+    else if (side == "back") {
+        // X negative side
+        x_pos = -(cabin_length / 2) + offset_at_h;
+        translate([x_pos, 0, h])
+        rotate([0, -rot_angle, 0]) // Tilt back
+        rotate([0, 0, -90])        // Align text with Y axis
+        children();
+    }
+}
+
+module emboss_text(t_string, t_size) {
+    color("Gold")
+    linear_extrude(height = text_depth, convexity = 4)
+        text(t_string, size = t_size, font = font_style, valign = "center", halign = "center");
+}
+
+module name_dropping() {
+    // 1. Robot - Roof Center-Right
+    place_on_surface(cabin_height, "roof")
+        translate([20, -30, 0]) 
+        emboss_text("Robot", 12);
+
+    // 2. Commerzbank - Left Wall
+    place_on_surface(20, "left") 
+        translate([0, 0, 0]) 
+        emboss_text("Commerzbank", 10);
+
+    // 3. MaxSoft - Right Wall
+    place_on_surface(25, "right") 
+        translate([30, 0, 0]) 
+        emboss_text("MaxSoft", 11);
+
+    // 4. AGI - Front Nose
+    place_on_surface(30, "front") 
+        translate([0, 0, 0]) 
+        emboss_text("AGI", 10);
+
+    // 5. Julia - Back Wall
+    *place_on_surface(20, "back") 
+        translate([-40, 0, 0]) 
+        emboss_text("Julia", 12);
+
+    // 6. Veronica - Roof Back
+    place_on_surface(cabin_height, "roof")
+        translate([-5, 0, 0]) 
+        emboss_text("Veronica", 9);
+
+    // 7. DARiA - Right Wall (Front area)
+    place_on_surface(15, "right") 
+        translate([-50, 0, 0]) 
+        emboss_text("DARiA", 14);
+}
 
 // Main cabin body with 70° taper and CLOSED TOP (ROOF)
 module cabin_body() {
@@ -60,14 +154,14 @@ module cabin_cavity() {
     inner_width = cabin_width - 2 * wall_thickness;
     
     difference (){
-    hull() {
-        translate([0, 0, -1])
-            cube([inner_length, inner_width, 0.1], center = true);
-        
-        translate([0, 0, cabin_height - wall_thickness])
-            cube([top_length, top_width, 0.1], center = true);
-    }
-    battery_shelf();
+        hull() {
+            translate([0, 0, -1])
+                cube([inner_length, inner_width, 0.1], center = true);
+            
+            translate([0, 0, cabin_height - wall_thickness])
+                cube([top_length, top_width, 0.1], center = true);
+        }
+        battery_shelf();
     }
 }
 
@@ -80,34 +174,20 @@ module mounting_socket() {
 
 // HORIZONTAL SHELF under roof for battery
 module battery_shelf() {
-    // FIXED: Calculate Z based on the extra drop so dimensions are correct
     actual_z_center = cabin_height - shelf_distance_from_roof - shelf_thickness/2 - shelf_drop_offset;
-    
-    // FIXED: Calculate width/length based on the ACTUAL height, not the roof height
-    // This ensures the shelf touches the tapered walls
     reduction = actual_z_center / tan(taper_angle);
     shelf_length = cabin_length - 2 * reduction - 2 * wall_thickness-50;
     shelf_width = cabin_width - 2 * reduction - 2 * wall_thickness;
     
     translate([-25, 0, actual_z_center]) {
-        
-            cube([shelf_length, shelf_width, shelf_thickness], center = true);
-            
-           
-        
+        cube([shelf_length, shelf_width, shelf_thickness], center = true);
     }
 }
 
 // Rear cutout for battery access
 module rear_battery_cutout() {
-    // FIXED: Align cutout with the lowered shelf position
-    // Shelf Top Z = (cabin_height - shelf_distance_from_roof - shelf_drop_offset)
     shelf_top_z = cabin_height - shelf_distance_from_roof - shelf_drop_offset;
-    
-    // Position cutout so its bottom is flush with the shelf top
     cutout_z = shelf_top_z + rear_cutout_height/2;
-    
-    // FIXED: Increased X depth (60mm) and pushed deeper to ensure it cuts the tapered wall
     translate([-cabin_length/2, 0, cutout_z]) {
         cube([60, rear_cutout_width, rear_cutout_height], center = true);
     }
@@ -147,6 +227,7 @@ difference() {
     union() {
         cabin_body();
         battery_shelf();
+        name_dropping(); // Text emboss
     }
     
     cabin_cavity();
