@@ -16,6 +16,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 - 🎵 **Sound Effects**: Plays contextual sounds to attract attention or express personality
 - 🚨 **Safety Features**: Panic mode for emergency navigation and Telegram alarm notifications
 - 📸 **Data Logging**: Automatic image capture to Google Drive for training datasets
+- **Antigravity** - heavily used in this project (hence AGi-robot)
 
 ## Current Prototype Specifications
 
@@ -28,7 +29,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
     -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
     -   RGB LED (Pins 3, 5, 6) for mood expression
 -   **Power:** PowerBank 10000 mAh
--   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview), Arduino Cloud, Pydantic (Structured Outputs)
+-   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview / Gemini 3 Pro Preview), Arduino Cloud, Pydantic (Structured Outputs)
 -   **Connectivity:** WiFi required for API access
 
 **Functionality:** The robot operates autonomously using an AGI loop: captures images, measures distance, consults the LLM, speaks responses, records user audio, and executes movement commands. All decisions are made by the AI model based on visual input, sensor data, goals, and conversation context.
@@ -99,7 +100,10 @@ As shown in the table, the total project cost is a very affordable **$66 USD**. 
             - Audio output: LINEAR16 with +10dB volume gain for clarity
         -   **GET `/telegram`**: Sends alarm messages to admin via Telegram Bot (parameter: `message`)
             - Requires `TELEGRAM_KEY` and `ADMIN_ID` environment variables
-        -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini 3 Flash (Currently `gemini-3-flash-preview` model)
+        -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini LLM
+            - Parameters: `asi` (bool) - to select model:
+                - `false` (default): **Gemini 3 Flash Preview** (Fast, low latency)
+                - `true`: **Gemini 3 Pro Preview** (High reasoning, slower)
             - Returns JSON with: `speak`, `sound`, `move`, `rgb`, `plan`, `subplan`, `map`, `memory`, `alarm`
             - Receives images via Socket.IO from the webcam service (default: `http://localhost:4912`)
             - **Image Logging**: Saves all incoming images to `/home/arduino/google-drive/robot` with timestamps for debugging/dataset creation
@@ -195,6 +199,7 @@ The following variables are synchronized with the Arduino Cloud:
 -   **Read/Write (Controls):**
 
     -   `agi` (bool): Master switch to enable/disable the autonomous AGI loop.
+    -   `asi` (bool): Toggle to use **Gemini 3 Pro Preview** (Smarter) instead of Flash Preview (Faster).
     -   `goal` (str): Current main goal for the robot (retrieved from cloud).
     -   `speed` (int): Controls the speed of the robot (0-90, where 45 is baseline).
     -   `back` (bool): Command to move backward.
@@ -359,7 +364,7 @@ The AGI Loop is the core autonomous decision-making cycle of the robot. It opera
 
 ### LLM Decision-Making
 
-The robot sends all inputs to **Gemini 3 Flash (Preview)** (currently `gemini-3-flash-preview` model) with a sophisticated prompt that includes:
+The robot sends all inputs to **Gemini LLM** (Flash or Pro based on `asi` setting) with a sophisticated prompt that includes:
 
 -   **Safety Rules**: Must stop or turn if distance < 25cm to avoid collisions (Hardware failsafe stops motors at <10cm)
 -   **Navigation Strategy**: Systematic scanning by turning 30-60 degrees, approaching targets

@@ -277,7 +277,7 @@ def get_image_from_socket(timeout=5):
         return None
 
 
-def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
+def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
     """
     Send a request to Gemini with structured output using Pydantic schema.
     Returns a validated RobotResponse object (as a dict).
@@ -321,7 +321,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
         if not LLM_CLIENT:
             raise Exception('LLM_CLIENT is not initialized')
 
-        logger.info(f'Sending text+image+audio to Gemini model with structured output (lang={lang})...')
+        model_name = "gemini-3-pro-preview" if asi else "gemini-3-flash-preview"
+        logger.info(f'Sending text+image+audio to Gemini model {model_name} with structured output (lang={lang})...')
         
         contents = [
             types.Content(
@@ -352,7 +353,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None):
         )
 
         response = LLM_CLIENT.models.generate_content(
-            model="gemini-3-flash-preview", 
+            model=model_name, 
             contents=contents,
             config=generate_content_config
         )
@@ -549,6 +550,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 main_goal = payload.get('main_goal', '')
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
+                asi = payload.get('asi', False)
                 
                 # Extract audio if present
                 audio_bytes = None
@@ -583,7 +585,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     raise Exception('No image available for llm_vision')
 
                 logger.info('Sending text+image+audio to Gemini model (POST handler)...')
-                response_text = send_to_gemini(prompt, image_data, lang=lang, audio_bytes=audio_bytes)
+                response_text = send_to_gemini(prompt, image_data, lang=lang, audio_bytes=audio_bytes, asi=asi)
 
                 # Check if there's an alarm in the response
                 if isinstance(response_text, dict) and 'alarm' in response_text:

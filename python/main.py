@@ -45,6 +45,7 @@ right = False
 forward = False
 panic= False
 agi = False
+asi = False
 alarm = False
 
 def speed_callback(client: object, value: int):
@@ -82,6 +83,11 @@ def agi_callback(client: object, value: bool):
     global agi
     logger.info(f"AGI value updated from cloud: {value}")
     agi = value
+
+def asi_callback(client: object, value: bool):
+    global asi
+    logger.info(f"ASI value updated from cloud: {value}")
+    asi = value
 
 def goal_callback(client: object, value: str):
     global MAIN_GOAL
@@ -190,6 +196,7 @@ arduino_cloud.register("left",  on_write=left_callback)
 arduino_cloud.register("right", on_write=right_callback)
 arduino_cloud.register("forward", on_write=forward_callback)
 arduino_cloud.register("agi", on_write=agi_callback)
+arduino_cloud.register("asi", on_write=asi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
 arduino_cloud.register("alarm")
@@ -271,7 +278,8 @@ def ask_llm_vision(distance: float, temperature: float = None, humidity: float =
             "memory": memory,
             "main_goal": MAIN_GOAL,
             "movement_history": movement_history,
-            "lang": lang
+            "lang": lang,
+            "asi": asi
         }
         
         # Include mic.wav if it exists
