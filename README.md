@@ -455,24 +455,23 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 ### Completed Features ✓
 - [x] RGB LED control with HSV from Arduino Cloud
-- [x] Multi-language TTS (English, Russian, Czech, Italian)
+- [x] Multi-language TTS (English, Russian, Czech, Italian, German)
+- [x] All languages support for input
 - [x] Audio recording after speech for user responses
 - [x] Movement history tracking
 - [x] Spatial mapping hints to LLM
 - [x] RGB mood expression based on robot state
-- [x] Random sound playback
 - [x] Proximity sensor integration
 - [x] Arduino Cloud variable synchronization
 - [x] Google grounding for real-time web search
 - [x] Persistent conversation memory across sessions (file-based)
 - [x] Panic mode for emergency navigation
 - [x] Telegram alarm notifications
-- [x] German language TTS support
 - [x] Image logging to Google Drive
 - [x] Temperature and humidity monitoring
 - [x] Structured Outputs (Pydantic) for type-safe LLM responses
 
 ## TODO
 
+- [ ] Manipulator arm with 2 SG90 180° servos on the roof for object interaction
 - [ ] IMU + magnetometer integration for better orientation tracking
-- [ ] Manipulator arm for object interaction
