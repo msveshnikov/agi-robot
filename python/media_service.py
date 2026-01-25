@@ -55,7 +55,7 @@ class RobotResponse(BaseModel):
     )
     moves: Optional[List[MoveCommand]] = Field(
         default=None,
-        description="Array of sequential movement commands (max 5), or null to stay still"
+        description="Array of sequential movement commands (max 7), or null to stay still"
     )
     rgb: str = Field(
         description="RGB LED color as 'R,G,B' string. MANDATORY. Use colors to express mood: "
