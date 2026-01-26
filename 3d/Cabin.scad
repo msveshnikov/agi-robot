@@ -1,53 +1,46 @@
 // --- CABIN DIMENSIONS / РАЗМЕРЫ КАБИНЫ ---
-cabin_length = 220;          // [mm] Length (front to back) / Длина
-cabin_width = 120;           // [mm] Width (side to side) / Ширина
-cabin_height = 40;           // [mm] Height / Высота
-wall_thickness = 3;          // [mm] Wall thickness / Толщина стенок
-taper_angle = 70;            // [degrees] Taper angle (angle from ground) / Угол от земли
+cabin_length = 220;          // [mm] Length (front to back)
+cabin_width = 120;           // [mm] Width (side to side)
+cabin_height = 40;           // [mm] Height
+wall_thickness = 3;          // [mm] Wall thickness
+taper_angle = 70;            // [degrees] Taper angle
 
-// --- MOUNTING SOCKETS / МОНТАЖНЫЕ ВПАДИНЫ ---
-socket_size = 10;            // [mm] Socket size
-socket_depth = 5;            // [mm] Socket depth
+// --- MOUNTING SOCKETS ---
+socket_size = 10;            
+socket_depth = 5;            
 
-// --- BATTERY SHELF / ПОЛКА ДЛЯ БАТАРЕИ ---
-shelf_thickness = 3;         // [mm]
-shelf_distance_from_roof = 3; // [mm]
-shelf_drop_offset = 15;      // [mm]
-battery_cable_dia = 15;      // [mm]
-rear_cutout_width = 80;      // [mm]
-rear_cutout_height = 15;     // [mm]
+// --- BATTERY SHELF ---
+shelf_thickness = 3;         
+shelf_distance_from_roof = 3; 
+shelf_drop_offset = 15;      
+battery_cable_dia = 15;      
+rear_cutout_width = 80;      
+rear_cutout_height = 15;     
 
-// --- DISTANCE SENSOR / ДАТЧИК РАССТОЯНИЯ ---
-sensor_hole_dia = 16.5;      // [mm]
-sensor_spacing = 26;         // [mm]
-sensor_height = 40;          // [mm]
+// --- SENSORS & CAMERAS ---
+sensor_hole_dia = 16.5;      
+sensor_spacing = 26;         
+sensor_height = 40;          
+camera_hole_dia = 13.5;      
+camera_cable_dia = 18;       
+camera_position = 30;        
+cable_offset = 20;           
 
-// --- ROOF CAMERA / КАМЕРА НА КРЫШЕ ---
-camera_hole_dia = 13.5;      // [mm]
-camera_cable_dia = 18;       // [mm]
-camera_position = 30;        // [mm]
-cable_offset = 20;           // [mm]
+// --- DECORATION SETTINGS ---
+text_depth = 1.0;            // [mm] Emboss depth
+font_style = "Liberation Sans:style=Bold"; // Font supporting basic symbols
 
-// --- TEXT SETTINGS / НАСТРОЙКИ ТЕКСТА ---
-text_depth = 1.0;            // [mm] Emboss/Deboss depth
-font_style = "Liberation Sans:style=Bold"; 
-
-// --- QUALITY / КАЧЕСТВО ---
+// --- QUALITY ---
 $fn = 60;                    
 
 /* =====================================================================
- *                         MODULES / МОДУЛИ
+ *                         MODULES
  * =====================================================================
  */
 
-// FIXED: Module to place objects flush on the 70-degree tapered walls
+// Logic to align objects to the tapered walls
 module place_on_surface(h, side) {
-    // Calculate how far the wall has receded at height h
-    // tan(theta) = Opp/Adj -> Adj = Opp/tan(theta)
     offset_at_h = h / tan(taper_angle);
-    
-    // The rotation needed is exactly the taper angle (or negative)
-    // to align the Z-axis (text face) with the wall normal.
     rot_angle = taper_angle; 
 
     if (side == "roof") {
@@ -55,34 +48,30 @@ module place_on_surface(h, side) {
         children();
     }
     else if (side == "right") {
-        // Y positive side
         y_pos = (cabin_width / 2) - offset_at_h;
         translate([0, y_pos, h])
-        rotate([-rot_angle, 0, 0]) // Rotate -70 deg around X
+        rotate([-rot_angle, 0, 0]) 
         children();
     }
     else if (side == "left") {
-        // Y negative side
         y_pos = -(cabin_width / 2) + offset_at_h;
         translate([0, y_pos, h])
-        rotate([rot_angle, 0, 0]) // Rotate +70 deg around X
-        rotate([0, 0, 180])       // Flip text to read correctly from outside
+        rotate([rot_angle, 0, 0]) 
+        rotate([0, 0, 180])       
         children();
     }
     else if (side == "front") {
-        // X positive side
         x_pos = (cabin_length / 2) - offset_at_h;
         translate([x_pos, 0, h])
-        rotate([0, rot_angle, 0]) // Tilt back
-        rotate([0, 0, 90])        // Align text with Y axis
+        rotate([0, rot_angle, 0]) 
+        rotate([0, 0, 90])        
         children();
     }
     else if (side == "back") {
-        // X negative side
         x_pos = -(cabin_length / 2) + offset_at_h;
         translate([x_pos, 0, h])
-        rotate([0, -rot_angle, 0]) // Tilt back
-        rotate([0, 0, -90])        // Align text with Y axis
+        rotate([0, -rot_angle, 0]) 
+        rotate([0, 0, -90])        
         children();
     }
 }
@@ -94,58 +83,62 @@ module emboss_text(t_string, t_size) {
 }
 
 module name_dropping() {
-    // 1. Robot - Roof Center-Right
-    place_on_surface(cabin_height, "roof")
-        translate([20, -30, 0]) 
-        emboss_text("Robot", 12);
-
-    // 2. Commerzbank - Left Wall
-    place_on_surface(20, "left") 
-        translate([0, 0, 0]) 
-        emboss_text("Commerzbank", 10);
-
-    // 3. MaxSoft - Right Wall
-    place_on_surface(25, "right") 
-        translate([30, 0, 0]) 
-        emboss_text("MaxSoft", 11);
-
-    // 4. AGI - Front Nose
-    place_on_surface(30, "front") 
-        translate([0, 0, 0]) 
-        emboss_text("AGI", 10);
-
-    // 5. Julia - Back Wall
-    *place_on_surface(20, "back") 
-        translate([-40, 0, 0]) 
-        emboss_text("Julia", 12);
-
-    // 6. Veronica - Roof Back
-    place_on_surface(cabin_height, "roof")
-        translate([-5, 0, 0]) 
-        emboss_text("Veronica", 9);
-
-    // 7. DARiA - Right Wall (Front area)
-    place_on_surface(15, "right") 
-        translate([-50, 0, 0]) 
-        emboss_text("DARiA", 14);
+    // Existing Text
+    place_on_surface(cabin_height, "roof") translate([20, -30, 0]) emboss_text("Robot", 12);
+    place_on_surface(20, "left") translate([0, 0, 0]) emboss_text("Commerzbank", 10);
+    place_on_surface(25, "right") translate([30, 0, 0]) emboss_text("MaxSoft", 11);
+    place_on_surface(30, "front") translate([0, 0, 0]) emboss_text("AGI", 10);
+    place_on_surface(20, "back") translate([-40, 0, 0]) emboss_text("Julia", 12);
+    place_on_surface(cabin_height, "roof") translate([-60, 0, 0]) emboss_text("Veronica", 9);
+    place_on_surface(15, "right") translate([-50, 0, 0]) emboss_text("DARiA", 14);
 }
 
-// Main cabin body with 70° taper and CLOSED TOP (ROOF)
+module scattered_smiles() {
+    // Using Unicode symbols: \u263A (☺), \u263B (☻), and text representation :)
+    
+    // --- RIGHT SIDE ---
+    place_on_surface(10, "right") translate([70, 0, 0]) emboss_text("\u263A", 15); // ☺
+    place_on_surface(30, "right") translate([-10, 0, 0]) emboss_text(":)", 10);
+    place_on_surface(12, "right") translate([0, 0, 0]) emboss_text("\u263B", 12); // ☻
+    
+    // --- LEFT SIDE ---
+    place_on_surface(30, "left") translate([50, 0, 0]) emboss_text(":-)", 10);
+    place_on_surface(10, "left") translate([-60, 0, 0]) emboss_text("\u263A", 12); // ☺
+    place_on_surface(35, "left") translate([-20, 0, 0]) emboss_text(";)", 10);
+
+    // --- FRONT ---
+    place_on_surface(10, "front") translate([30, 0, 0]) emboss_text("\u263A", 12); // ☺
+    place_on_surface(15, "front") translate([-30, 0, 0]) emboss_text("(:", 10);
+    
+    // --- BACK ---
+    place_on_surface(30, "back") translate([20, 0, 0]) emboss_text("\u263B", 10); // ☻
+    place_on_surface(10, "back") translate([35, 0, 0]) emboss_text(":D", 9);
+    place_on_surface(35, "back") translate([-20, 0, 0]) emboss_text("\u263A", 10); // ☺
+
+    // --- ROOF ---
+    place_on_surface(cabin_height, "roof") 
+        translate([40, 25, 0]) rotate([0,0,30]) emboss_text("\u263A", 18); // Large ☺
+        
+    place_on_surface(cabin_height, "roof") 
+        translate([-20, 35, 0]) rotate([0,0,-15]) emboss_text(":)", 12);
+        
+    place_on_surface(cabin_height, "roof") 
+        translate([-80, -20, 0]) rotate([0,0,180]) emboss_text("\u263B", 14); // ☻
+}
+
+// Main cabin body
 module cabin_body() {
     top_reduction = cabin_height / tan(taper_angle);
     top_length = cabin_length - 2 * top_reduction;
     top_width = cabin_width - 2 * top_reduction;
     
     hull() {
-        translate([0, 0, 0])
-            cube([cabin_length, cabin_width, 0.1], center = true);
-        
-        translate([0, 0, cabin_height])
-            cube([top_length, top_width, 0.1], center = true);
+        translate([0, 0, 0]) cube([cabin_length, cabin_width, 0.1], center = true);
+        translate([0, 0, cabin_height]) cube([top_length, top_width, 0.1], center = true);
     }
 }
 
-// Inner cavity (hollow interior)
+// Inner cavity
 module cabin_cavity() {
     top_reduction = cabin_height / tan(taper_angle);
     top_length = cabin_length - 2 * top_reduction - 2 * wall_thickness;
@@ -155,11 +148,8 @@ module cabin_cavity() {
     
     difference (){
         hull() {
-            translate([0, 0, -1])
-                cube([inner_length, inner_width, 0.1], center = true);
-            
-            translate([0, 0, cabin_height - wall_thickness])
-                cube([top_length, top_width, 0.1], center = true);
+            translate([0, 0, -1]) cube([inner_length, inner_width, 0.1], center = true);
+            translate([0, 0, cabin_height - wall_thickness]) cube([top_length, top_width, 0.1], center = true);
         }
         battery_shelf();
     }
@@ -167,59 +157,45 @@ module cabin_cavity() {
 
 // Mounting socket
 module mounting_socket() {
-    translate([0, 0, socket_depth/2]) {
-        cube([socket_size, socket_size, socket_depth + 0.2], center = true);
-    }
+    translate([0, 0, socket_depth/2]) cube([socket_size, socket_size, socket_depth + 0.2], center = true);
 }
 
-// HORIZONTAL SHELF under roof for battery
+// Battery Shelf
 module battery_shelf() {
     actual_z_center = cabin_height - shelf_distance_from_roof - shelf_thickness/2 - shelf_drop_offset;
     reduction = actual_z_center / tan(taper_angle);
     shelf_length = cabin_length - 2 * reduction - 2 * wall_thickness-50;
     shelf_width = cabin_width - 2 * reduction - 2 * wall_thickness;
     
-    translate([-25, 0, actual_z_center]) {
-        cube([shelf_length, shelf_width, shelf_thickness], center = true);
-    }
+    translate([-25, 0, actual_z_center]) cube([shelf_length, shelf_width, shelf_thickness], center = true);
 }
 
-// Rear cutout for battery access
+// Rear cutout
 module rear_battery_cutout() {
     shelf_top_z = cabin_height - shelf_distance_from_roof - shelf_drop_offset;
     cutout_z = shelf_top_z + rear_cutout_height/2;
-    translate([-cabin_length/2, 0, cutout_z]) {
-        cube([60, rear_cutout_width, rear_cutout_height], center = true);
-    }
+    translate([-cabin_length/2, 0, cutout_z]) cube([60, rear_cutout_width, rear_cutout_height], center = true);
 }
 
-// Distance sensor holes
+// Sensors
 module sensor_holes() {
     extra_length = 30;
     translate([ 100, 0, -cabin_height/2 + sensor_height]) {
-        translate([0, -sensor_spacing/2, 0])
-            rotate([0, 90, 0])
-                cylinder(h = wall_thickness + extra_length, d = sensor_hole_dia, center = true);
-        
-        translate([0, sensor_spacing/2, 0])
-            rotate([0, 90, 0])
-                cylinder(h = wall_thickness + extra_length, d = sensor_hole_dia, center = true);
+        translate([0, -sensor_spacing/2, 0]) rotate([0, 90, 0]) cylinder(h = wall_thickness + extra_length, d = sensor_hole_dia, center = true);
+        translate([0, sensor_spacing/2, 0]) rotate([0, 90, 0]) cylinder(h = wall_thickness + extra_length, d = sensor_hole_dia, center = true);
     }
 }
 
-// Camera and cable holes
+// Roof holes
 module roof_holes() {
     translate([0, 0, cabin_height]) {
-        translate([cabin_length/2 - camera_position, 0, 0])
-            cylinder(h = wall_thickness + 10, d = camera_hole_dia, center = true);
-        
-        translate([cabin_length/2 - camera_position - cable_offset, 0, 0])
-            cylinder(h = wall_thickness + 10, d = camera_cable_dia, center = true);
+        translate([cabin_length/2 - camera_position, 0, 0]) cylinder(h = wall_thickness + 10, d = camera_hole_dia, center = true);
+        translate([cabin_length/2 - camera_position - cable_offset, 0, 0]) cylinder(h = wall_thickness + 10, d = camera_cable_dia, center = true);
     }
 }
 
 /* =====================================================================
- *                    MAIN ASSEMBLY / ОСНОВНАЯ СБОРКА
+ *                    MAIN ASSEMBLY
  * =====================================================================
  */
 
@@ -227,16 +203,16 @@ difference() {
     union() {
         cabin_body();
         battery_shelf();
-        name_dropping(); // Text emboss
+        name_dropping();    // Embossed Text
+        scattered_smiles(); // Embossed Symbolic Smiles
     }
     
     cabin_cavity();
     
     // Remove bottom
-    translate([0, 0, -10])
-        cube([cabin_length + 10, cabin_width + 10, 20], center = true);
+    translate([0, 0, -10]) cube([cabin_length + 10, cabin_width + 10, 20], center = true);
     
-    // Mounting sockets
+    // Sockets
     translate([cabin_length/2 - socket_size/2, cabin_width/2 - socket_size/2, 0]) mounting_socket();
     translate([cabin_length/2 - socket_size/2, -cabin_width/2 + socket_size/2, 0]) mounting_socket();
     translate([-cabin_length/2 + socket_size/2, cabin_width/2 - socket_size/2, 0]) mounting_socket();
