@@ -342,8 +342,8 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
        
         # Configure Gemini for structured output
         generate_content_config = types.GenerateContentConfig(
-            temperature=1.0, # Lower temperature for more reliable structured output
-            tools=[types.Tool(google_search=types.GoogleSearchRetrieval())],
+            temperature=0.7, # Lower temperature for more reliable structured output
+            tools=[types.Tool(google_search=types.GoogleSearch())],
             # Note: thinking_config might conflict with structured outputs on some models, 
             # but is generally fine. Keeping it low budget or disabling if issues arise.
             thinking_config=types.ThinkingConfig(include_thoughts=False, thinking_budget=16000),

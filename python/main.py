@@ -47,6 +47,9 @@ panic= False
 agi = False
 asi = False
 alarm = False
+lang = "en"
+rgb = "255,0,255"
+
 
 def speed_callback(client: object, value: int):
     global speed
@@ -78,7 +81,6 @@ def forward_callback(client: object, value: bool):
     logger.info(f"Forward value updated from cloud: {value}")
     forward = value
 
-
 def agi_callback(client: object, value: bool):
     global agi
     logger.info(f"AGI value updated from cloud: {value}")
@@ -98,7 +100,6 @@ def goal_callback(client: object, value: str):
     except Exception:
         pass
 
-lang = "en"
 
 def lang_callback(client: object, value: str):
     global lang
@@ -108,8 +109,6 @@ def lang_callback(client: object, value: str):
         speak(f"Language changed to {value}")
     except Exception:
         pass
-
-rgb = "255,0,255"
 
 def rgb_callback(client: object, value):
     """Callback function to handle RGB light updates from cloud."""
@@ -199,12 +198,9 @@ arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("asi", on_write=asi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
-arduino_cloud.register("alarm")
 
 # Register RGB as a single ColoredLight
 arduino_cloud.register(ColoredLight("rgb", swi=True, on_write=rgb_callback))
-
-
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
@@ -213,6 +209,7 @@ arduino_cloud.register("subplan")
 arduino_cloud.register("space_map")
 arduino_cloud.register("movement_history")
 arduino_cloud.register("memory")
+arduino_cloud.register("alarm")
 
 def play_sound(filename):
     try:
@@ -592,5 +589,5 @@ def loop():
         logger.error(f"Error in main loop: {e}")    
 
 
-App.start_brick(arduino_cloud)
+#App.start_brick(arduino_cloud)
 App.run(user_loop=loop)
