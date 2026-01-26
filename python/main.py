@@ -230,6 +230,8 @@ def play_random_sound():
 
 
 def speak(text):
+    if lang == "disabled":
+        return
     try:
         query = urllib.parse.urlencode({'text': text, 'lang': lang})
         url = f"http://172.17.0.1:5000/speak?{query}"
@@ -473,7 +475,7 @@ def agi_loop():
         sp = resp.get("speak")
         if sp and isinstance(sp, dict):
             text = sp.get("text")
-            if text:
+            if text and lang != "disabled":
                 speak(text)
                 logger.info("Robot spoke!! Starting dynamic recording (up to 15 seconds)...")
     
