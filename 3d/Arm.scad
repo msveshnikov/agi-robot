@@ -8,7 +8,7 @@ joint1_angle = 0;
 joint2_angle = 90;
 
 // --- Dimensions (SG90 Standard) ---
-servo_body_len = 23.5;
+servo_body_len = 23;
 servo_body_wid = 12.5;
 servo_body_h = 22.5; // Height excluding gear
 servo_hole_dist = 28;
@@ -19,7 +19,7 @@ horn_arm_len = 15;   // Length of horn arm (center to hole)
 
 // --- Design Parameters ---
 wall = 4;                // Thickness of plastic parts
-arm_len = 80;            // Center to center length
+arm_len = 150;            // Center to center length
 clearance = 0.4;         // 3D print tolerance
 cable_channel_w = 6;     // Cable channel width
 cable_channel_h = 3;     // Cable channel depth
@@ -176,7 +176,7 @@ module first_arm() {
             cylinder(d=5, h=wall + 2);
             
         // Lightening holes for aesthetics and weight reduction
-        for(i = [0:2]) {
+        for(i = [0:47]) {
             translate([25 + i*20, 0, -0.1])
                 cylinder(d=8, h=wall + 0.2);
         }
@@ -217,7 +217,7 @@ module second_arm() {
         }
         
         // Lightening holes
-        for(i = [0:2]) {
+        for(i = [0:4]) {
             translate([20 + i*18, 0, -0.1])
                 cylinder(d=6, h=wall + 0.2);
         }
