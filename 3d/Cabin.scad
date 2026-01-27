@@ -88,7 +88,7 @@ module name_dropping() {
     place_on_surface(20, "left") translate([0, 0, 0]) emboss_text("Commerzbank", 10);
     place_on_surface(25, "right") translate([30, 0, 0]) emboss_text("MaxSoft", 11);
     place_on_surface(30, "front") translate([0, 0, 0]) emboss_text("AGI", 10);
-    place_on_surface(20, "back") translate([-40, 0, 0]) emboss_text("Julia", 12);
+    place_on_surface(20, "back") translate([-40, 0, 0]) emboss_text("Julia", 8);
     place_on_surface(cabin_height, "roof") translate([-60, 0, 0]) emboss_text("Veronica", 9);
     place_on_surface(15, "right") translate([-50, 0, 0]) emboss_text("DARiA", 14);
 }
