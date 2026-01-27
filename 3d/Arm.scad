@@ -1,180 +1,216 @@
 // --- Configuration ---
-// Select which part to view/render: 
-// "assembly", "mount", "arm1", "arm2"
-show_part = "assembly"; 
+// Select part to render: "assembly", "mount", "arm1", "arm2", "servo_ref"
+part = "assembly"; 
 
-// --- User Parameters ---
-servo_cutout_width = 24;       // Length of servo body
-servo_cutout_height = 12;      // Width/Thickness of servo body
-servo_hole_distance = 28;      // Distance between mounting screw centers
-servo_hole_diameter = 2;       // Screw hole size for mounting servo
-servo_horn_recess_depth = 2.5;
-servo_spline_hole_diameter = 6; 
-servo_horn_hub_diameter = 7.5; // Slightly larger for clearance
-servo_horn_arm_width = 6; 
+// --- Rotation for Animation/View ---
+// Change these to see the arm move in the preview
+joint1_angle = 45; 
+joint2_angle = -45;
 
-// --- Additional Design Parameters ---
-arm_length = 80;               // Length from joint to joint
-wall_thickness = 4;            // Thickness of the plastic parts
-mount_hole_distance = 15;      // Distance of screw holes on the plastic horn
-mount_hole_diameter = 2;       // Screw size for the horn
-tolerance = 0.3;               // 3D printing clearance
-$fn = 60;                      // Resolution for circles
+// --- Dimensions (SG90 Standard) ---
+servo_body_len = 23;
+servo_body_wid = 12.5;
+servo_body_h = 22.5; // Height excluding gear
+servo_hole_dist = 28;
+servo_tab_len = 32;
+servo_gear_h = 4;    // How high gear sticks out
+servo_horn_h = 2;    // Thickness of plastic horn
+horn_arm_len = 15;   // Length of horn arm (center to hole)
 
-// ---------------------------------------------------------
-// --- Modules (Reusable Logic) ---
-// ---------------------------------------------------------
+// --- Design Parameters ---
+wall = 4;                // Thickness of plastic parts
+arm_len = 80;            // Center to center length
+clearance = 0.4;         // 3D print tolerance
+$fn = 50;                // Circle resolution
 
-// Creates the negative space to remove material where the Servo Body goes
-module servo_body_cutout() {
-    // Main Body
-    translate([0, 0, -10])
-        cube([servo_cutout_width + tolerance, servo_cutout_height + tolerance, 20], center=true);
-    
-    // Mounting Screw Holes (Left)
-    translate([servo_hole_distance/2, 0, 0])
-        cylinder(d=servo_hole_diameter, h=50, center=true);
-        
-    // Mounting Screw Holes (Right)
-    translate([-servo_hole_distance/2, 0, 0])
-        cylinder(d=servo_hole_diameter, h=50, center=true);
-}
+// =========================================================
+// --- Helper Modules (Drills and Shapes) ---
+// =========================================================
 
-// Creates the negative space for the Horn (Spline + Screw holes + Recess)
-module servo_horn_interface() {
-    cutter_h = servo_horn_recess_depth + 1;
-    
-    // 1. Recess for the plastic horn arm (Pocket)
-    translate([0, 0, -0.01]) { // Slight offset to ensure surface cut
+module SG90_Servo() {
+    color("#0055aa") {
+        // Body
+        translate([-servo_body_len/2, -servo_body_wid/2, -servo_body_h])
+            cube([servo_body_len, servo_body_wid, servo_body_h]);
+        // Tabs
+        translate([-servo_tab_len/2, -servo_body_wid/2, -17])
+            cube([servo_tab_len, servo_body_wid, 2.5]);
+        // Geartrain bump
+        translate([-6, -servo_body_wid/2, 0])
+            cube([12, servo_body_wid, servo_gear_h]);
+        // Output Shaft
+        translate([0, 0, 0]) cylinder(d=5, h=servo_gear_h);
+    }
+    // The Horn (White plastic part)
+    color("white")
+    translate([0, 0, servo_gear_h + 1]) {
         hull() {
-            cylinder(d = servo_horn_hub_diameter, h = servo_horn_recess_depth);
-            translate([mount_hole_distance / 2, 0, 0])
-                cylinder(d = servo_horn_arm_width, h = servo_horn_recess_depth);
-            translate([-mount_hole_distance / 2, 0, 0])
-                cylinder(d = servo_horn_arm_width, h = servo_horn_recess_depth);
+            cylinder(d=7, h=servo_horn_h, center=true);
+            translate([horn_arm_len, 0, 0]) cylinder(d=4, h=servo_horn_h, center=true);
+            translate([-5, 0, 0]) cylinder(d=4, h=servo_horn_h, center=true);
         }
     }
-
-    // 2. Through holes for the screws
-    hole_h = wall_thickness * 3;
-    translate([0, 0, -wall_thickness]) {
-        // Center Spline access
-        cylinder(d = servo_spline_hole_diameter, h = hole_h, center = true);
-        
-        // Horn attachment screws
-        translate([mount_hole_distance / 2, 0, 0])
-            cylinder(d = mount_hole_diameter, h = hole_h, center = true);
-        translate([-mount_hole_distance / 2, 0, 0])
-            cylinder(d = mount_hole_diameter, h = hole_h, center = true);
-    }
 }
 
-// ---------------------------------------------------------
-// --- Parts ---
-// ---------------------------------------------------------
+module servo_mount_cutout() {
+    // The main rectangular hole for the servo body
+    cube([servo_body_len + clearance, servo_body_wid + clearance, 50], center=true);
+    
+    // The screw holes for the tabs
+    translate([servo_hole_dist/2, 0, 0])
+        cylinder(d=2, h=50, center=true);
+    translate([-servo_hole_dist/2, 0, 0])
+        cylinder(d=2, h=50, center=true);
+}
+
+module horn_attachment_cutout() {
+    // 1. Recess for the horn (Non-through pocket)
+    // The horn is roughly 7mm hub, arms stick out
+    translate([0, 0, -0.1]) {
+        hull() {
+            cylinder(d=7.5, h=2.5); // Hub
+            translate([horn_arm_len, 0, 0]) cylinder(d=6, h=2.5); // Arm tip
+            translate([-5, 0, 0]) cylinder(d=6, h=2.5); // Back tip
+        }
+    }
+    
+    // 2. Screw holes (Through holes)
+    // Center screw (connects horn to servo metal shaft)
+    translate([0,0,-10]) cylinder(d=3, h=20);
+    
+    // Horn arm screws (connect plastic arm to plastic horn)
+    // Assuming standard horns have holes ~14mm apart (7mm radius) or close to end
+    translate([horn_arm_len - 2, 0, -10]) cylinder(d=2, h=20);
+    translate([-3, 0, -10]) cylinder(d=2, h=20);
+}
+
+// =========================================================
+// --- Main Parts ---
+// =========================================================
 
 module roof_mount() {
-    base_w = servo_hole_distance + 12;
-    base_h = servo_cutout_height + 10;
+    // This brackets holds Servo 1 horizontally
+    
+    bracket_w = servo_tab_len + 10;
+    bracket_d = servo_body_wid + wall*2;
+    bracket_h = 20;
     
     difference() {
-        union() {
-            // Flat ceiling plate
-            translate([-base_w/2, -base_h/2, 0])
-                cube([base_w, base_h, wall_thickness]);
-            
-            // Vertical Block to hold servo
-            translate([-base_w/2, -base_h/2, 0])
-                cube([base_w, wall_thickness, servo_cutout_width + 10]);
-        }
+        // Main Block
+        translate([0, 0, bracket_h/2])
+            cube([bracket_w, bracket_d, bracket_h], center=true);
         
-        // Remove Servo Body Shape
-        // Rotate to place servo horizontal
-        translate([0, 0, (servo_cutout_width/2) + wall_thickness + 2])
-            rotate([90, 0, 0])
-            rotate([0, 0, 90])
-            servo_body_cutout();
+        // Remove Servo Shape
+        translate([0, 0, -1]) // Shift down slightly
+            servo_mount_cutout();
             
-        // Screw holes for roof mounting
-        translate([base_w/2 - 5, 0, 0]) cylinder(d=4, h=20, center=true);
-        translate([-base_w/2 + 5, 0, 0]) cylinder(d=4, h=20, center=true);
+        // Add roof mounting screw holes at the edges
+        translate([bracket_w/2 - 4, bracket_d/2 - 4, 0]) cylinder(d=3, h=50, center=true);
+        translate([-bracket_w/2 + 4, bracket_d/2 - 4, 0]) cylinder(d=3, h=50, center=true);
+        translate([bracket_w/2 - 4, -bracket_d/2 + 4, 0]) cylinder(d=3, h=50, center=true);
+        translate([-bracket_w/2 + 4, -bracket_d/2 + 4, 0]) cylinder(d=3, h=50, center=true);
     }
 }
 
 module first_arm() {
     difference() {
         union() {
-            hull() {
-                // Joint 1 (Connection to Base)
-                cylinder(d=20, h=wall_thickness);
-                
-                // Joint 2 (Holder for Servo 2)
-                translate([arm_length, 0, 0])
-                    cube([servo_hole_distance + 10, servo_cutout_height + 8, wall_thickness], center=true);
-            }
+            // Proximal Hub (Connects to Servo 1)
+            cylinder(d=20, h=wall);
+            
+            // The Arm Shaft
+            translate([0, -10, 0])
+                cube([arm_len, 20, wall]);
+            
+            // Distal Mount (Holds Servo 2)
+            // We need a plate thick enough to hold the servo
+            translate([arm_len, 0, 0])
+                cube([servo_body_wid + wall*2, servo_tab_len + 8, wall], center=true);
         }
         
-        // Cutout for connection to Servo 1 Horn
-        // We flip it so the recess is on the bottom side facing the servo
-        rotate([0, 180, 0])
-            translate([0, 0, -wall_thickness])
-            servo_horn_interface();
+        // -- Cutout for Servo 1 Horn (Proximal) --
+        // Flip so recess is on bottom
+        translate([0, 0, wall]) 
+            mirror([0,0,1])
+            horn_attachment_cutout();
             
-        // Cutout to hold Servo 2 Body
-        translate([arm_length, 0, 0])
-            servo_body_cutout();
+        // -- Cutout for Servo 2 Body (Distal) --
+        // Rotate 90 deg so servo sits perpendicular to arm
+        translate([arm_len, 0, 0])
+            rotate([0, 0, 90]) 
+            servo_mount_cutout();
     }
 }
 
 module second_arm() {
     difference() {
-        hull() {
-            // Connection to Servo 2
-            cylinder(d=20, h=wall_thickness);
+        union() {
+            // Proximal Hub (Connects to Servo 2)
+            cylinder(d=20, h=wall);
             
-            // The Tip
-            translate([arm_length, 0, 0])
-                cylinder(d=5, h=wall_thickness);
+            // The Arm Shaft Tapered
+            hull() {
+                translate([0, -8, 0]) cube([10, 16, wall]);
+                translate([arm_len, -2, 0]) cube([1, 4, wall]);
+            }
         }
         
-        // Cutout for connection to Servo 2 Horn
-        rotate([0, 180, 0])
-            translate([0, 0, -wall_thickness])
-            servo_horn_interface();
+        // -- Cutout for Servo 2 Horn --
+        translate([0, 0, wall]) 
+            mirror([0,0,1])
+            horn_attachment_cutout();
     }
 }
 
-// ---------------------------------------------------------
-// --- Rendering Logic ---
-// ---------------------------------------------------------
+// =========================================================
+// --- Assembly Logic ---
+// =========================================================
 
-if (show_part == "mount") {
+if (part == "mount") {
     roof_mount();
-} else if (show_part == "arm1") {
+} 
+else if (part == "arm1") {
     first_arm();
-} else if (show_part == "arm2") {
+} 
+else if (part == "arm2") {
     second_arm();
-} else if (show_part == "assembly") {
+} 
+else if (part == "servo_ref") {
+    SG90_Servo();
+}
+else if (part == "assembly") {
     
-    // 1. Roof Mount
+    // 1. The Roof Mount
     color("gray") roof_mount();
     
-    // Simulate Servo 1 placement (Invisible/Ghost logic)
-    servo_z_center = (servo_cutout_width/2) + wall_thickness + 2;
+    // 2. Servo 1 (Fixed in Mount)
+    translate([0, 0, -1]) // Adjust for recess depth
+        rotate([180, 0, 0]) // Flip upside down to put shaft at bottom
+        SG90_Servo();
+        
+    // Calculate Position of Joint 1 (The Horn of Servo 1)
+    // Servo 1 is at 0,0. Shaft sticks out down (negative Z).
+    // The horn face is roughly at Z = - (servo_gear_h + servo_horn_h) ~ -6mm
     
-    // 2. First Arm (Attached to Servo 1)
-    // Rotated 90 degrees to be vertical, attached to the side of the mount
-    translate([0, -12, servo_z_center]) 
-        rotate([90, 0, 0]) // Orient vertical
-        rotate([0, -45, 0]) // Simulate 45 degree angle
+    horn_face_z = - (servo_gear_h + servo_horn_h + 1);
+    
+    // 3. First Arm
+    translate([0, 0, horn_face_z]) 
+        rotate([0, 0, joint1_angle]) // Rotate Arm 1
         {
             color("orange") first_arm();
             
-            // 3. Second Arm (Attached to Servo 2 on First Arm)
-            translate([arm_length, 0, 0]) // Move to end of arm 1
-            translate([0, 0, -15]) // Offset for Servo 2 thickness
-            rotate([0, 0, 180]) // Flip orientation if needed for servo face
-            rotate([0, -45, 0]) // Simulate joint movement
-            color("skyblue") second_arm();
+            // 4. Servo 2 (Mounted in First Arm)
+            translate([arm_len, 0, -wall/2]) // Move to end of arm
+                rotate([0, 0, 90]) // Orient correctly in the slot
+                translate([0, 0, -10]) // Push into the slot
+                SG90_Servo();
+            
+            // 5. Second Arm (Attached to Servo 2)
+            // Servo 2 horn face calculation relative to Arm 1 end
+            // Servo 2 is mounted, its shaft points +Z relative to Arm 1
+             translate([arm_len, 0, -wall/2 + servo_gear_h + servo_horn_h + 2])
+                rotate([0, 0, joint2_angle])
+                color("yellow") second_arm();
         }
 }
