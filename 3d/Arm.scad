@@ -4,11 +4,11 @@ part = "assembly";
 
 // --- Rotation for Animation/View ---
 // Change these to see the arm move in the preview
-joint1_angle = 45; 
-joint2_angle = -45;
+joint1_angle = 0; 
+joint2_angle = 90;
 
 // --- Dimensions (SG90 Standard) ---
-servo_body_len = 23;
+servo_body_len = 23.5;
 servo_body_wid = 12.5;
 servo_body_h = 22.5; // Height excluding gear
 servo_hole_dist = 28;
@@ -23,7 +23,7 @@ arm_len = 80;            // Center to center length
 clearance = 0.4;         // 3D print tolerance
 cable_channel_w = 6;     // Cable channel width
 cable_channel_h = 3;     // Cable channel depth
-$fn = 50;                // Circle resolution
+$fn = 80;                // Circle resolution
 
 // =========================================================
 // --- Helper Modules (Drills and Shapes) ---
@@ -172,7 +172,7 @@ module first_arm() {
             cylinder(d=5, h=wall + 2);
             
         // Cable entry hole near servo 1
-        translate([12, 0, -0.1])
+        *translate([12, 0, -0.1])
             cylinder(d=5, h=wall + 2);
             
         // Lightening holes for aesthetics and weight reduction
@@ -265,14 +265,14 @@ else if (part == "assembly") {
             // 4. Servo 2 (Mounted in First Arm)
             translate([arm_len, 0, -wall/2]) // Move to end of arm
                 rotate([0, 0, 90]) // Orient correctly in the slot
-                translate([0, 0, -10]) // Push into the slot
+                translate([0, 0, 15]) // Push into the slot
                 SG90_Servo();
             
             // 5. Second Arm (Attached to Servo 2)
             // Servo 2 horn face calculation relative to Arm 1 end
             // Servo 2 is mounted, its shaft points +Z relative to Arm 1
-             translate([arm_len, 0, -wall/2 + servo_gear_h + servo_horn_h + 2])
-                rotate([0, 0, joint2_angle])
+             translate([arm_len, 0, -wall/2 + servo_gear_h + servo_horn_h + 17])
+                rotate([180, 0, joint2_angle])
                 color("yellow", 0.9) second_arm();
         }
 }
