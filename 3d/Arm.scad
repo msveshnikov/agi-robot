@@ -21,6 +21,8 @@ horn_arm_len = 15;   // Length of horn arm (center to hole)
 wall = 4;                // Thickness of plastic parts
 arm_len = 80;            // Center to center length
 clearance = 0.4;         // 3D print tolerance
+cable_channel_w = 6;     // Cable channel width
+cable_channel_h = 3;     // Cable channel depth
 $fn = 50;                // Circle resolution
 
 // =========================================================
@@ -89,43 +91,63 @@ module horn_attachment_cutout() {
 // =========================================================
 
 module roof_mount() {
-    // This brackets holds Servo 1 horizontally
+    // This bracket holds Servo 1 horizontally
     
     bracket_w = servo_tab_len + 10;
     bracket_d = servo_body_wid + wall*2;
     bracket_h = 20;
     
     difference() {
-        // Main Block
+        // Main Block with rounded corners
         translate([0, 0, bracket_h/2])
-            cube([bracket_w, bracket_d, bracket_h], center=true);
+            hull() {
+                for(x = [-1, 1]) for(y = [-1, 1])
+                    translate([x * (bracket_w/2 - 3), y * (bracket_d/2 - 3), 0])
+                        cylinder(d=6, h=bracket_h, center=true);
+            }
         
         // Remove Servo Shape
         translate([0, 0, -1]) // Shift down slightly
             servo_mount_cutout();
             
-        // Add roof mounting screw holes at the edges
-        translate([bracket_w/2 - 4, bracket_d/2 - 4, 0]) cylinder(d=3, h=50, center=true);
-        translate([-bracket_w/2 + 4, bracket_d/2 - 4, 0]) cylinder(d=3, h=50, center=true);
-        translate([bracket_w/2 - 4, -bracket_d/2 + 4, 0]) cylinder(d=3, h=50, center=true);
-        translate([-bracket_w/2 + 4, -bracket_d/2 + 4, 0]) cylinder(d=3, h=50, center=true);
+        // Add roof mounting screw holes at the edges (countersunk)
+        for(x = [-1, 1]) for(y = [-1, 1]) {
+            translate([x * (bracket_w/2 - 4), y * (bracket_d/2 - 4), 0]) {
+                cylinder(d=3, h=50, center=true);
+                translate([0, 0, bracket_h - 3]) cylinder(d1=3, d2=6, h=2);
+            }
+        }
     }
 }
 
 module first_arm() {
     difference() {
         union() {
-            // Proximal Hub (Connects to Servo 1)
-            cylinder(d=20, h=wall);
+            // Proximal Hub (Connects to Servo 1) - Made larger and stronger
+            cylinder(d=24, h=wall);
             
-            // The Arm Shaft
-            translate([0, -10, 0])
-                cube([arm_len, 20, wall]);
+            // The Arm Shaft - Improved design with rounded edges
+            hull() {
+                translate([0, -12, 0])
+                    cube([10, 24, wall]);
+                translate([arm_len - 15, -12, 0])
+                    cube([15, 24, wall]);
+            }
             
-            // Distal Mount (Holds Servo 2)
-            // We need a plate thick enough to hold the servo
-            translate([arm_len, 0, 0])
-                cube([servo_body_wid + wall*2, servo_tab_len + 8, wall], center=true);
+            // Distal Mount (Holds Servo 2) - Stronger mounting plate
+            translate([arm_len, 0, 0]) {
+                hull() {
+                    cube([servo_body_wid + wall*2 + 2, servo_tab_len + 10, wall], center=true);
+                    translate([-5, 0, wall])
+                        cube([servo_body_wid + wall*2, servo_tab_len + 8, 1], center=true);
+                }
+            }
+            
+            // Cable channel walls (raised edges)
+            translate([15, -8.5, 0])
+                cube([arm_len - 30, 1, wall + 1]);
+            translate([15, 7.5, 0])
+                cube([arm_len - 30, 1, wall + 1]);
         }
         
         // -- Cutout for Servo 1 Horn (Proximal) --
@@ -139,26 +161,66 @@ module first_arm() {
         translate([arm_len, 0, 0])
             rotate([0, 0, 90]) 
             servo_mount_cutout();
+            
+        // -- Cable routing channel --
+        // Channel runs along the length of the arm
+        translate([15, -cable_channel_w/2, -0.1])
+            cube([arm_len - 30, cable_channel_w, cable_channel_h]);
+        
+        // Cable exit hole near servo 2
+        translate([arm_len - 10, 0, -0.1])
+            cylinder(d=5, h=wall + 2);
+            
+        // Cable entry hole near servo 1
+        translate([12, 0, -0.1])
+            cylinder(d=5, h=wall + 2);
+            
+        // Lightening holes for aesthetics and weight reduction
+        for(i = [0:2]) {
+            translate([25 + i*20, 0, -0.1])
+                cylinder(d=8, h=wall + 0.2);
+        }
     }
 }
 
 module second_arm() {
     difference() {
         union() {
-            // Proximal Hub (Connects to Servo 2)
-            cylinder(d=20, h=wall);
+            // Proximal Hub (Connects to Servo 2) - Larger and stronger
+            cylinder(d=24, h=wall);
             
-            // The Arm Shaft Tapered
+            // The Arm Shaft - More elegant tapered design
             hull() {
-                translate([0, -8, 0]) cube([10, 16, wall]);
-                translate([arm_len, -2, 0]) cube([1, 4, wall]);
+                translate([0, -10, 0]) 
+                    cube([15, 20, wall]);
+                translate([arm_len - 5, -6, 0]) 
+                    cube([5, 12, wall]);
             }
+            
+            // M10 mounting boss at the end
+            translate([arm_len, 0, 0])
+                cylinder(d=20, h=wall + 4);
         }
         
         // -- Cutout for Servo 2 Horn --
         translate([0, 0, wall]) 
             mirror([0,0,1])
             horn_attachment_cutout();
+            
+        // -- M10 mounting hole (10mm diameter, 10mm deep) --
+        translate([arm_len, 0, wall]) {
+            // Main hole - 10mm diameter
+            cylinder(d=10, h=10.5);
+            // Chamfer for easier bolt insertion
+            translate([0, 0, -0.1])
+                cylinder(d1=12, d2=10, h=1.1);
+        }
+        
+        // Lightening holes
+        for(i = [0:2]) {
+            translate([20 + i*18, 0, -0.1])
+                cylinder(d=6, h=wall + 0.2);
+        }
     }
 }
 
@@ -181,7 +243,7 @@ else if (part == "servo_ref") {
 else if (part == "assembly") {
     
     // 1. The Roof Mount
-    color("gray") roof_mount();
+    color("gray", 0.8) roof_mount();
     
     // 2. Servo 1 (Fixed in Mount)
     translate([0, 0, -1]) // Adjust for recess depth
@@ -198,7 +260,7 @@ else if (part == "assembly") {
     translate([0, 0, horn_face_z]) 
         rotate([0, 0, joint1_angle]) // Rotate Arm 1
         {
-            color("orange") first_arm();
+            color("orange", 0.9) first_arm();
             
             // 4. Servo 2 (Mounted in First Arm)
             translate([arm_len, 0, -wall/2]) // Move to end of arm
@@ -211,6 +273,6 @@ else if (part == "assembly") {
             // Servo 2 is mounted, its shaft points +Z relative to Arm 1
              translate([arm_len, 0, -wall/2 + servo_gear_h + servo_horn_h + 2])
                 rotate([0, 0, joint2_angle])
-                color("yellow") second_arm();
+                color("yellow", 0.9) second_arm();
         }
 }
