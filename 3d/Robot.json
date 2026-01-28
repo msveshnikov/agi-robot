@@ -1,0 +1,41 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "Новый набор 1": {
+            "$fn": "40",
+            "arm_len": "150",
+            "cable_channel_h": "3",
+            "cable_channel_w": "6",
+            "chassis_height": "40",
+            "chassis_length": "220",
+            "chassis_width": "120",
+            "clearance": "0.40000000000000002",
+            "cutouts_z_pos": "20",
+            "horn_arm_len": "15",
+            "mount_hole_distance": "32",
+            "part": "assembly",
+            "rear_hole_diameter": "6",
+            "rear_hole_pos_from_back": "40",
+            "sensor_hole_dia": "16.5",
+            "sensor_spacing": "26",
+            "servo_body_h": "22.5",
+            "servo_body_len": "23",
+            "servo_body_wid": "12.5",
+            "servo_cutout_height": "12",
+            "servo_cutout_width": "24",
+            "servo_gear_h": "4",
+            "servo_hole_diameter": "1.5",
+            "servo_hole_dist": "28",
+            "servo_hole_distance": "28",
+            "servo_horn_h": "2",
+            "servo_pos_from_front": "50",
+            "servo_tab_len": "32",
+            "tread_grooves": "40",
+            "wall": "4",
+            "wall_thickness": "3",
+            "wheel_clearance": "3",
+            "wheel_diameter": "60",
+            "wheel_thickness": "20"
+        }
+    }
+}
