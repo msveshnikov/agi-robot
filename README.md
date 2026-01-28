@@ -16,7 +16,6 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 - 🎵 **Sound Effects**: Plays contextual sounds to attract attention or express personality
 - 🚨 **Safety Features**: Panic mode for emergency navigation and Telegram alarm notifications
 - 📸 **Data Logging**: Automatic image capture to Google Drive for training datasets
-- **Antigravity** - heavily used in this project (hence AGi-robot)
 
 ## Current Prototype Specifications
 
