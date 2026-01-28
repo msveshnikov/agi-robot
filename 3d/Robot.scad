@@ -48,6 +48,32 @@ sensor_z_pos = chassis_height / 2;
 tread_grooves = 40;
 mount_hole_distance = 32;
 
+    // --- Configuration ---
+// Select part to render: "assembly", "mount", "arm1", "arm2", "servo_ref"
+part = "assembly"; 
+
+// --- Rotation for Animation/View ---
+// Change these to see the arm move in the preview
+joint1_angle = 180*$t; 
+joint2_angle = 90*$t;
+
+// --- Dimensions (SG90 Standard) ---
+servo_body_len = 23;
+servo_body_wid = 12.5;
+servo_body_h = 22.5; // Height excluding gear
+servo_hole_dist = 28;
+servo_tab_len = 32;
+servo_gear_h = 4;    // How high gear sticks out
+servo_horn_h = 2;    // Thickness of plastic horn
+horn_arm_len = 15;   // Length of horn arm (center to hole)
+
+// --- Design Parameters ---
+wall = 4;                // Thickness of plastic parts
+arm_len = 150;            // Center to center length
+clearance = 0.4;         // 3D print tolerance
+cable_channel_w = 6;     // Cable channel width
+cable_channel_h = 3;     // Cable channel depth
+
 $fn = 40;
 
 /*
@@ -318,32 +344,6 @@ translate([x_right, global_y_rear_axle, cutouts_z_pos])
     
     
     
-    // --- Configuration ---
-// Select part to render: "assembly", "mount", "arm1", "arm2", "servo_ref"
-part = "assembly"; 
-
-// --- Rotation for Animation/View ---
-// Change these to see the arm move in the preview
-joint1_angle = 180*$t; 
-joint2_angle = 90*$t;
-
-// --- Dimensions (SG90 Standard) ---
-servo_body_len = 23;
-servo_body_wid = 12.5;
-servo_body_h = 22.5; // Height excluding gear
-servo_hole_dist = 28;
-servo_tab_len = 32;
-servo_gear_h = 4;    // How high gear sticks out
-servo_horn_h = 2;    // Thickness of plastic horn
-horn_arm_len = 15;   // Length of horn arm (center to hole)
-
-// --- Design Parameters ---
-wall = 4;                // Thickness of plastic parts
-arm_len = 150;            // Center to center length
-clearance = 0.4;         // 3D print tolerance
-cable_channel_w = 6;     // Cable channel width
-cable_channel_h = 3;     // Cable channel depth
-//$fn = 80;                // Circle resolution
 
 // =========================================================
 // --- Helper Modules (Drills and Shapes) ---
