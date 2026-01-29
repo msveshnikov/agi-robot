@@ -10,7 +10,7 @@ const int right_wheel = 10;
 
 const int greenPin = 1;
 const int redPin = 2;
-const int bluePin = 6;
+const int bluePin = 0;
 
 const int arm1Pin = 3;
 const int arm2Pin = 5;
@@ -22,8 +22,8 @@ Servo arm2_servo;
 ModulinoThermo thermo;
 NewPing sonar(trigPin, echoPin, 1000);
 
-int currentArm1Angle = 90;
-int currentArm2Angle = 90;
+int currentArm1Angle = -1;
+int currentArm2Angle = -1;
 
 float getDistance()
 {
@@ -48,7 +48,7 @@ void setRGB(String rgb_str)
         b = rgb_str.substring(secondComma + 1).toInt();
     }
 
-    analogWrite(bluePin, b);
+    digitalWrite(bluePin, (b > 128) ? HIGH : LOW);
     digitalWrite(redPin, (r > 128) ? HIGH : LOW);
     digitalWrite(greenPin, (g > 128) ? HIGH : LOW);
 }
@@ -144,58 +144,83 @@ void move(String mvcmd, boolean stop)
         right_servo.write(90);
         left_servo.write(90);
     }
-} 
+}
 
 void panic(int speed)
 {
-  if (getDistance() > 25) {
-    right_servo.write(90 - speed);
-    left_servo.write(90 + speed);
-  } else {
-    Bridge.notify("play_panic_sound", 0);
-    right_servo.write(90 + speed);
-    left_servo.write(90 - speed);
-    delay(2000);
-    right_servo.write(90 - speed);
-    left_servo.write(90 - speed);
-    delay(1000);
-  }
+    if (getDistance() > 25)
+    {
+        right_servo.write(90 - speed);
+        left_servo.write(90 + speed);
+    }
+    else
+    {
+        Bridge.notify("play_panic_sound", 0);
+        right_servo.write(90 + speed);
+        left_servo.write(90 - speed);
+        delay(2000);
+        right_servo.write(90 - speed);
+        left_servo.write(90 - speed);
+        delay(1000);
+    }
 }
 
 void setArm1(int targetAngle)
 {
-    targetAngle = constrain(targetAngle, 0, 180);
-    
-    if (currentArm1Angle < targetAngle) {
-        for (int i = currentArm1Angle; i <= targetAngle; i++) {
+    if (currentArm1Angle == -1)
+    {
+        arm1_servo.write(targetAngle);
+        currentArm1Angle = targetAngle;
+        return;
+    }
+
+    if (currentArm1Angle < targetAngle)
+    {
+        for (int i = currentArm1Angle; i <= targetAngle; i++)
+        {
             arm1_servo.write(i);
-            delay(10);
-        }
-    } else {
-        for (int i = currentArm1Angle; i >= targetAngle; i--) {
-            arm1_servo.write(i);
+            currentArm1Angle = i;
             delay(10);
         }
     }
-    currentArm1Angle = targetAngle;
+    else
+    {
+        for (int i = currentArm1Angle; i >= targetAngle; i--)
+        {
+            arm1_servo.write(i);
+            currentArm1Angle = i;
+            delay(10);
+        }
+    }
 }
 
 void setArm2(int targetAngle)
 {
-    targetAngle = constrain(targetAngle, 0, 180);
-    
-    if (currentArm2Angle < targetAngle) {
-        for (int i = currentArm2Angle; i <= targetAngle; i++) {
+    if (currentArm2Angle == -1)
+    {
+        arm2_servo.write(targetAngle);
+        currentArm2Angle = targetAngle;
+        return;
+    }
+
+    if (currentArm2Angle < targetAngle)
+    {
+        for (int i = currentArm2Angle; i <= targetAngle; i++)
+        {
             arm2_servo.write(i);
-            delay(10);
-        }
-    } else {
-        for (int i = currentArm2Angle; i >= targetAngle; i--) {
-            arm2_servo.write(i);
+            currentArm2Angle = i;
             delay(10);
         }
     }
-    currentArm2Angle = targetAngle;
+    else
+    {
+        for (int i = currentArm2Angle; i >= targetAngle; i--)
+        {
+            arm2_servo.write(i);
+            currentArm2Angle = i;
+            delay(10);
+        }
+    }
 }
 
 void setup()
@@ -228,13 +253,36 @@ void setup()
     // Make rainbow two times
     for (int i = 0; i < 2; i++)
     {
-        digitalWrite(redPin, HIGH); digitalWrite(greenPin, LOW); analogWrite(bluePin, 0); delay(100);
-        digitalWrite(redPin, HIGH); digitalWrite(greenPin, LOW); analogWrite(bluePin, 0); delay(100);
-        digitalWrite(redPin, HIGH); digitalWrite(greenPin, HIGH); analogWrite(bluePin, 0); delay(100);
-        digitalWrite(redPin, LOW); digitalWrite(greenPin, HIGH); analogWrite(bluePin, 0); delay(100);
-        digitalWrite(redPin, LOW); digitalWrite(greenPin, LOW); analogWrite(bluePin, 255); delay(100);
-        digitalWrite(redPin, LOW); digitalWrite(greenPin, LOW); analogWrite(bluePin, 130); delay(100);
-        digitalWrite(redPin, HIGH); digitalWrite(greenPin, LOW); analogWrite(bluePin, 255); delay(100);
+        digitalWrite(redPin, HIGH);
+        digitalWrite(greenPin, LOW);
+        digitalWrite(bluePin, LOW);
+        
+        delay(100);
+        digitalWrite(redPin, HIGH);
+        digitalWrite(greenPin, LOW);
+        digitalWrite(bluePin, 130);
+        
+        delay(100);
+        digitalWrite(redPin, HIGH);
+        digitalWrite(greenPin, HIGH);
+        digitalWrite(bluePin, LOW);
+        delay(100);
+        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, HIGH);
+        digitalWrite(bluePin, LOW);
+        delay(100);
+        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, LOW);
+        digitalWrite(bluePin, HIGH);
+        delay(100);
+        digitalWrite(redPin, LOW);
+        digitalWrite(greenPin, LOW);
+        digitalWrite(bluePin, HIGH);
+        delay(100);
+        digitalWrite(redPin, HIGH);
+        digitalWrite(greenPin, LOW);
+        digitalWrite(bluePin, HIGH);
+        delay(100);
     }
 }
 
