@@ -609,7 +609,6 @@ def agi_loop():
 
 def loop():
     global speed, back, left, right, forward, agi
-    #logger.warning(f"Main loop: speed={speed}, back={back}, left={left}, right={right}, forward={forward}, agi={agi}")
     try:
         
         if left:
@@ -632,6 +631,4 @@ def loop():
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
 
-
-#App.start_brick(arduino_cloud)
 App.run(user_loop=loop)

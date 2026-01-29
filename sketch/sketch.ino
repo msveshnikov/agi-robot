@@ -180,7 +180,7 @@ void setArm1(int targetAngle)
         {
             arm1_servo.write(i);
             currentArm1Angle = i;
-            delay(10);
+            delay(20);
         }
     }
     else
@@ -189,7 +189,7 @@ void setArm1(int targetAngle)
         {
             arm1_servo.write(i);
             currentArm1Angle = i;
-            delay(10);
+            delay(20);
         }
     }
 }
@@ -209,7 +209,7 @@ void setArm2(int targetAngle)
         {
             arm2_servo.write(i);
             currentArm2Angle = i;
-            delay(10);
+            delay(20);
         }
     }
     else
@@ -218,7 +218,7 @@ void setArm2(int targetAngle)
         {
             arm2_servo.write(i);
             currentArm2Angle = i;
-            delay(10);
+            delay(20);
         }
     }
 }
@@ -244,7 +244,8 @@ void setup()
     pinMode(echoPin, INPUT);
     pinMode(redPin, OUTPUT);
     pinMode(greenPin, OUTPUT);
-    // pinMode(bluePin, OUTPUT);
+    pinMode(bluePin, OUTPUT);
+
     arm1_servo.attach(arm1Pin);
     arm2_servo.attach(arm2Pin);
     arm1_servo.write(90);
@@ -267,18 +268,22 @@ void setup()
         digitalWrite(greenPin, HIGH);
         digitalWrite(bluePin, LOW);
         delay(100);
+
         digitalWrite(redPin, LOW);
         digitalWrite(greenPin, HIGH);
         digitalWrite(bluePin, LOW);
         delay(100);
+        
         digitalWrite(redPin, LOW);
         digitalWrite(greenPin, LOW);
         digitalWrite(bluePin, HIGH);
         delay(100);
+        
         digitalWrite(redPin, LOW);
         digitalWrite(greenPin, LOW);
         digitalWrite(bluePin, HIGH);
         delay(100);
+
         digitalWrite(redPin, HIGH);
         digitalWrite(greenPin, LOW);
         digitalWrite(bluePin, HIGH);

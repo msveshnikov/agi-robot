@@ -17,7 +17,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 - 🚨 **Safety Features**: Panic mode for emergency navigation and Telegram alarm notifications
 - 📸 **Data Logging**: Automatic image capture to Google Drive for training datasets
 
-## Current Prototype Specifications
+## Current Specifications
 
 -   **Core Hardware:** Arduino Uno Q (Microcontroller/Motor Control)
 -   **Physical Dimensions:** 24cm wide, 12cm long, **10cm high**
@@ -26,7 +26,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 -   **Sensors:**
     -   Proximity/Distance Sensor (Trig Pin 8, Echo Pin 9)
     -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
-    -   RGB LED (Pins 3, 5, 6) for mood expression
+    -   RGB LED for mood expression
 -   **Power:** PowerBank 10000 mAh
 -   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview / Gemini 3 Pro Preview), Arduino Cloud, Pydantic (Structured Outputs)
 -   **Connectivity:** WiFi required for API access
@@ -130,12 +130,6 @@ As shown in the table, the total project cost is a very affordable **$70 USD**. 
         - Safety: Stops forward movement if distance < 10cm
     -   **Bridge Functions Exposed**: `getDistance()`, `setRGB(string)`, `move(string, bool)`, `panic(int)`
 
-### 3. Interaction and Autonomy Features
-
--   **Actuation:** Introduce one manipulator arm (e.g., 2-3 DOF) for basic physical object interaction, manipulation, and demonstration.
--   **Multi-Modal Interaction:** Beyond simple command/response, implement context memory for longer, more meaningful conversations that persist across interactions.
--   **Environmental Mapping:** Integrate Simultaneous Localization and Mapping (SLAM) capabilities to allow the robot to navigate and remember its environment structure.
--   **Task Execution:** Design a robust system for handling complex, multi-step instructions (e.g., "Go to the kitchen and report if the coffee machine is on").
 
 # Robot Hardware Schema
 
