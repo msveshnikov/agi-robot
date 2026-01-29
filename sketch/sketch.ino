@@ -8,12 +8,16 @@ const int echoPin = 9;
 const int left_wheel = 11;
 const int right_wheel = 10;
 
-const int redPin = 3;
-const int greenPin = 5;
+const int redPin = 2;
+const int greenPin = 1;
 const int bluePin = 6;
+const int arm1Pin = 3;
+const int arm2Pin = 5;
 
 Servo right_servo;
 Servo left_servo;
+Servo arm1_servo;
+Servo arm2_servo;
 ModulinoThermo thermo;
 NewPing sonar(trigPin, echoPin, 1000);
 
@@ -154,6 +158,18 @@ void panic(int speed)
   }
 }
 
+}
+
+void setArm1(int angle)
+{
+    arm1_servo.write(angle);
+}
+
+void setArm2(int angle)
+{
+    arm2_servo.write(angle);
+}
+
 void setup()
 {
     Bridge.begin();
@@ -164,6 +180,8 @@ void setup()
     Bridge.provide("setRGB", setRGB);
     Bridge.provide("move", move);
     Bridge.provide("panic", panic);
+    Bridge.provide("setArm1", setArm1);
+    Bridge.provide("setArm2", setArm2);
 
     pinMode(right_wheel, OUTPUT);
     pinMode(left_wheel, OUTPUT);
@@ -171,6 +189,8 @@ void setup()
     left_servo.attach(left_wheel);
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
+    arm1_servo.attach(arm1Pin);
+    arm2_servo.attach(arm2Pin);
 
     // Make rainbow two times
     for (int i = 0; i < 2; i++)

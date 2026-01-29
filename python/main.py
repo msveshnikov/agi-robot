@@ -49,6 +49,8 @@ asi = False
 alarm = False
 lang = "en"
 rgb = "255,0,255"
+arm1 = 0
+arm2 = 0
 
 
 def speed_callback(client: object, value: int):
@@ -109,6 +111,24 @@ def lang_callback(client: object, value: str):
         speak(f"Language changed to {value}")
     except Exception:
         pass
+
+def arm1_callback(client, value):
+    global arm1
+    logger.info(f"Arm1 value updated from cloud: {value}")
+    try:
+        arm1 = int(value)
+        Bridge.call("setArm1", arm1)
+    except Exception as e:
+        logger.error(f"Error handling Arm1 update: {e}")
+
+def arm2_callback(client, value):
+    global arm2
+    logger.info(f"Arm2 value updated from cloud: {value}")
+    try:
+        arm2 = int(value)
+        Bridge.call("setArm2", arm2)
+    except Exception as e:
+        logger.error(f"Error handling Arm2 update: {e}")
 
 def rgb_callback(client: object, value):
     """Callback function to handle RGB light updates from cloud."""
@@ -198,6 +218,8 @@ arduino_cloud.register("agi", on_write=agi_callback)
 arduino_cloud.register("asi", on_write=asi_callback)
 arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
+arduino_cloud.register("arm1", on_write=arm1_callback)
+arduino_cloud.register("arm2", on_write=arm2_callback)
 
 # Register RGB as a single ColoredLight
 arduino_cloud.register(ColoredLight("rgb", swi=True, on_write=rgb_callback))

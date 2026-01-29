@@ -188,7 +188,9 @@ graph TD
 | **Sensor**      | D8, D9      | Proximity/Distance (Trig/Echo)    |
 | **Modulino**    | I2C         | Temperature & Humidity Sensor     |
 | **Matrix**      | Built-in    | 12x8 LED Matrix                   |
-| **RGB LED**     | D6, D5, D3  | Red, Green, Blue (Common Cathode) |
+| **RGB LED**     | D6, D2, D1  | Red, Green, Blue (Common Cathode) |
+| **Arm Servo 1** | D3          | Manipulator Arm Base (0-180°)     |
+| **Arm Servo 2** | D5          | Manipulator Arm Joint (0-180°)    |
 | **USB**         | USB Port    | Serial Communication/Webcam       |
 
 ## Arduino Cloud Variables
@@ -213,6 +215,8 @@ The following variables are synchronized with the Arduino Cloud:
         -   The Python code converts HSV to RGB string format (e.g., "255,128,0") and sends to MCU
     -   `lang` (str): Language code for TTS (en, ru, cz/cs, it, de).
     -   `panic` (bool): Emergency navigation mode toggle.
+    -   `arm1` (int): Control angle for Arm Servo 1 (0-180).
+    -   `arm2` (int): Control angle for Arm Servo 2 (0-180).
 
 -   **Read-Only (Telemetry):**
     -   `distance` (int): Distance measured by the ultrasonic sensor (cm).
@@ -474,8 +478,8 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Image logging to Google Drive
 - [x] Temperature and humidity monitoring
 - [x] Structured Outputs (Pydantic) for type-safe LLM responses
+- [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction
 
 ## TODO
 
-- [ ] Manipulator arm with 2 SG90 180° servos on the roof for object interaction
 - [ ] IMU + magnetometer integration for better orientation tracking
