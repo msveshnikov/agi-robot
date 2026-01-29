@@ -159,8 +159,6 @@ void panic(int speed)
   }
 }
 
-}
-
 void setArm1(int angle)
 {
     arm1_servo.write(angle);
