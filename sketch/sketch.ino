@@ -159,14 +159,40 @@ void panic(int speed)
   }
 }
 
-void setArm1(int angle)
+void setArm1(int targetAngle)
 {
-    arm1_servo.write(angle);
+    targetAngle = constrain(targetAngle, 0, 180);
+    int currentAngle = arm1_servo.read();
+    
+    if (currentAngle < targetAngle) {
+        for (int i = currentAngle; i <= targetAngle; i++) {
+            arm1_servo.write(i);
+            delay(10);
+        }
+    } else {
+        for (int i = currentAngle; i >= targetAngle; i--) {
+            arm1_servo.write(i);
+            delay(10);
+        }
+    }
 }
 
-void setArm2(int angle)
+void setArm2(int targetAngle)
 {
-    arm2_servo.write(angle);
+    targetAngle = constrain(targetAngle, 0, 180);
+    int currentAngle = arm2_servo.read();
+    
+    if (currentAngle < targetAngle) {
+        for (int i = currentAngle; i <= targetAngle; i++) {
+            arm2_servo.write(i);
+            delay(10);
+        }
+    } else {
+        for (int i = currentAngle; i >= targetAngle; i--) {
+            arm2_servo.write(i);
+            delay(10);
+        }
+    }
 }
 
 void setup()
@@ -193,6 +219,8 @@ void setup()
     // pinMode(bluePin, OUTPUT);
     arm1_servo.attach(arm1Pin);
     arm2_servo.attach(arm2Pin);
+    arm1_servo.write(90);
+    arm2_servo.write(90);
 
     // Make rainbow two times
     for (int i = 0; i < 2; i++)
