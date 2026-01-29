@@ -480,3 +480,5 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 ## TODO
 
 - [ ] IMU + magnetometer integration for better orientation tracking
+
+![alt text](image-4.png)
