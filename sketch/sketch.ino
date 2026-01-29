@@ -22,6 +22,9 @@ Servo arm2_servo;
 ModulinoThermo thermo;
 NewPing sonar(trigPin, echoPin, 1000);
 
+int currentArm1Angle = 90;
+int currentArm2Angle = 90;
+
 float getDistance()
 {
     float d = sonar.ping_cm();
@@ -162,37 +165,37 @@ void panic(int speed)
 void setArm1(int targetAngle)
 {
     targetAngle = constrain(targetAngle, 0, 180);
-    int currentAngle = arm1_servo.read();
     
-    if (currentAngle < targetAngle) {
-        for (int i = currentAngle; i <= targetAngle; i++) {
+    if (currentArm1Angle < targetAngle) {
+        for (int i = currentArm1Angle; i <= targetAngle; i++) {
             arm1_servo.write(i);
             delay(10);
         }
     } else {
-        for (int i = currentAngle; i >= targetAngle; i--) {
+        for (int i = currentArm1Angle; i >= targetAngle; i--) {
             arm1_servo.write(i);
             delay(10);
         }
     }
+    currentArm1Angle = targetAngle;
 }
 
 void setArm2(int targetAngle)
 {
     targetAngle = constrain(targetAngle, 0, 180);
-    int currentAngle = arm2_servo.read();
     
-    if (currentAngle < targetAngle) {
-        for (int i = currentAngle; i <= targetAngle; i++) {
+    if (currentArm2Angle < targetAngle) {
+        for (int i = currentArm2Angle; i <= targetAngle; i++) {
             arm2_servo.write(i);
             delay(10);
         }
     } else {
-        for (int i = currentAngle; i >= targetAngle; i--) {
+        for (int i = currentArm2Angle; i >= targetAngle; i--) {
             arm2_servo.write(i);
             delay(10);
         }
     }
+    currentArm2Angle = targetAngle;
 }
 
 void setup()
