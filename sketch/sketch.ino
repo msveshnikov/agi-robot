@@ -22,8 +22,8 @@ Servo arm2_servo;
 ModulinoThermo thermo;
 NewPing sonar(trigPin, echoPin, 1000);
 
-int currentArm1Angle = -1;
-int currentArm2Angle = -1;
+int currentArm1Angle = 0;
+int currentArm2Angle = 180;
 
 float getDistance()
 {
@@ -167,13 +167,6 @@ void panic(int speed)
 
 void setArm1(int targetAngle)
 {
-    if (currentArm1Angle == -1)
-    {
-        arm1_servo.write(targetAngle);
-        currentArm1Angle = targetAngle;
-        return;
-    }
-
     if (currentArm1Angle < targetAngle)
     {
         for (int i = currentArm1Angle; i <= targetAngle; i++)
@@ -196,13 +189,6 @@ void setArm1(int targetAngle)
 
 void setArm2(int targetAngle)
 {
-    if (currentArm2Angle == -1)
-    {
-        arm2_servo.write(targetAngle);
-        currentArm2Angle = targetAngle;
-        return;
-    }
-
     if (currentArm2Angle < targetAngle)
     {
         for (int i = currentArm2Angle; i <= targetAngle; i++)
@@ -240,16 +226,17 @@ void setup()
     pinMode(left_wheel, OUTPUT);
     right_servo.attach(right_wheel);
     left_servo.attach(left_wheel);
+
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
     pinMode(redPin, OUTPUT);
     pinMode(greenPin, OUTPUT);
     pinMode(bluePin, OUTPUT);
 
+    pinMode(arm1Pin, OUTPUT);
+    pinMode(arm2Pin, OUTPUT);
     arm1_servo.attach(arm1Pin);
     arm2_servo.attach(arm2Pin);
-    arm1_servo.write(90);
-    arm2_servo.write(90);
 
     // Make rainbow two times
     for (int i = 0; i < 2; i++)

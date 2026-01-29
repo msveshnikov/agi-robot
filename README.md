@@ -48,7 +48,7 @@ Below is a table listing all main components, their approximate cost (in USD, ba
 | **Bluetooth Speaker** | For audio output or feedback | $2.5 |
 | **Solderless Breadboard and Wires** | For prototyping and component connections | $5 |
 | **3D Printing Plastic** | About 200 grams (for case, mounts, etc., at ~$15/kg) | $3 |
-| **3D Printer** | Gift, not counted :) | $0 |
+| **3D Printer** | Gift, not counted | $0 |
 | **Total Project Cost** | | **$70** |
 
 As shown in the table, the total project cost is a very affordable **$70 USD**. This clearly demonstrates that implementing interesting and functional DIY solutions doesn't always require significant investments.
