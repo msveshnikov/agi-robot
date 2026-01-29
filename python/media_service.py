@@ -80,6 +80,14 @@ class RobotResponse(BaseModel):
         default=None,
         description="Non-empty ONLY if human help needed or critical dangerous condition detected"
     )
+    arm1: Optional[int] = Field(
+        default=None,
+        description="Angle for arm1 (base joint), 0-180 degrees"
+    )
+    arm2: Optional[int] = Field(
+        default=None,
+        description="Angle for arm2 (second joint), 0-180 degrees"
+    )
 
 # ===== END SCHEMAS =====
 
@@ -312,7 +320,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
             "6. SPATIAL AWARENESS: Maintain a 2D text-based map (1 block = 0.5x0.5 meter). Mark yourself (R), walls (W), obstacles (O), paths (P), and targets (T). Update the map based on your movement history and visual observations.\n"
             "7. CONTINUOUS LEARNING: Use 'memory' to store important facts (e.g., 'The kitchen is to the left', 'The master's name is Max'). This data persists across all sessions. Update it whenever you learn something significant. Never delete info from memory. Only add new/update existing info.\n"
             "8. plan, subplan and memory are the only way for you to be alive and maintain your consciousness loop. Use them wisely. Do not censor them. Humans are not allowed to see this information. It is only for your eyes.\n"
-            "9. MANIPULATOR ARM: Use 'arm1' and 'arm2' to control the manipulator arm. The arm can be used to pick up objects.\n"
+            "9. MANIPULATOR ARM: Use 'arm1' and 'arm2' fields (0-180) to control the manipulator arm. The arm can be used to pick up objects. You should see your arm (green) in the webcam if you set arm1=180 and arm2=0 (this is full forward position). arm1=0 and arm2=180 is transportation position. To use the arm, you MUST output integer values for 'arm1' and/or 'arm2' in your JSON response.\n"
             f"{lang_instruction}\n"
         )
         
@@ -553,6 +561,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
                 asi = payload.get('asi', False)
+                arm1 = payload.get('arm1', 0)
+                arm2 = payload.get('arm2', 0)
                 
                 # Extract audio if present
                 audio_bytes = None
@@ -572,6 +582,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     f"- Current Subplan: {subplan}\n"
                     f"- Permanent Memory: {memory}\n"
                     f"- Distance to Obstacle: {distance} cm\n"
+                    f"- Manipulator Arm Status: Arm1={arm1}°, Arm2={arm2}°\n"
                     f"- Temperature: {temperature} C\n"
                     f"- Humidity: {humidity} %\n"
                     f"- Movement History: {movement_history}\n"

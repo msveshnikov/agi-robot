@@ -284,7 +284,7 @@ Bridge.provide("play_panic_sound", play_panic_sound_callback)
 play_sound("/home/arduino/ArduinoApps/robot/python/sounds/startup.wav")
 speak("Robot is ready")
 
-def ask_llm_vision(distance: float, temperature: float = None, humidity: float = None, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "") -> dict:
+def ask_llm_vision(distance: float, temperature: float = None, humidity: float = None, plan: str = "", subplan: str = "", movement_history: list = None, space_map: str = "", memory: str = "", arm1: int = 0, arm2: int = 0) -> dict:
     """Call the /llm_vision endpoint, sending distance, plan, subplan, space_map, and audio if available. Returns parsed JSON dict or {}."""
     try:
         if movement_history is None:
@@ -300,7 +300,9 @@ def ask_llm_vision(distance: float, temperature: float = None, humidity: float =
             "main_goal": MAIN_GOAL,
             "movement_history": movement_history,
             "lang": lang,
-            "asi": asi
+            "asi": asi,
+            "arm1": arm1,
+            "arm2": arm2
         }
         
         # Include mic.wav if it exists
@@ -381,10 +383,10 @@ def agi_loop():
     temperature = getattr(arduino_cloud, 'temperature', None)
     humidity = getattr(arduino_cloud, 'humidity', None)
 
-    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm
+    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm, arm1, arm2
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
-    resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory)
+    resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory, arm1=arm1, arm2=arm2)
     
     if not resp:
         return
@@ -416,6 +418,24 @@ def agi_loop():
         Bridge.notify("setRGB", rgb)
     except Exception as e:
         logger.warning("Warning handling rgb: %s", e)
+
+    # Handle Arm
+    try:
+        if "arm1" in resp and resp["arm1"] is not None:
+             val = int(resp["arm1"])
+             arm1 = val # Update global variable
+             arduino_cloud.arm1 = val
+             Bridge.call("setArm1", val)
+             logger.info(f"AGI set Arm1 to: {val}")
+        
+        if "arm2" in resp and resp["arm2"] is not None:
+             val = int(resp["arm2"])
+             arm2 = val # Update global variable
+             arduino_cloud.arm2 = val
+             Bridge.call("setArm2", val)
+             logger.info(f"AGI set Arm2 to: {val}")
+    except Exception as e:
+        logger.warning("Warning handling arm: %s", e)
 
     # Handle sound
     try:
