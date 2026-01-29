@@ -8,7 +8,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 
 - 🤖 **Autonomous Navigation**: LLM-driven pathfinding with obstacle avoidance and spatial mapping
 - 👁️ **Computer Vision**: Real-time image analysis for object detection and scene understanding
-- 🎤 **Voice Interaction**: Records user responses after speaking, sends audio to LLM for context-aware replies
+- 🎤 **Voice Interaction**: Dynamically records user responses (3-15s) based on noise levels, sends audio to LLM for context-aware replies
 - 🗣️ **Multi-language TTS**: Supports English, Russian, Czech, Italian, and German with Google Chirp3/Chirp-HD voices
 - 🌈 **Emotional Expression**: RGB LED "mood" changes based on robot's state (thinking, happy, cautious, etc.)
 - 📊 **Cloud Integration**: Arduino Cloud for remote monitoring and control
@@ -79,7 +79,7 @@ As shown in the table, the total project cost is a very affordable **$70 USD**. 
 
 -   **Python Logic (`main.py`):**
     -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, records audio responses, and consults the Gemini 3 Flash (Preview) model via `media_service.py` to decide on actions.
-    -   **Audio Recording**: After the robot speaks, it records 10 seconds of audio from the microphone to capture user responses, saved as `mic.wav` with proper WAV headers.
+    -   **Audio Recording**: After the robot speaks, it records user audio with **dynamic duration** (3 to 15 seconds). It monitors noise levels (dB) to extend recording if the user is speaking, and stops early on silence. During recording, the RGB LED displays a **rainbow effect**.
     -   **Object Detection**: Uses `VideoObjectDetection` to identify objects in real-time and announce them (`send_detections_to_ui`).
     -   **Arduino Cloud**: Synchronizes state variables (`speed`, `agi`, `goal`, `lang`, `rgb`) and telemetry (`distance`, `temperature`, `humidity`).
     -   **RGB Mood**: Converts HSV color values from Arduino Cloud to RGB for the robot's "mood" LED.
@@ -208,7 +208,7 @@ The following variables are synchronized with the Arduino Cloud:
         -   `rgb:bri` (0-100): Brightness percentage
         -   `rgb:swi` (bool): Switch on/off
         -   The Python code converts HSV to RGB string format (e.g., "255,128,0") and sends to MCU
-    -   `lang` (str): Language code for TTS (en, ru, cz/cs, it, de).
+    -   `lang` (str): Language code for TTS (en, ru, cz/cs, it, de) or "disabled" for silent mode.
     -   `panic` (bool): Emergency navigation mode toggle.
     -   `arm1` (int): Control angle for Arm Servo 1 (0-180).
     -   `arm2` (int): Control angle for Arm Servo 2 (0-180).
@@ -357,7 +357,7 @@ The AGI Loop is the core autonomous decision-making cycle of the robot. It opera
 1. **Visual Input**: Captures live image from webcam via Socket.IO connection
 2. **Distance Sensing**: Reads ultrasonic sensor data (0-1000 cm)
 3. **Context State**: Maintains `plan`, `subplan`, `space_map`, and `movement_history`
-4. **Audio Input**: After speaking, records 10 seconds of audio to capture user responses
+4. **Audio Input**: After speaking, dynamically records (3-15s) to capture user responses
 5. **Main Goal**: Retrieved from Arduino Cloud `goal` variable
 
 ### LLM Decision-Making
@@ -384,6 +384,8 @@ The model returns a structured JSON object validated by Pydantic schemas:
     {"command": "forward|back|left|right|stop", "distance_cm": 20-300, "angle_deg": 10-180}
   ],
   "rgb": "R,G,B",
+  "arm1": 0-180,
+  "arm2": 0-180,
   "plan": "Global strategy description",
   "subplan": "Immediate next steps",
   "space_map": "Text-based spatial map with legend",
@@ -395,7 +397,7 @@ The model returns a structured JSON object validated by Pydantic schemas:
 ### Action Execution
 
 1. **Speech**: Uses Google TTS with language-specific Chirp/WaveNet voices (en/ru/cz/it/de)
-2. **Audio Recording**: Captures 7 seconds of audio after speaking to capture user response (16kHz, 16-bit WAV)
+2. **Audio Recording**: Captures 3-15 seconds of audio (dynamic extension) while cycling RGB colors (Rainbow) to indicate listening state.
 3. **Sound Effects**: Plays random sound from `sounds/` directory to attract attention
 4. **RGB Mood**: Updates LED color based on robot's emotional state:
    - White (255,255,255): Neutral/Ready
@@ -473,7 +475,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Image logging to Google Drive
 - [x] Temperature and humidity monitoring
 - [x] Structured Outputs (Pydantic) for type-safe LLM responses
-- [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction
+- [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction (with smooth movement interpolation)
 
 ## TODO
 
