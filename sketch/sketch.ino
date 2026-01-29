@@ -8,9 +8,10 @@ const int echoPin = 9;
 const int left_wheel = 11;
 const int right_wheel = 10;
 
-const int redPin = 2;
 const int greenPin = 1;
+const int redPin = 2;
 const int bluePin = 6;
+
 const int arm1Pin = 3;
 const int arm2Pin = 5;
 
@@ -45,8 +46,8 @@ void setRGB(String rgb_str)
     }
 
     analogWrite(bluePin, b);
-    analogWrite(redPin, r / 1.2);
-    analogWrite(greenPin, g / 2);
+    digitalWrite(redPin, (r > 128) ? HIGH : LOW);
+    digitalWrite(greenPin, (g > 128) ? HIGH : LOW);
 }
 
 void move(String mvcmd, boolean stop)
@@ -189,19 +190,22 @@ void setup()
     left_servo.attach(left_wheel);
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
+    pinMode(redPin, OUTPUT);
+    pinMode(greenPin, OUTPUT);
+    // pinMode(bluePin, OUTPUT);
     arm1_servo.attach(arm1Pin);
     arm2_servo.attach(arm2Pin);
 
     // Make rainbow two times
     for (int i = 0; i < 2; i++)
     {
-        analogWrite(redPin, 255); analogWrite(greenPin, 0); analogWrite(bluePin, 0); delay(100);
-        analogWrite(redPin, 255); analogWrite(greenPin, 127); analogWrite(bluePin, 0); delay(100);
-        analogWrite(redPin, 255); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(100);
-        analogWrite(redPin, 0); analogWrite(greenPin, 255); analogWrite(bluePin, 0); delay(100);
-        analogWrite(redPin, 0); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(100);
-        analogWrite(redPin, 75); analogWrite(greenPin, 0); analogWrite(bluePin, 130); delay(100);
-        analogWrite(redPin, 143); analogWrite(greenPin, 0); analogWrite(bluePin, 255); delay(100);
+        digitalWrite(redPin, HIGH); digitalWrite(greenPin, LOW); analogWrite(bluePin, 0); delay(100);
+        digitalWrite(redPin, HIGH); digitalWrite(greenPin, LOW); analogWrite(bluePin, 0); delay(100);
+        digitalWrite(redPin, HIGH); digitalWrite(greenPin, HIGH); analogWrite(bluePin, 0); delay(100);
+        digitalWrite(redPin, LOW); digitalWrite(greenPin, HIGH); analogWrite(bluePin, 0); delay(100);
+        digitalWrite(redPin, LOW); digitalWrite(greenPin, LOW); analogWrite(bluePin, 255); delay(100);
+        digitalWrite(redPin, LOW); digitalWrite(greenPin, LOW); analogWrite(bluePin, 130); delay(100);
+        digitalWrite(redPin, HIGH); digitalWrite(greenPin, LOW); analogWrite(bluePin, 255); delay(100);
     }
 }
 
