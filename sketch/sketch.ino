@@ -155,7 +155,7 @@ void panic(int speed)
     }
     else
     {
-        Bridge.notify("play_panic_sound", 0);
+        Bridge.notify("play_random_sound", 0);
         right_servo.write(90 + speed);
         left_servo.write(90 - speed);
         delay(2000);
@@ -167,46 +167,13 @@ void panic(int speed)
 
 void setArm1(int targetAngle)
 {
-    if (currentArm1Angle < targetAngle)
-    {
-        for (int i = currentArm1Angle; i <= targetAngle; i++)
-        {
-            arm1_servo.write(i);
-            currentArm1Angle = i;
-            delay(20);
-        }
-    }
-    else
-    {
-        for (int i = currentArm1Angle; i >= targetAngle; i--)
-        {
-            arm1_servo.write(i);
-            currentArm1Angle = i;
-            delay(20);
-        }
-    }
+    arm1_servo.write(targetAngle);
 }
+ 
 
 void setArm2(int targetAngle)
 {
-    if (currentArm2Angle < targetAngle)
-    {
-        for (int i = currentArm2Angle; i <= targetAngle; i++)
-        {
-            arm2_servo.write(i);
-            currentArm2Angle = i;
-            delay(20);
-        }
-    }
-    else
-    {
-        for (int i = currentArm2Angle; i >= targetAngle; i--)
-        {
-            arm2_servo.write(i);
-            currentArm2Angle = i;
-            delay(20);
-        }
-    }
+    arm2_servo.write(targetAngle);
 }
 
 void setup()
@@ -215,12 +182,12 @@ void setup()
     Modulino.begin(Wire1);
     thermo.begin();
 
-    Bridge.provide("getDistance", getDistance);
-    Bridge.provide("setRGB", setRGB);
-    Bridge.provide("move", move);
-    Bridge.provide("panic", panic);
-    Bridge.provide("setArm1", setArm1);
-    Bridge.provide("setArm2", setArm2);
+    Bridge.provide_safe("getDistance", getDistance);
+    Bridge.provide_safe("setRGB", setRGB);
+    Bridge.provide_safe("move", move);
+    Bridge.provide_safe("panic", panic);
+    Bridge.provide_safe("setArm1", setArm1);
+    Bridge.provide_safe("setArm2", setArm2);
 
     pinMode(right_wheel, OUTPUT);
     pinMode(left_wheel, OUTPUT);
