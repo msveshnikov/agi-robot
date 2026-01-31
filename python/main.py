@@ -276,10 +276,10 @@ Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
 Bridge.provide("set_distance", set_distance)
 
-def play_panic_sound_callback(value):
+def play_random_sound_callback(value):
     play_random_sound()
     
-Bridge.provide("play_panic_sound", play_panic_sound_callback)
+Bridge.provide_safe("play_random_sound", play_random_sound_callback)
 
 play_sound("/home/arduino/ArduinoApps/robot/python/sounds/startup.wav")
 speak("Robot is ready")
