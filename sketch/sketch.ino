@@ -247,14 +247,19 @@ void setup()
 
 void loop()
 {
-    float distance = sonar.ping_cm();
-    Bridge.notify("set_distance", distance);
+    static unsigned long lastTelemetryTime = 0;
 
-    float temperature = thermo.getTemperature();
-    Bridge.notify("set_temperature", temperature);
+    if (millis() - lastTelemetryTime >= 1000)
+    {
+        lastTelemetryTime = millis();
 
-    float humidity = thermo.getHumidity();
-    Bridge.notify("set_humidity", humidity);
+        float distance = sonar.ping_cm();
+        Bridge.notify("set_distance", distance);
 
-    delay(1000);
+        float temperature = thermo.getTemperature();
+        Bridge.notify("set_temperature", temperature);
+
+        float humidity = thermo.getHumidity();
+        Bridge.notify("set_humidity", humidity);
+    }
 }
