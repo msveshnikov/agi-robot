@@ -8,9 +8,9 @@ const int echoPin = 9;
 const int left_wheel = 11;
 const int right_wheel = 10;
 
+const int bluePin = 0;
 const int greenPin = 1;
 const int redPin = 2;
-const int bluePin = 0;
 
 const int arm1Pin = 3;
 const int arm2Pin = 5;
