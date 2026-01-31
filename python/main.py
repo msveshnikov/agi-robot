@@ -279,7 +279,7 @@ Bridge.provide("set_distance", set_distance)
 def play_random_sound_callback(value):
     play_random_sound()
     
-Bridge.provide_safe("play_random_sound", play_random_sound_callback)
+Bridge.provide("play_random_sound", play_random_sound_callback)
 
 play_sound("/home/arduino/ArduinoApps/robot/python/sounds/startup.wav")
 speak("Robot is ready")
