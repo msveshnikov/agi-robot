@@ -179,12 +179,12 @@ void setup()
     Modulino.begin(Wire1);
     thermo.begin();
 
-    Bridge.provide_safe("getDistance", getDistance);
-    Bridge.provide_safe("setRGB", setRGB);
-    Bridge.provide_safe("move", move);
-    Bridge.provide_safe("panic", panic);
-    Bridge.provide_safe("setArm1", setArm1);
-    Bridge.provide_safe("setArm2", setArm2);
+    Bridge.provide("getDistance", getDistance);
+    Bridge.provide("setRGB", setRGB);
+    Bridge.provide("move", move);
+    Bridge.provide("panic", panic);
+    Bridge.provide("setArm1", setArm1);
+    Bridge.provide("setArm2", setArm2);
 
     pinMode(right_wheel, OUTPUT);
     pinMode(left_wheel, OUTPUT);
