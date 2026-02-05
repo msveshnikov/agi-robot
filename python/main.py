@@ -608,7 +608,7 @@ def agi_loop():
         logger.warning(f"Error syncing to cloud: {e}")
 
 def loop():
-    global speed, back, left, right, forward, agi
+    global speed, back, left, right, forward, agi, panic
     try:
         
         if left:
@@ -631,4 +631,5 @@ def loop():
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
 
+App.start_brick(arduino_cloud)
 App.run(user_loop=loop)
