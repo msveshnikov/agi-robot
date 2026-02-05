@@ -17,8 +17,8 @@ const int arm2Pin = 5;
 
 Servo right_servo;
 Servo left_servo;
-// Servo arm1_servo;
-// Servo arm2_servo;
+Servo arm1_servo;
+Servo arm2_servo;
 ModulinoThermo thermo;
 NewPing sonar(trigPin, echoPin, 1000);
 
@@ -164,13 +164,13 @@ void panic(int speed)
 
 void setArm1(int targetAngle)
 {
-    // arm1_servo.write(targetAngle);
+    arm1_servo.write(targetAngle);
 }
  
 
 void setArm2(int targetAngle)
 {
-    // arm2_servo.write(targetAngle);
+    arm2_servo.write(targetAngle);
 }
 
 void setup()
@@ -197,10 +197,10 @@ void setup()
     pinMode(greenPin, OUTPUT);
     pinMode(bluePin, OUTPUT);
 
-    // pinMode(arm1Pin, OUTPUT);
-    // pinMode(arm2Pin, OUTPUT);
-    // arm1_servo.attach(arm1Pin);
-    // arm2_servo.attach(arm2Pin);
+    pinMode(arm1Pin, OUTPUT);
+    pinMode(arm2Pin, OUTPUT);
+    arm1_servo.attach(arm1Pin);
+    arm2_servo.attach(arm2Pin);
 
     // Make rainbow two times
     for (int i = 0; i < 2; i++)
