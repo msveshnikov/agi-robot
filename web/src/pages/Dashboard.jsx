@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { 
   Gauge, Thermometer, Droplets, Brain, AlertTriangle, 
   ArrowUp, ArrowDown, ArrowLeft, ArrowRight, StopCircle,
-  Power, Zap
+  Power, Zap, Settings
 } from 'lucide-react';
 import TelemetryCard from '../components/TelemetryCard';
 import ControlButton from '../components/ControlButton';
+import SettingsPanel from '../components/SettingsPanel';
 import socketService from '../services/socket';
 import * as api from '../services/api';
 import './Dashboard.css';
@@ -20,6 +21,7 @@ const Dashboard = () => {
   });
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Fetch initial state
   useEffect(() => {
@@ -134,9 +136,18 @@ const Dashboard = () => {
         <h1 className="dashboard-title">
           <span className="gradient-text">AGI Robot</span> Control Dashboard
         </h1>
-        <div className="connection-status">
-          <div className={`status-indicator ${connected ? 'connected' : 'disconnected'}`} />
-          <span>{connected ? 'Connected' : 'Disconnected'}</span>
+        <div className="header-actions">
+          <div className="connection-status">
+            <div className={`status-indicator ${connected ? 'connected' : 'disconnected'}`} />
+            <span>{connected ? 'Connected' : 'Disconnected'}</span>
+          </div>
+          <button 
+            className="settings-toggle-button" 
+            onClick={() => setSettingsOpen(true)}
+            title="Open Settings"
+          >
+            <Settings size={20} />
+          </button>
         </div>
       </motion.header>
 
@@ -282,6 +293,13 @@ const Dashboard = () => {
           </div>
         </motion.section>
       </div>
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        currentState={robotState}
+      />
     </div>
   );
 };
