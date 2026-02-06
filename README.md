@@ -475,7 +475,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Image logging to Google Drive
 - [x] Temperature and humidity monitoring
 - [x] Structured Outputs (Pydantic) for type-safe LLM responses
-- [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction (with smooth movement interpolation)
+- [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction 
 
 ## TODO
 
