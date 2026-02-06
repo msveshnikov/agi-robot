@@ -65,7 +65,7 @@ jobs:
             docker-compose -f /var/www/agi-robot/docker-compose.yml ps
             
             # Test backend health endpoint
-            curl -f http://localhost:3000/api/health || exit 1
+            curl -f http://localhost:8300/api/health || exit 1
             
             echo "✅ Deployment successful!"
 
