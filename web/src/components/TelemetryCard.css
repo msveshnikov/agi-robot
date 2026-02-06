@@ -1,0 +1,71 @@
+.telemetry-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-base);
+}
+
+.telemetry-card.warning {
+  border-color: var(--color-error);
+  background: rgba(255, 59, 48, 0.1);
+}
+
+.telemetry-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-card);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.telemetry-card.warning .telemetry-icon {
+  color: var(--color-error);
+  background: rgba(255, 59, 48, 0.2);
+}
+
+.telemetry-content {
+  flex: 1;
+}
+
+.telemetry-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.telemetry-value {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.telemetry-unit {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin-left: var(--spacing-xs);
+  font-weight: 600;
+}
+
+/* Pulse animation for warning */
+.telemetry-card.warning {
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 59, 48, 0);
+  }
+}

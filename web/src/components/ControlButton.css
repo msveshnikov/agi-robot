@@ -1,0 +1,115 @@
+.control-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  min-width: 100px;
+  background: var(--glass-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  overflow: hidden;
+}
+
+.control-button:hover {
+  border-color: var(--color-primary);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.control-button.active {
+  background: var(--gradient-primary);
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+}
+
+.control-button.primary {
+  background: var(--gradient-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.control-button.primary:hover {
+  box-shadow: 0 6px 30px rgba(168, 85, 247, 0.6);
+}
+
+.control-button.danger {
+  border-color: var(--color-error);
+}
+
+.control-button.danger:hover {
+  background: rgba(255, 59, 48, 0.1);
+  border-color: var(--color-error);
+}
+
+.control-button.danger.active {
+  background: var(--color-error);
+  box-shadow: 0 4px 20px rgba(255, 59, 48, 0.4);
+}
+
+.control-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.control-button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-button-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.control-button-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--color-success);
+  border-radius: 50%;
+  animation: pulse-indicator 2s ease-in-out infinite;
+}
+
+@keyframes pulse-indicator {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.7;
+  }
+}
+
+/* Ripple effect */
+.control-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.control-button:active::before {
+  width: 300px;
+  height: 300px;
+}
