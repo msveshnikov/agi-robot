@@ -18,6 +18,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import './LandingPage.css';
+import './LandingPage-buttons.css';
 
 const LandingPage = () => {
   const features = [
