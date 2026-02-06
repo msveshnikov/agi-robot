@@ -205,6 +205,16 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .telemetry-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard {
     padding: var(--spacing-md);
@@ -214,6 +224,17 @@
     flex-direction: column;
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+  }
+  
+  .dashboard-title {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: center;
   }
 
   .dashboard-content {
@@ -228,9 +249,117 @@
   .dashboard-section {
     padding: var(--spacing-lg);
   }
+  
+  .section-title {
+    font-size: 1rem;
+  }
 
+  /* Movement Controls Mobile */
+  .movement-controls {
+    gap: var(--spacing-sm);
+  }
+  
+  .control-row {
+    gap: var(--spacing-sm);
+  }
+  
+  .control-button {
+    min-width: 80px;
+    min-height: 60px;
+    padding: var(--spacing-sm);
+  }
+  
+  .control-button-label {
+    font-size: 0.625rem;
+  }
+  
+  /* Mode Controls Mobile */
+  .mode-controls {
+    gap: var(--spacing-sm);
+  }
+
+  /* Speed Display Mobile */
   .speed-value {
-    font-size: 3rem;
+    font-size: 2.5rem;
+  }
+  
+  .speed-unit {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-title {
+    font-size: 1.25rem;
+  }
+  
+  .connection-status {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .settings-toggle-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .control-button {
+    min-width: 70px;
+    min-height: 50px;
+  }
+  
+  .control-button-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .telemetry-card {
+    padding: var(--spacing-md);
+  }
+  
+  .telemetry-icon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .telemetry-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .telemetry-value {
+    font-size: 1.5rem;
+  }
+  
+  .telemetry-label {
+    font-size: 0.75rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .control-button {
+    min-height: 60px;
+    min-width: 90px;
+  }
+  
+  .settings-toggle-button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  /* Remove hover effects */
+  .control-button:hover,
+  .settings-toggle-button:hover {
+    transform: none;
+    border-color: var(--glass-border);
+  }
+  
+  /* Enhance active/pressed states for touch feedback */
+  .control-button:active {
+    transform: scale(0.95);
+    background: rgba(168, 85, 247, 0.2);
   }
 }
 

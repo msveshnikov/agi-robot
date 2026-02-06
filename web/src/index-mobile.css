@@ -1,0 +1,66 @@
+/* Mobile-specific enhancements */
+
+/* Prevent text selection on interactive elements */
+.control-button,
+.btn-primary,
+.btn-secondary,
+.settings-toggle-button,
+.preset-button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling for mobile */
+@media (max-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure content doesn't overflow */
+  .landing-page,
+  .dashboard {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Better spacing for mobile content */
+  .section {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+  
+  /* Improve readability on small screens */
+  p {
+    line-height: 1.6;
+  }
+  
+  /* Ensure images don't overflow */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Fix for iOS Safari viewport height issue */
+@supports (-webkit-touch-callout: none) {
+  .hero-section {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 896px) and (orientation: landscape) {
+  .hero-section {
+    min-height: auto;
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-image {
+    max-width: 50%;
+  }
+}

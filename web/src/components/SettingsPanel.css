@@ -338,8 +338,84 @@
   .settings-panel {
     width: 100vw;
   }
+  
+  .settings-header {
+    padding: var(--spacing-lg);
+  }
+  
+  .settings-title {
+    font-size: 1.25rem;
+  }
+  
+  .settings-content {
+    padding: var(--spacing-lg);
+    gap: var(--spacing-xl);
+  }
 
   .preset-buttons {
     grid-template-columns: 1fr;
+  }
+  
+  .settings-footer {
+    padding: var(--spacing-lg);
+    flex-direction: column;
+  }
+  
+  .cancel-button,
+  .save-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-title {
+    font-size: 1.125rem;
+  }
+  
+  .setting-label {
+    font-size: 0.75rem;
+  }
+  
+  .setting-description {
+    font-size: 0.75rem;
+  }
+  
+  .speed-value-display {
+    font-size: 1.25rem;
+    min-width: 80px;
+  }
+  
+  .speed-labels {
+    font-size: 0.625rem;
+  }
+  
+  .preset-label {
+    font-size: 0.75rem;
+  }
+  
+  .preset-button {
+    font-size: 0.75rem;
+    padding: var(--spacing-sm);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .setting-select,
+  .setting-textarea,
+  .speed-slider,
+  .preset-button,
+  .save-button,
+  .cancel-button {
+    min-height: 44px;
+  }
+  
+  .preset-button:hover {
+    transform: none;
+  }
+  
+  .preset-button:active {
+    transform: scale(0.98);
+    background: rgba(168, 85, 247, 0.2);
   }
 }
