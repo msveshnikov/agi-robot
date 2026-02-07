@@ -48,10 +48,11 @@ Below is a table listing all main components, their approximate cost (in USD, ba
 | **Bluetooth Speaker** | For audio output or feedback | $2.5 |
 | **Solderless Breadboard and Wires** | For prototyping and component connections | $5 |
 | **3D Printing Plastic** | About 200 grams (for case, mounts, etc., at ~$15/kg) | $3 |
+| **Xiaomi Powerbank** | 10000 mAh (for power) | $10 |
 | **3D Printer** | Gift, not counted | $0 |
-| **Total Project Cost** | | **$70** |
+| **Total Project Cost** | | **$80** |
 
-As shown in the table, the total project cost is a very affordable **$70 USD**. This clearly demonstrates that implementing interesting and functional DIY solutions doesn't always require significant investments.
+As shown in the table, the total project cost is a very affordable **$80 USD**. This clearly demonstrates that implementing interesting and functional DIY solutions doesn't always require significant investments.
 
 **Arduino Board:** The main portion of the budget goes to the controller. Choosing more budget-friendly boards (e.g., ESP32 or ESP8266, if functionality allows) could further reduce this expense.
 

@@ -86,6 +86,7 @@ const LandingPage = () => {
         { component: 'Bluetooth Speaker', description: 'Audio output', cost: 2.5 },
         { component: 'Breadboard & Wires', description: 'Prototyping components', cost: 5 },
         { component: '3D Printing Plastic', description: '~200g for case/mounts', cost: 3 },
+        { component: 'Xiaomi Powerbank', description: '10000 mAh for power', cost: 10 },
     ];
 
     const totalCost = costs.reduce((sum, item) => sum + item.cost, 0);
