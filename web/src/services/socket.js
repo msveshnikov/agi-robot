@@ -1,77 +1,77 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || '';
 
 class SocketService {
-  constructor() {
-    this.socket = null;
-    this.listeners = new Map();
-  }
-
-  connect() {
-    if (this.socket?.connected) {
-      return this.socket;
+    constructor() {
+        this.socket = null;
+        this.listeners = new Map();
     }
 
-    this.socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-    });
+    connect() {
+        if (this.socket?.connected) {
+            return this.socket;
+        }
 
-    this.socket.on('connect', () => {
-      console.log('✅ Socket.IO connected:', this.socket.id);
-    });
+        this.socket = io(SOCKET_URL, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5,
+        });
 
-    this.socket.on('disconnect', () => {
-      console.log('🔌 Socket.IO disconnected');
-    });
+        this.socket.on('connect', () => {
+            console.log('✅ Socket.IO connected:', this.socket.id);
+        });
 
-    this.socket.on('connect_error', (error) => {
-      console.error('❌ Socket.IO connection error:', error);
-    });
+        this.socket.on('disconnect', () => {
+            console.log('🔌 Socket.IO disconnected');
+        });
 
-    // Restore event listeners
-    this.listeners.forEach((callback, event) => {
-      this.socket.on(event, callback);
-    });
+        this.socket.on('connect_error', (error) => {
+            console.error('❌ Socket.IO connection error:', error);
+        });
 
-    return this.socket;
-  }
+        // Restore event listeners
+        this.listeners.forEach((callback, event) => {
+            this.socket.on(event, callback);
+        });
 
-  disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+        return this.socket;
     }
-  }
 
-  on(event, callback) {
-    if (!this.socket) {
-      this.connect();
+    disconnect() {
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+        }
     }
-    
-    this.listeners.set(event, callback);
-    this.socket.on(event, callback);
-  }
 
-  off(event) {
-    if (this.socket) {
-      this.socket.off(event);
+    on(event, callback) {
+        if (!this.socket) {
+            this.connect();
+        }
+
+        this.listeners.set(event, callback);
+        this.socket.on(event, callback);
     }
-    this.listeners.delete(event);
-  }
 
-  emit(event, data) {
-    if (this.socket?.connected) {
-      this.socket.emit(event, data);
+    off(event) {
+        if (this.socket) {
+            this.socket.off(event);
+        }
+        this.listeners.delete(event);
     }
-  }
 
-  isConnected() {
-    return this.socket?.connected || false;
-  }
+    emit(event, data) {
+        if (this.socket?.connected) {
+            this.socket.emit(event, data);
+        }
+    }
+
+    isConnected() {
+        return this.socket?.connected || false;
+    }
 }
 
 const socketService = new SocketService();
