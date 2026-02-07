@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import {
     Brain,
     Shield,
@@ -15,6 +16,25 @@ import './LandingPage.css';
 import './LandingPage-buttons.css';
 
 const LandingPage = () => {
+    const heroImages = [
+        '/image-1.png',
+        '/image-2.png',
+        '/image-4.png',
+        '/image-5.png'
+    ];
+
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prevIndex) =>
+                (prevIndex + 1) % heroImages.length
+            );
+        }, 3000); // Change image every 3 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
     const features = [
         {
             icon: <Brain size={32} />,
@@ -113,7 +133,7 @@ const LandingPage = () => {
                             </a>
                         </div>
                     </motion.div>
-
+                    <br /><br /><br /><br /><br />
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -121,8 +141,34 @@ const LandingPage = () => {
                         className="hero-image"
                     >
                         <div className="image-wrapper animate-float">
-                            <img src="/image-1.png" alt="AGI Robot" className="robot-image" />
+                            {heroImages.map((image, index) => (
+                                <img
+                                    key={index}
+                                    src={image}
+                                    alt={`AGI Robot ${index + 1}`}
+                                    className="robot-image"
+                                    style={{
+                                        position: index === 0 ? 'relative' : 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        opacity: currentImageIndex === index ? 1 : 0,
+                                        transition: 'opacity 0.5s ease-in-out'
+                                    }}
+                                />
+                            ))}
                             <div className="image-glow"></div>
+                            <div className="carousel-indicators">
+                                {heroImages.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        className={`indicator ${currentImageIndex === index ? 'active' : ''}`}
+                                        onClick={() => setCurrentImageIndex(index)}
+                                        aria-label={`View image ${index + 1}`}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
                 </div>
