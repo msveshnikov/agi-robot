@@ -81,7 +81,9 @@
 }
 
 .btn-primary span,
-.btn-secondary span {
+.btn-primary svg,
+.btn-secondary span,
+.btn-secondary svg {
   position: relative;
   z-index: 1;
 }

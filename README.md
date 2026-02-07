@@ -486,6 +486,8 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 ## TODO
 
+- [ ] Migrate from Arduino Cloud to own backend+site (https://robot.mvpgen.com)
+- [ ] Daily blog post (diary of robot) from consciousness logs in Sartre style
 - [ ] IMU + magnetometer integration for better orientation tracking
 
 ![alt text](image-5.png)

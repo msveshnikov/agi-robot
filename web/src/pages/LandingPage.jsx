@@ -118,7 +118,7 @@ const LandingPage = () => {
 
                         <div className="hero-buttons">
                             <Link to="/dashboard" className="btn btn-primary">
-                                Open Dashboard
+                                <span>Open Dashboard</span>
                                 <ArrowRight size={20} />
                             </Link>
                             <a
@@ -128,7 +128,7 @@ const LandingPage = () => {
                                 className="btn btn-secondary"
                             >
                                 <Github size={20} />
-                                View on GitHub
+                                <span>View on GitHub</span>
                             </a>
                         </div>
                     </motion.div>
@@ -357,7 +357,7 @@ const LandingPage = () => {
                             and interact with the AGI system
                         </p>
                         <Link to="/dashboard" className="btn btn-primary btn-large">
-                            Open Control Dashboard
+                            <span>Open Control Dashboard</span>
                             <ArrowRight size={24} />
                         </Link>
                     </motion.div>
