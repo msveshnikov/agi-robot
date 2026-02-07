@@ -302,6 +302,42 @@ const LandingPage = () => {
                             </tbody>
                         </table>
                     </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                        className="api-cost-info text-center"
+                    >
+                        <h3>LLM API Running Cost</h3>
+                        <p className="section-description">
+                            The robot's consciousness operates in an autonomous loop powered by Gemini AI
+                        </p>
+                        <div className="api-cost-grid">
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                className="api-cost-item"
+                            >
+                                <span className="api-cost-label">Loop Duration</span>
+                                <span className="api-cost-value">~20s</span>
+                            </motion.div>
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                className="api-cost-item"
+                            >
+                                <span className="api-cost-label">Cost per Loop</span>
+                                <span className="api-cost-value">$0.005</span>
+                            </motion.div>
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                className="api-cost-item"
+                            >
+                                <span className="api-cost-label">Cost per Hour</span>
+                                <span className="api-cost-value">$1</span>
+                            </motion.div>
+                        </div>
+                    </motion.div>
                 </div>
             </section>
 

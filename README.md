@@ -59,6 +59,13 @@ As shown in the table, the total project cost is a very affordable **$70 USD**. 
 
 **Consumables:** The cost of 3D printing plastic and basic prototyping elements (breadboard, wires) is also minimal.
 
+### LLM API Running Cost
+
+The robot's consciousness operates in an autonomous loop, which incurs API costs for the LLM (Gemini):
+- **Loop Duration**: ~20 seconds per consciousness loop
+- **Cost per Loop**: $0.005
+- **Cost per Hour**: $1 (continuous operation)
+
 ---
 
 ## Design Ideas and Future Considerations
