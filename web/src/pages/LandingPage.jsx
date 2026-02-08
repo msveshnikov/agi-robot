@@ -386,10 +386,10 @@ const LandingPage = () => {
                         <div className="footer-section">
                             <h4>Technology</h4>
                             <ul>
-                                <li>Google Gemini AI</li>
-                                <li>Arduino Uno Q</li>
-                                <li>Computer Vision</li>
-                                <li>Natural Language Processing</li>
+                                <li><a href="https://deepmind.google/technologies/gemini/" target="_blank" rel="noopener noreferrer">Google Gemini AI</a></li>
+                                <li><a href="https://www.arduino.cc/" target="_blank" rel="noopener noreferrer">Arduino Uno Q</a></li>
+                                <li><a href="https://en.wikipedia.org/wiki/Computer_vision" target="_blank" rel="noopener noreferrer">Computer Vision</a></li>
+                                <li><a href="https://en.wikipedia.org/wiki/Natural_language_processing" target="_blank" rel="noopener noreferrer">Natural Language Processing</a></li>
                             </ul>
                         </div>
                         <div className="footer-section">
