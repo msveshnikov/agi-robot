@@ -1,5 +1,14 @@
+.btn {
+  width: 320px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
 .btn-primary {
-  padding: var(--spacing-md) var(--spacing-2xl);
+  padding: var(--spacing-md) var(--spacing-xl);
   background: linear-gradient(135deg, #a855f7, #ec4899);
   border: none;
   border-radius: var(--radius-md);
@@ -9,8 +18,6 @@
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
   gap: var(--spacing-sm);
   transition: all var(--transition-base);
   position: relative;
