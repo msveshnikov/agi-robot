@@ -217,6 +217,12 @@
     grid-template-columns: 1fr;
   }
   
+  .telemetry-section,
+  .history-section {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
   .telemetry-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
@@ -247,6 +253,13 @@
   .dashboard-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-lg);
+  }
+
+  .controls-section,
+  .mode-section,
+  .speed-section,
+  .rgb-section {
+    min-width: auto;
   }
 
   .telemetry-grid {
@@ -296,6 +309,10 @@
 }
 
 @media (max-width: 480px) {
+  .dashboard {
+    padding: var(--spacing-xs);
+  }
+
   .dashboard-title {
     font-size: 1.25rem;
   }
@@ -310,6 +327,10 @@
     height: 36px;
   }
   
+  .dashboard-section {
+    padding: var(--spacing-md);
+  }
+
   .control-button {
     min-width: 70px;
     min-height: 50px;
@@ -321,25 +342,25 @@
   }
   
   .telemetry-card {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
   }
   
   .telemetry-icon {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
   
   .telemetry-icon svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
   
   .telemetry-value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
   
   .telemetry-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 }
 
