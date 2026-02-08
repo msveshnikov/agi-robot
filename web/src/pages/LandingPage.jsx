@@ -363,7 +363,7 @@ const LandingPage = () => {
                         </p>
                         <div className="hero-buttons" style={{ justifyContent: 'center', marginTop: '2rem' }}>
                             <Link to="/dashboard" className="btn btn-primary btn-large">
-                                <span>Open Control Dashboard</span>
+                                <span>Open Dashboard</span>
                                 <ArrowRight size={24} />
                             </Link>
                             <Link to="/blog" className="btn btn-secondary btn-large">

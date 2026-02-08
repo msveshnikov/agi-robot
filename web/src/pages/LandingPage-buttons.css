@@ -2,9 +2,8 @@
 .hero-buttons .btn, 
 .cta-card .btn,
 .landing-page .btn {
-  width: 300px !important;
-  min-width: 300px !important;
-  max-width: 300px !important;
+  width: 100%;
+  max-width: 300px;
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
