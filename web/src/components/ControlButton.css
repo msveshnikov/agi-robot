@@ -6,7 +6,8 @@
   justify-content: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-md);
-  min-width: 100px;
+  width: 100%;
+  min-width: 80px;
   background: var(--glass-bg);
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-md);

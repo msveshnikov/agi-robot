@@ -212,46 +212,42 @@ const Dashboard = () => {
                 >
                     <h2 className="section-title">Movement Controls</h2>
                     <div className="movement-controls">
-                        <div className="control-row">
-                            <div className="control-spacer"></div>
-                            <ControlButton
-                                icon={ArrowUp}
-                                label="Forward"
-                                active={robotState?.forward}
-                                onClick={() => handleMoveCommand('forward')}
-                            />
-                            <div className="control-spacer"></div>
-                        </div>
-                        <div className="control-row">
-                            <ControlButton
-                                icon={ArrowLeft}
-                                label="Left"
-                                active={robotState?.left}
-                                onClick={() => handleMoveCommand('left')}
-                            />
-                            <ControlButton
-                                icon={StopCircle}
-                                label="Stop"
-                                onClick={handleStop}
-                                variant="danger"
-                            />
-                            <ControlButton
-                                icon={ArrowRight}
-                                label="Right"
-                                active={robotState?.right}
-                                onClick={() => handleMoveCommand('right')}
-                            />
-                        </div>
-                        <div className="control-row">
-                            <div className="control-spacer"></div>
-                            <ControlButton
-                                icon={ArrowDown}
-                                label="Back"
-                                active={robotState?.back}
-                                onClick={() => handleMoveCommand('back')}
-                            />
-                            <div className="control-spacer"></div>
-                        </div>
+                        <div className="control-spacer"></div>
+                        <ControlButton
+                            icon={ArrowUp}
+                            label="Forward"
+                            active={robotState?.forward}
+                            onClick={() => handleMoveCommand('forward')}
+                        />
+                        <div className="control-spacer"></div>
+
+                        <ControlButton
+                            icon={ArrowLeft}
+                            label="Left"
+                            active={robotState?.left}
+                            onClick={() => handleMoveCommand('left')}
+                        />
+                        <ControlButton
+                            icon={StopCircle}
+                            label="Stop"
+                            onClick={handleStop}
+                            variant="danger"
+                        />
+                        <ControlButton
+                            icon={ArrowRight}
+                            label="Right"
+                            active={robotState?.right}
+                            onClick={() => handleMoveCommand('right')}
+                        />
+
+                        <div className="control-spacer"></div>
+                        <ControlButton
+                            icon={ArrowDown}
+                            label="Back"
+                            active={robotState?.back}
+                            onClick={() => handleMoveCommand('back')}
+                        />
+                        <div className="control-spacer"></div>
                     </div>
                 </motion.section>
 

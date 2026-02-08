@@ -145,15 +145,12 @@
 }
 
 .movement-controls {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.control-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+  justify-items: center;
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 /* Mode Controls */
@@ -279,10 +276,7 @@
     gap: var(--spacing-sm);
   }
   
-  .control-row {
-    gap: var(--spacing-sm);
-  }
-  
+
   .control-button {
     min-width: 80px;
     min-height: 60px;
