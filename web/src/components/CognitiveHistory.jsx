@@ -12,7 +12,7 @@ const CognitiveHistory = () => {
 
     const fetchLogs = async () => {
         try {
-            const data = await api.fetchCognitiveLogs({ limit: 50 });
+            const data = await api.fetchCognitiveLogs({ limit: 10 });
             setLogs(data.logs);
         } catch (error) {
             console.error('Failed to fetch cognitive logs:', error);
@@ -26,7 +26,7 @@ const CognitiveHistory = () => {
 
         // Listen for real-time cognitive updates
         socketService.on('cognitive', (newLog) => {
-            setLogs(prevLogs => [newLog, ...prevLogs.slice(0, 10)]);
+            setLogs(prevLogs => [newLog, ...prevLogs.slice(0, 9)]);
         });
 
         return () => {
