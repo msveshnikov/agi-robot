@@ -145,3 +145,21 @@
   background: var(--color-text-secondary);
   cursor: not-allowed;
 }
+
+@media (max-width: 480px) {
+  .rgb-selector {
+    gap: var(--spacing-md);
+  }
+
+  .rgb-controls {
+    gap: var(--spacing-lg);
+  }
+
+  .color-picker-wrapper {
+    height: 60px;
+  }
+
+  .color-preview {
+    height: 32px;
+  }
+}

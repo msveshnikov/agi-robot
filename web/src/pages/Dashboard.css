@@ -101,7 +101,7 @@
 .dashboard-content {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-xl);
+  gap: var(--spacing-lg);
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -115,15 +115,16 @@
   background: var(--glass-bg);
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg);
   backdrop-filter: blur(20px);
+  width: 100%;
 }
 
 .section-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-lg) 0;
+  margin: 0 0 var(--spacing-md) 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -135,13 +136,13 @@
 
 .telemetry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
 }
 
 /* Movement Controls */
 .controls-section {
-  min-width: 350px;
+  width: 100%;
 }
 
 .movement-controls {
@@ -150,12 +151,13 @@
   gap: var(--spacing-sm);
   justify-items: center;
   max-width: 320px;
+  width: 100%;
   margin: 0 auto;
 }
 
 /* Mode Controls */
 .mode-section {
-  min-width: 350px;
+  width: 100%;
 }
 
 .mode-controls {
@@ -166,16 +168,16 @@
 
 /* Speed Section */
 .speed-section {
-  min-width: 350px;
+  width: 100%;
 }
 
 .speed-display {
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg);
   text-align: center;
 }
 
 .speed-value {
-  font-size: 4rem;
+  font-size: 3rem;
   font-weight: 800;
   font-family: var(--font-heading);
   background: var(--gradient-text);
@@ -183,18 +185,18 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
 }
 
 .speed-unit {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-left: var(--spacing-sm);
   color: var(--color-text-secondary);
 }
 
 .speed-bar {
   width: 100%;
-  height: 12px;
+  height: 10px;
   background: var(--color-bg-secondary);
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -235,70 +237,55 @@
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-xl);
     padding-bottom: var(--spacing-md);
+    align-items: center;
   }
   
   .dashboard-title {
     font-size: 1.5rem;
     text-align: center;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+    width: 100%;
   }
   
   .header-actions {
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .dashboard-content {
     grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-  }
-
-  .controls-section,
-  .mode-section,
-  .speed-section,
-  .rgb-section {
-    min-width: auto;
+    gap: var(--spacing-md);
   }
 
   .telemetry-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .dashboard-section {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
   }
   
   .section-title {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    text-align: center;
   }
 
   /* Movement Controls Mobile */
   .movement-controls {
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
+    max-width: 100%;
   }
   
-
-  .control-button {
-    min-width: 80px;
-    min-height: 60px;
-    padding: var(--spacing-sm);
-  }
-  
-  .control-button-label {
-    font-size: 0.625rem;
-  }
-  
-  /* Mode Controls Mobile */
-  .mode-controls {
-    gap: var(--spacing-sm);
-  }
-
   /* Speed Display Mobile */
   .speed-value {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
   }
   
   .speed-unit {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -322,7 +309,8 @@
   }
   
   .dashboard-section {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
   }
 
   .control-button {

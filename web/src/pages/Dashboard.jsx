@@ -144,7 +144,7 @@ const Dashboard = () => {
                 animate={{ y: 0, opacity: 1 }}
             >
                 <h1 className="dashboard-title">
-                    <span className="gradient-text">AGI Robot</span> Control Dashboard
+                    <span className="text-gradient">AGI Robot</span> Control Dashboard
                 </h1>
                 <div className="header-actions">
                     <div className="connection-status">

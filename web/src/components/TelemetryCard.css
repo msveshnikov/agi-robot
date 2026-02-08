@@ -69,3 +69,32 @@
     box-shadow: 0 0 0 8px rgba(255, 59, 48, 0);
   }
 }
+
+@media (max-width: 480px) {
+  .telemetry-card {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .telemetry-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .telemetry-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .telemetry-value {
+    font-size: 1.5rem;
+  }
+
+  .telemetry-label {
+    font-size: 0.75rem;
+  }
+
+  .telemetry-unit {
+    font-size: 0.875rem;
+  }
+}
