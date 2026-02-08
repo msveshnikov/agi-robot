@@ -15,7 +15,40 @@ import json
 import time
 import colorsys
 import wave
+import socketio
 import threading
+
+class CameraForwarder:
+    def __init__(self, local_url, remote_url):
+        self.local_sio = socketio.Client(logger=False, engineio_logger=False)
+        self.remote_sio = socketio.Client(logger=False, engineio_logger=False)
+        self.local_url = local_url
+        self.remote_url = remote_url
+        self.last_frame_time = 0
+        self.frame_interval = 0.1  # ~10 FPS limit
+
+    def start(self):
+        @self.local_sio.on('image')
+        def on_image(data):
+            current_time = time.time()
+            if current_time - self.last_frame_time >= self.frame_interval:
+                if self.remote_sio.connected:
+                    self.remote_sio.emit('camera', data)
+                    self.last_frame_time = current_time
+
+        def _connect_loop():
+            while True:
+                try:
+                    if not self.remote_sio.connected:
+                        self.remote_sio.connect(self.remote_url)
+                    if not self.local_sio.connected:
+                        self.local_sio.connect(self.local_url)
+                    time.sleep(10)
+                except Exception as e:
+                    time.sleep(5)
+
+        threading.Thread(target=_connect_loop, daemon=True).start()
+        logger.info(f"CameraForwarder started: Local={self.local_url}, Remote={self.remote_url}")
      
 ui = WebUI()
 detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
@@ -39,6 +72,8 @@ detection_stream.on_detect_all(send_detections_to_ui)
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
 arduino_cloud = BackendClient(BACKEND_URL)
+camera_forwarder = CameraForwarder(local_url="http://localhost:4912", remote_url=BACKEND_URL)
+camera_forwarder.start()
 speed = 0
 back = False
 left = False

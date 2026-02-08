@@ -8,6 +8,7 @@ import {
 import TelemetryCard from '../components/TelemetryCard';
 import ControlButton from '../components/ControlButton';
 import SettingsPanel from '../components/SettingsPanel';
+import CameraFeed from '../components/CameraFeed';
 import RGBSelector from '../components/RGBSelector';
 import CognitiveHistory from '../components/CognitiveHistory';
 import socketService from '../services/socket';
@@ -201,6 +202,16 @@ const Dashboard = () => {
                             unit="%"
                         />
                     </div>
+                </motion.section>
+
+                {/* Camera Feed Section */}
+                <motion.section
+                    className="dashboard-section camera-section"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.15 }}
+                >
+                    <CameraFeed />
                 </motion.section>
 
                 {/* Movement Controls */}

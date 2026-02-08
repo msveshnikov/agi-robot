@@ -106,9 +106,13 @@
   margin: 0 auto;
 }
 
+.camera-section {
+  grid-column: 1 / span 2;
+}
+
 .history-section {
   grid-column: 3;
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 4;
 }
 
 .dashboard-section {
@@ -217,7 +221,8 @@
   }
   
   .telemetry-section,
-  .history-section {
+  .history-section,
+  .camera-section {
     grid-column: auto;
     grid-row: auto;
   }
