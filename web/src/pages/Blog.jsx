@@ -54,7 +54,7 @@ const Blog = () => {
                         <ArrowLeft size={20} />
                     </Link>
                     <h1 className="dashboard-title" style={{ margin: 0 }}>
-                        <span className="gradient-text">Robot Consciousness</span> Diary
+                        <span className="gradient-text">Robot</span> Diary
                     </h1>
                 </div>
                 <div className="header-actions">
