@@ -230,6 +230,7 @@
 @media (max-width: 768px) {
   .dashboard {
     padding: var(--spacing-md);
+    overflow-x: hidden;
   }
 
   .dashboard-header {
@@ -257,6 +258,7 @@
   .dashboard-content {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+    width: 100%;
   }
 
   .telemetry-grid {
@@ -266,6 +268,7 @@
 
   .dashboard-section {
     padding: var(--spacing-md);
+    overflow: hidden;
   }
   
   .section-title {
@@ -373,34 +376,9 @@
   }
 }
 
-/* Animations */
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Base section styles with fix for backdrop-filter artifacts */
 .dashboard-section {
-  animation: fadeSlideIn 0.6s ease-out backwards;
-}
-
-.telemetry-section {
-  animation-delay: 0.1s;
-}
-
-.controls-section {
-  animation-delay: 0.2s;
-}
-
-.mode-section {
-  animation-delay: 0.3s;
-}
-
-.speed-section {
-  animation-delay: 0.4s;
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
 }
