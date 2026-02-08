@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  max-height: 500px;
   overflow: hidden;
   padding: var(--spacing-lg);
 }
@@ -136,7 +135,7 @@
   border-left: 2px solid var(--color-primary);
 }
 
-.no-logs, .history-history.loading {
+.no-logs, .cognitive-history.loading {
   padding: var(--spacing-xl);
   text-align: center;
   color: var(--color-text-muted);

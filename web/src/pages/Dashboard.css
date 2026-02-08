@@ -108,7 +108,7 @@
 
 .history-section {
   grid-column: 3;
-  grid-row: 2 / span 2;
+  grid-row: 1 / span 3;
 }
 
 .dashboard-section {
@@ -130,7 +130,7 @@
 
 /* Telemetry Section */
 .telemetry-section {
-  grid-column: 1 / -1;
+  grid-column: 1 / span 2;
 }
 
 .telemetry-grid {
