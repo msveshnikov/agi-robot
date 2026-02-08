@@ -662,29 +662,32 @@
   .cost-table-wrapper {
     margin: 0;
     padding: var(--spacing-xs) !important;
+    overflow-x: hidden; /* Since we fixed the width */
   }
 
-  .component-desc {
+  /* Hide Description column specifically */
+  .cost-table th:nth-child(2),
+  .cost-table td.component-desc {
     display: none;
   }
 
   .cost-table th:nth-child(1),
-  .cost-table td:nth-child(1) {
+  .cost-table td.component-name {
     width: 70%;
-  }
-
-  .cost-table th:nth-child(2),
-  .cost-table td:nth-child(2) {
-    display: none;
   }
 
   .cost-table th:nth-child(3),
-  .cost-table td:nth-child(3) {
+  .cost-table td.component-cost {
     width: 30%;
   }
 
-  .total-row td:first-child {
+  /* Adjust total row for hidden column */
+  .total-row td[colspan="2"] {
     width: 70%;
+  }
+  
+  .total-row td:not([colspan="2"]) {
+    width: 30%;
   }
   
   .btn-primary,
