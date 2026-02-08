@@ -485,10 +485,6 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Structured Outputs (Pydantic) for type-safe LLM responses
 - [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction 
 - [x] Migrate from Arduino Cloud to own backend+site (https://robot.mvpgen.com)
-
-## TODO
-
-- [ ] Daily blog post (diary of robot) from consciousness logs in Sartre style using GEMINI_KEY env on server (only if >10 logs for today, check 10pm)
-- [ ] IMU + magnetometer integration for better orientation tracking
+- [x] Daily blog post (diary of robot) from consciousness logs in Sartre style using GEMINI_KEY env on server (only if >10 logs for today, check 10pm)
 
 ![alt text](image-5.png)

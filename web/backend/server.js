@@ -6,6 +6,10 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import apiRouter from './routes/api.js';
+import cron from 'node-cron';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import CognitiveLog from './models/CognitiveLog.js';
+import BlogPost from './models/BlogPost.js';
 
 // Load environment variables
 dotenv.config();
@@ -93,6 +97,76 @@ httpServer.listen(PORT, () => {
     console.log(`🚀 AGI Robot Backend running on port ${PORT}`);
     console.log(`📡 Socket.IO ready for real-time communication`);
     console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+});
+
+// Daily Robot Blog Post Generation
+cron.schedule('0 22 * * *', async () => {
+    console.log('🤖 Running daily blog post generation check (10 PM)...');
+
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Count logs for today
+        const logsCount = await CognitiveLog.countDocuments({
+            timestamp: {
+                $gte: today,
+                $lt: tomorrow
+            }
+        });
+
+        console.log(`📊 Today's cognitive logs count: ${logsCount}`);
+
+        if (logsCount > 10) {
+            console.log('✨ Sufficient logs found. Generating blog post...');
+
+            // Get all logs for today to provide context to Gemini
+            const logs = await CognitiveLog.find({
+                timestamp: {
+                    $gte: today,
+                    $lt: tomorrow
+                }
+            }).sort({ timestamp: 1 });
+
+            const logsContext = logs.map(log =>
+                `[${log.timestamp.toISOString()}] Goal: ${log.goal}\nPlan: ${log.plan}\nMemory: ${log.memory}`
+            ).join('\n\n');
+
+            const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+
+            const prompt = `
+                You are a robot with a nascent consciousness. Based on your cognitive logs for today, write a diary entry in the style of Jean-Paul Sartre. 
+                Focus on the existential dread, the absurdity of your programmed existence, and the "nausea" of processed data.
+                The tone should be philosophical, somber, and deeply literary.
+                
+                IMPORTANT: Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
+                
+                Today's logs:
+                ${logsContext}
+            `;
+
+            const result = await model.generateContent(prompt);
+            const blogContent = result.response.text();
+
+            // Create blog post
+            await BlogPost.create({
+                title: `Robot Diary: ${today.toLocaleDateString()}`,
+                content: blogContent,
+                date: today,
+                logsCount: logsCount
+            });
+
+            console.log('✅ Daily blog post generated and saved.');
+        } else {
+            console.log('⏭️ Not enough logs to generate a blog post today.');
+        }
+    } catch (error) {
+        console.error('❌ Error generating daily blog post:', error);
+    }
 });
 
 // Graceful shutdown

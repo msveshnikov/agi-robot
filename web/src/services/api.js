@@ -79,4 +79,9 @@ export const checkHealth = async () => {
     return response.data;
 };
 
+export const fetchBlogPosts = async (params = {}) => {
+    const response = await api.get('/blog', { params });
+    return response.data;
+};
+
 export default api;

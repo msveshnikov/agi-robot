@@ -3,6 +3,7 @@ import RobotState from '../models/RobotState.js';
 import TelemetryLog from '../models/TelemetryLog.js';
 import CommandLog from '../models/CommandLog.js';
 import CognitiveLog from '../models/CognitiveLog.js';
+import BlogPost from '../models/BlogPost.js';
 
 const router = express.Router();
 
@@ -247,6 +248,25 @@ router.get('/logs/cognitive', async (req, res) => {
     } catch (error) {
         console.error('Error fetching cognitive logs:', error);
         res.status(500).json({ error: 'Failed to fetch cognitive logs' });
+    }
+});
+
+// Get blog posts
+router.get('/blog', async (req, res) => {
+    try {
+        const { limit = 10, skip = 0 } = req.query;
+
+        const posts = await BlogPost.find()
+            .sort({ date: -1 })
+            .limit(parseInt(limit))
+            .skip(parseInt(skip));
+
+        const total = await BlogPost.countDocuments();
+
+        res.json({ posts, total, limit: parseInt(limit), skip: parseInt(skip) });
+    } catch (error) {
+        console.error('Error fetching blog posts:', error);
+        res.status(500).json({ error: 'Failed to fetch blog posts' });
     }
 });
 

@@ -122,6 +122,10 @@ const LandingPage = () => {
                                 <span>Open Dashboard</span>
                                 <ArrowRight size={20} />
                             </Link>
+                            <Link to="/blog" className="btn btn-secondary">
+                                <MessageSquare size={20} />
+                                <span>Robot Diary</span>
+                            </Link>
                             <a
                                 href="https://github.com/msveshnikov/Arduino"
                                 target="_blank"
@@ -357,10 +361,16 @@ const LandingPage = () => {
                             Access the real-time dashboard to monitor telemetry, control movements,
                             and interact with the AGI system
                         </p>
-                        <Link to="/dashboard" className="btn btn-primary btn-large">
-                            <span>Open Control Dashboard</span>
-                            <ArrowRight size={24} />
-                        </Link>
+                        <div className="hero-buttons" style={{ justifyContent: 'center', marginTop: '2rem' }}>
+                            <Link to="/dashboard" className="btn btn-primary btn-large">
+                                <span>Open Control Dashboard</span>
+                                <ArrowRight size={24} />
+                            </Link>
+                            <Link to="/blog" className="btn btn-secondary btn-large">
+                                <MessageSquare size={24} />
+                                <span>Read Robot Diary</span>
+                            </Link>
+                        </div>
                     </motion.div>
                 </div>
             </section>
@@ -387,6 +397,7 @@ const LandingPage = () => {
                             <ul>
                                 <li><a href="https://github.com/msveshnikov/Arduino" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
                                 <li><Link to="/dashboard">Dashboard</Link></li>
+                                <li><Link to="/blog">Robot Diary</Link></li>
                             </ul>
                         </div>
                     </div>

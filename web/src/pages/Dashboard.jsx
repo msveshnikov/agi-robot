@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
     Gauge, Thermometer, Droplets, Brain, AlertTriangle,
     ArrowUp, ArrowDown, ArrowLeft, ArrowRight, StopCircle,
-    Power, Zap, Settings
+    Power, Zap, Settings, MessageSquare
 } from 'lucide-react';
 import TelemetryCard from '../components/TelemetryCard';
 import ControlButton from '../components/ControlButton';
@@ -151,6 +151,14 @@ const Dashboard = () => {
                         <div className={`status-indicator ${connected ? 'connected' : 'disconnected'}`} />
                         <span>{connected ? 'Connected' : 'Disconnected'}</span>
                     </div>
+                    <button
+                        className="settings-toggle-button"
+                        onClick={() => window.location.href = '/blog'}
+                        title="Robot Diary"
+                        style={{ marginRight: '10px' }}
+                    >
+                        <MessageSquare size={20} />
+                    </button>
                     <button
                         className="settings-toggle-button"
                         onClick={() => setSettingsOpen(true)}
