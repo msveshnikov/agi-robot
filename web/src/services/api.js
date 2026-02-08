@@ -62,6 +62,11 @@ export const fetchCommandLogs = async (params = {}) => {
     return response.data;
 };
 
+export const fetchCognitiveLogs = async (params = {}) => {
+    const response = await api.get('/logs/cognitive', { params });
+    return response.data;
+};
+
 // Text-to-Speech
 export const speak = async (text, lang = 'en') => {
     const response = await api.post('/speak', { text, lang });

@@ -9,6 +9,7 @@ import TelemetryCard from '../components/TelemetryCard';
 import ControlButton from '../components/ControlButton';
 import SettingsPanel from '../components/SettingsPanel';
 import RGBSelector from '../components/RGBSelector';
+import CognitiveHistory from '../components/CognitiveHistory';
 import socketService from '../services/socket';
 import * as api from '../services/api';
 import './Dashboard.css';
@@ -314,6 +315,16 @@ const Dashboard = () => {
                             />
                         </div>
                     </div>
+                </motion.section>
+
+                {/* Cognitive History Section */}
+                <motion.section
+                    className="dashboard-section history-section"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                >
+                    <CognitiveHistory />
                 </motion.section>
             </div>
 
