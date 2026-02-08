@@ -3,7 +3,7 @@ from arduino.app_utils import Bridge
 from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
-from arduino.app_bricks.arduino_cloud import ArduinoCloud, ColoredLight
+from backend_client import BackendClient
 from arduino.app_peripherals.microphone import Microphone
 import urllib.request
 import urllib.parse
@@ -37,7 +37,8 @@ def send_detections_to_ui(detections: dict):
  
 detection_stream.on_detect_all(send_detections_to_ui)
 
-arduino_cloud = ArduinoCloud()
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
+arduino_cloud = BackendClient(BACKEND_URL)
 speed = 0
 back = False
 left = False
@@ -134,22 +135,22 @@ def rgb_callback(client: object, value):
     """Callback function to handle RGB light updates from cloud."""
     global rgb
     try:
-        # value is a dict with keys: hue, sat, bri, swi
-        swi = value.swi
+        # value has properties: hue, sat, bri, swi (from MockValue or dict proxy)
+        swi = getattr(value, 'swi', True)
         if isinstance(swi, str):
             swi = (swi.lower() == "true")
         
         if not swi:
             rgb = "0,0,0"
         else:
-            h = float(value.hue) / 360.0
-            s = float(value.sat) / 100.0
-            v = float(value.bri) / 100.0
+            h = float(getattr(value, 'hue', 0)) / 360.0
+            s = float(getattr(value, 'sat', 0)) / 100.0
+            v = float(getattr(value, 'bri', 100)) / 100.0
             
             r_float, g_float, b_float = colorsys.hsv_to_rgb(h, s, v)
             rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
             
-        logger.info(f"RGB value updated from cloud: {rgb}")
+        logger.info(f"RGB value updated from backend: {rgb}")
         Bridge.notify("setRGB", rgb)
     except Exception as e:
         logger.error(f"Error handling RGB update: {e}")
@@ -221,8 +222,8 @@ arduino_cloud.register("lang", on_write=lang_callback)
 arduino_cloud.register("arm1", on_write=arm1_callback)
 arduino_cloud.register("arm2", on_write=arm2_callback)
 
-# Register RGB as a single ColoredLight
-arduino_cloud.register(ColoredLight("rgb", swi=True, on_write=rgb_callback))
+# Register RGB
+arduino_cloud.register("rgb", on_write=rgb_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
@@ -631,5 +632,6 @@ def loop():
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
 
-App.start_brick(arduino_cloud)
+# App.start_brick(arduino_cloud) # Removed Arduino Cloud brick
+arduino_cloud.start()
 App.run(user_loop=loop)
