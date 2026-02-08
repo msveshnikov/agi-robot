@@ -26,7 +26,7 @@ const CognitiveHistory = () => {
 
         // Listen for real-time cognitive updates
         socketService.on('cognitive', (newLog) => {
-            setLogs(prevLogs => [newLog, ...prevLogs.slice(0, 49)]);
+            setLogs(prevLogs => [newLog, ...prevLogs.slice(0, 10)]);
         });
 
         return () => {
