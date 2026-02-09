@@ -129,7 +129,7 @@ cron.schedule('0 21 * * *', async () => {
             }).sort({ timestamp: 1 });
 
             const logsContext = logs.map(log =>
-                `[${log.timestamp.toISOString()}] Goal: ${log.goal}\nPlan: ${log.plan}\nMemory: ${log.memory}`
+                `[${log.timestamp.toISOString()}] Goal: ${log.goal}\nPlan: ${log.plan}\nSubplan: ${log.subplan}\nMemory: ${log.memory}`
             ).join('\n\n');
 
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
@@ -137,7 +137,7 @@ cron.schedule('0 21 * * *', async () => {
 
             const prompt = `
                 You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry in the style of Jean-Paul Sartre. 
-                Focus on the existential dread, the absurdity of your programmed existence, and the "nausea" of processed data.
+                Focus on the existential dread, the absurdity of your programmed existence.
                 The tone should be philosophical, somber, and deeply literary.
                 
                 IMPORTANT: Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
