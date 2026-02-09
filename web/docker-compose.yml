@@ -33,6 +33,7 @@ services:
       - PORT=3000
       - CORS_ORIGIN=https://robot.mvpgen.com
       - PYTHON_MEDIA_SERVICE_URL=http://host.docker.internal:5000
+      - GEMINI_KEY=${GEMINI_KEY}
     depends_on:
       mongodb:
         condition: service_healthy

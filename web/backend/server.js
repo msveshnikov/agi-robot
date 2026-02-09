@@ -100,7 +100,7 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule('0 9 * * *', async () => {
+cron.schedule('15 9 * * *', async () => {
     console.log('🤖 Running daily blog post generation check...');
 
     try {
@@ -133,7 +133,7 @@ cron.schedule('0 9 * * *', async () => {
             ).join('\n\n');
 
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
             const prompt = `
                 You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry in the style of Jean-Paul Sartre. 
