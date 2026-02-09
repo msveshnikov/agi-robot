@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Settings as SettingsIcon, Globe, Zap, Target, Save, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Settings as SettingsIcon, Globe, Zap, Target, Save, X, ChevronRight, MessageSquare, Shield, Activity, Map } from 'lucide-react';
 import * as api from '../services/api';
 import './SettingsPanel.css';
 
@@ -40,164 +40,201 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
     };
 
     const languages = [
-        { code: 'en', name: 'English' },
-        { code: 'de', name: 'Deutsch' },
-        { code: 'it', name: 'Italiano' },
-        { code: 'ru', name: 'Русский' },
-        { code: 'cs', name: 'Čeština' },
-        { code: 'disabled', name: 'Disabled' }
+        { code: 'en', name: 'English', flag: '🇬🇧' },
+        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+        { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+        { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+        { code: 'cs', name: 'Čeština', flag: '🇨🇿' },
+        { code: 'disabled', name: 'Voice Disabled', flag: '🔇' }
     ];
 
-    if (!isOpen) return null;
+    const presets = [
+        {
+            id: 'assistant',
+            icon: <MessageSquare size={18} />,
+            label: 'Assistant',
+            text: 'Be helpful assistant to the master human'
+        },
+        {
+            id: 'explorer',
+            icon: <Map size={18} />,
+            label: 'Explorer',
+            text: 'Explore the environment and map the space'
+        },
+        {
+            id: 'guard',
+            icon: <Shield size={18} />,
+            label: 'Guard',
+            text: 'Guard the perimeter and detect intruders'
+        },
+        {
+            id: 'personal',
+            icon: <Activity size={18} />,
+            label: 'Personal',
+            text: 'Follow the human and assist with tasks'
+        }
+    ];
+
+    // Animation variants
+    const panelVariants = {
+        hidden: { x: '100%' },
+        visible: {
+            x: 0,
+            transition: {
+                type: 'spring',
+                damping: 30,
+                stiffness: 300,
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        },
+        exit: {
+            x: '100%',
+            transition: { type: 'spring', damping: 30, stiffness: 300 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: 'spring', damping: 20, stiffness: 200 }
+        }
+    };
 
     return (
-        <motion.div
-            className="settings-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-        >
-            <motion.div
-                className="settings-panel glass-card"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25 }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="settings-header">
-                    <h2 className="settings-title">
-                        <SettingsIcon size={24} />
-                        Robot Settings
-                    </h2>
-                    <button className="close-button" onClick={onClose}>
-                        <X size={24} />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="settings-content">
-                    {/* Language Setting */}
-                    <div className="setting-group">
-                        <label className="setting-label">
-                            <Globe size={20} />
-                            <span>Voice Language</span>
-                        </label>
-                        <select
-                            className="setting-select"
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                        >
-                            {languages.map((lang) => (
-                                <option key={lang.code} value={lang.code}>
-                                    {lang.name}
-                                </option>
-                            ))}
-                        </select>
-                        <p className="setting-description">
-                            Language for voice interactions and text-to-speech. Set to "Disabled" to turn off voice features.
-                        </p>
-                    </div>
-
-                    {/* Speed Setting */}
-                    <div className="setting-group">
-                        <label className="setting-label">
-                            <Zap size={20} />
-                            <span>Motor Speed</span>
-                        </label>
-                        <div className="speed-control">
-                            <input
-                                type="range"
-                                min="0"
-                                max="90"
-                                value={speed}
-                                onChange={(e) => setSpeed(e.target.value)}
-                                className="speed-slider"
-                            />
-                            <div className="speed-value-display">
-                                {speed} <span className="unit">RPM</span>
-                            </div>
-                        </div>
-                        <div className="speed-labels">
-                            <span>Stop</span>
-                            <span>Slow</span>
-                            <span>Medium</span>
-                            <span>Fast</span>
-                            <span>Max</span>
-                        </div>
-                        <p className="setting-description">
-                            Maximum motor speed for movement commands (0-90 RPM).
-                        </p>
-                    </div>
-
-                    {/* Goal Setting */}
-                    <div className="setting-group">
-                        <label className="setting-label">
-                            <Target size={20} />
-                            <span>Robot Goal</span>
-                        </label>
-                        <textarea
-                            className="setting-textarea"
-                            value={goal}
-                            onChange={(e) => setGoal(e.target.value)}
-                            rows={4}
-                            placeholder="Define the robot's primary objective..."
-                        />
-                        <p className="setting-description">
-                            Primary objective that guides the robot's autonomous behavior and decision-making.
-                        </p>
-                    </div>
-
-                    {/* Preset Goals */}
-                    <div className="preset-goals">
-                        <p className="preset-label">Quick Presets:</p>
-                        <div className="preset-buttons">
-                            <button
-                                className="preset-button"
-                                onClick={() => setGoal('Be helpful assistant to the master human')}
-                            >
-                                Default Assistant
-                            </button>
-                            <button
-                                className="preset-button"
-                                onClick={() => setGoal('Explore the environment and map the space')}
-                            >
-                                Explorer Mode
-                            </button>
-                            <button
-                                className="preset-button"
-                                onClick={() => setGoal('Guard the perimeter and detect intruders')}
-                            >
-                                Security Guard
-                            </button>
-                            <button
-                                className="preset-button"
-                                onClick={() => setGoal('Follow the human and assist with tasks')}
-                            >
-                                Personal Assistant
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="settings-footer">
-                    <button className="cancel-button" onClick={onClose} disabled={saving}>
-                        Cancel
-                    </button>
-                    <button
-                        className="save-button"
-                        onClick={handleSave}
-                        disabled={saving}
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    className="settings-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                >
+                    <motion.div
+                        className="settings-panel glass-card"
+                        variants={panelVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        <Save size={18} />
-                        {saving ? 'Saving...' : 'Save Settings'}
-                    </button>
-                </div>
-            </motion.div>
-        </motion.div>
+                        {/* Header */}
+                        <div className="settings-header">
+                            <h2 className="settings-title">
+                                <span className="icon-wrapper"><SettingsIcon size={24} /></span>
+                                Settings
+                            </h2>
+                            <button className="close-button" onClick={onClose}>
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="settings-content">
+                            {/* Language Setting */}
+                            <motion.div className="setting-group" variants={itemVariants}>
+                                <div className="group-header">
+                                    <Globe size={20} className="group-icon" />
+                                    <span className="group-title">Voice Interface</span>
+                                </div>
+                                <div className="select-wrapper">
+                                    <select
+                                        className="setting-select"
+                                        value={language}
+                                        onChange={(e) => setLanguage(e.target.value)}
+                                    >
+                                        {languages.map((lang) => (
+                                            <option key={lang.code} value={lang.code}>
+                                                {lang.flag} {lang.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronRight className="select-arrow" size={16} />
+                                </div>
+                                <p className="setting-description">
+                                    Primary language for voice synthesis and interaction.
+                                </p>
+                            </motion.div>
+
+                            {/* Speed Setting */}
+                            <motion.div className="setting-group" variants={itemVariants}>
+                                <div className="group-header">
+                                    <Zap size={20} className="group-icon" />
+                                    <span className="group-title">Motor Speed</span>
+                                    <span className="speed-badge">{speed}%</span>
+                                </div>
+                                <div className="speed-control-container">
+                                    <div className="range-wrapper">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="90"
+                                            value={speed}
+                                            onChange={(e) => setSpeed(e.target.value)}
+                                            className="speed-slider"
+                                            style={{
+                                                background: `linear-gradient(to right, var(--color-primary) ${speed / 90 * 100}%, var(--color-bg-secondary) ${speed / 90 * 100}%)`
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="speed-labels">
+                                        <span>Idle</span>
+                                        <span>Max</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Goal Setting */}
+                            <motion.div className="setting-group" variants={itemVariants}>
+                                <div className="group-header">
+                                    <Target size={20} className="group-icon" />
+                                    <span className="group-title">Primary Directive</span>
+                                </div>
+
+                                <div className="preset-grid">
+                                    {presets.map((preset) => (
+                                        <button
+                                            key={preset.id}
+                                            className={`preset-card ${goal === preset.text ? 'active' : ''}`}
+                                            onClick={() => setGoal(preset.text)}
+                                        >
+                                            <div className="preset-icon">{preset.icon}</div>
+                                            <span className="preset-label">{preset.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <textarea
+                                    className="setting-textarea"
+                                    value={goal}
+                                    onChange={(e) => setGoal(e.target.value)}
+                                    rows={4}
+                                    placeholder="Define custom directive..."
+                                />
+                            </motion.div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="settings-footer">
+                            <button className="cancel-button" onClick={onClose} disabled={saving}>
+                                Cancel
+                            </button>
+                            <button
+                                className="save-button"
+                                onClick={handleSave}
+                                disabled={saving}
+                            >
+                                <Save size={18} />
+                                {saving ? 'Saving...' : 'Save'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 
