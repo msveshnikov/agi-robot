@@ -17,9 +17,9 @@ import './LandingPage-buttons.css';
 
 const LandingPage = () => {
     const heroImages = [
-        '/image-1.png',
-        '/image-3.png',
-        '/image-5.png'
+        '/image-1.jpg',
+        '/image-3.jpg',
+        '/image-5.jpg'
     ];
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -249,7 +249,7 @@ const LandingPage = () => {
                         </div>
 
                         <div className="specs-image">
-                            <img src="/image-2.png" alt="Robot Hardware" />
+                            <img src="/image-2.jpg" alt="Robot Hardware" />
                         </div>
                     </motion.div>
                 </div>
