@@ -1,32 +1,32 @@
 {
-  "name": "agi-robot-backend",
-  "version": "1.0.0",
-  "description": "Backend API for AGI Robot control and telemetry",
-  "main": "server.js",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "robot",
-    "agi",
-    "api",
-    "express",
-    "mongodb",
-    "socketio"
-  ],
-  "author": "AGI Robot Project",
-  "license": "MIT",
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "mongoose": "^8.0.0",
-    "morgan": "^1.10.0",
-    "node-cron": "^4.2.1",
-    "socket.io": "^4.6.0"
-  }
+    "name": "agi-robot-backend",
+    "version": "1.0.0",
+    "description": "Backend API for AGI Robot control and telemetry",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node --watch server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "robot",
+        "agi",
+        "api",
+        "express",
+        "mongodb",
+        "socketio"
+    ],
+    "author": "AGI Robot Project",
+    "license": "MIT",
+    "dependencies": {
+        "@google/generative-ai": "^0.24.1",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "mongoose": "^8.0.0",
+        "morgan": "^1.10.0",
+        "node-cron": "^4.2.1",
+        "socket.io": "^4.6.0"
+    }
 }
