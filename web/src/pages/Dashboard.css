@@ -112,7 +112,7 @@
 
 .history-section {
   grid-column: 3;
-  grid-row: 1 / span 4;
+  grid-row: 1 / span 5;
 }
 
 .dashboard-section {
@@ -175,6 +175,11 @@
   width: 100%;
 }
 
+/* Arm Section */
+.arm-section {
+  grid-column: 1 / span 2;
+}
+
 .speed-display {
   padding: var(--spacing-lg);
   text-align: center;
@@ -218,17 +223,16 @@
 @media (max-width: 1200px) {
   .dashboard-content {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
   
-  .telemetry-section,
-  .history-section,
-  .camera-section {
-    grid-column: auto;
-    grid-row: auto;
+  .dashboard-section {
+    grid-column: auto !important;
+    grid-row: auto !important;
   }
 
   .telemetry-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 

@@ -10,6 +10,7 @@ import ControlButton from '../components/ControlButton';
 import SettingsPanel from '../components/SettingsPanel';
 import CameraFeed from '../components/CameraFeed';
 import RGBSelector from '../components/RGBSelector';
+import ArmControl from '../components/ArmControl';
 import CognitiveHistory from '../components/CognitiveHistory';
 import socketService from '../services/socket';
 import * as api from '../services/api';
@@ -118,6 +119,14 @@ const Dashboard = () => {
             await api.updateRGB(rgbData.hue, rgbData.sat, rgbData.bri, rgbData.swi);
         } catch (error) {
             console.error('RGB update failed:', error);
+        }
+    };
+
+    const handleArmUpdate = async (armData) => {
+        try {
+            await api.updateArm(armData.arm1, armData.arm2);
+        } catch (error) {
+            console.error('Arm update failed:', error);
         }
     };
 
@@ -330,6 +339,20 @@ const Dashboard = () => {
                             />
                         </div>
                     </div>
+                </motion.section>
+
+                {/* Arm Control Section */}
+                <motion.section
+                    className="dashboard-section arm-section"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.42 }}
+                >
+                    <ArmControl
+                        arm1={robotState?.arm1}
+                        arm2={robotState?.arm2}
+                        onUpdate={handleArmUpdate}
+                    />
                 </motion.section>
 
                 {/* Cognitive History Section */}
