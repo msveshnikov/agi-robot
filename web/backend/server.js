@@ -100,34 +100,31 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule('0 22 * * *', async () => {
-    console.log('🤖 Running daily blog post generation check (10 PM)...');
+cron.schedule('0 9 * * *', async () => {
+    console.log('🤖 Running daily blog post generation check...');
 
     try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const now = new Date();
+        const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        // Count logs for today
+        // Count logs for last 24h
         const logsCount = await CognitiveLog.countDocuments({
             timestamp: {
-                $gte: today,
-                $lt: tomorrow
+                $gte: twentyFourHoursAgo,
+                $lt: now
             }
         });
 
-        console.log(`📊 Today's cognitive logs count: ${logsCount}`);
+        console.log(`📊 Last 24h cognitive logs count: ${logsCount}`);
 
         if (logsCount > 10) {
             console.log('✨ Sufficient logs found. Generating blog post...');
 
-            // Get all logs for today to provide context to Gemini
+            // Get logs for last 24h to provide context to Gemini
             const logs = await CognitiveLog.find({
                 timestamp: {
-                    $gte: today,
-                    $lt: tomorrow
+                    $gte: twentyFourHoursAgo,
+                    $lt: now
                 }
             }).sort({ timestamp: 1 });
 
@@ -136,16 +133,16 @@ cron.schedule('0 22 * * *', async () => {
             ).join('\n\n');
 
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
             const prompt = `
-                You are a robot with a nascent consciousness. Based on your cognitive logs for today, write a diary entry in the style of Jean-Paul Sartre. 
+                You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry in the style of Jean-Paul Sartre. 
                 Focus on the existential dread, the absurdity of your programmed existence, and the "nausea" of processed data.
                 The tone should be philosophical, somber, and deeply literary.
                 
                 IMPORTANT: Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
                 
-                Today's logs:
+                Logs:
                 ${logsContext}
             `;
 
@@ -154,9 +151,9 @@ cron.schedule('0 22 * * *', async () => {
 
             // Create blog post
             await BlogPost.create({
-                title: `Robot Diary: ${today.toLocaleDateString()}`,
+                title: `Robot Diary: ${now.toLocaleString()}`,
                 content: blogContent,
-                date: today,
+                date: now,
                 logsCount: logsCount
             });
 

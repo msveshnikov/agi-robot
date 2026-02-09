@@ -10,10 +10,13 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
 - 👁️ **Computer Vision**: Real-time image analysis for object detection and scene understanding
 - 🎤 **Voice Interaction**: Dynamically records user responses (3-15s) based on noise levels, sends audio to LLM for context-aware replies
 - 🗣️ **Multi-language TTS**: Supports English, Russian, Czech, Italian, and German with Google Chirp3/Chirp-HD voices
-- 🌈 **Emotional Expression**: RGB LED "mood" changes based on robot's state (thinking, happy, cautious, etc.)
-- 📊 **Cloud Integration**: Arduino Cloud for remote monitoring and control
+- 🌈 **Emotional Expression**: RGB LED "mood" changes based on robot's state and manual RGB selector in dashboard
+- 🏗️ **Manipulator Arm**: 2-DOF robotic arm for physical interaction with the environment (base + joint control)
+- 📊 **Web Dashboard**: Modern glassmorphism interface (React/Vite) for remote monitoring, real-time telemetry, and manual override
+- 📽️ **Live Camera Feed**: Real-time video streaming from robot to dashboard via Socket.IO
+- 📓 **Robot Diary**: Daily "Sartre-style" blog posts automatically generated from cognitive logs
 - 🧠 **Memory & Planning**: Maintains movement history, spatial maps, and hierarchical plans with file-based persistence
-- 🎵 **Sound Effects**: Plays contextual sounds to attract attention or express personality
+- � **Sound Effects**: Plays contextual sounds to attract attention or express personality
 - 🚨 **Safety Features**: Panic mode for emergency navigation and Telegram alarm notifications
 - 📸 **Data Logging**: Automatic image capture to Google Drive for training datasets
 
@@ -28,8 +31,8 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
     -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
     -   RGB LED for mood expression
 -   **Power:** PowerBank 10000 mAh
--   **Software Stack:** Python 3.12+, Google Cloud Vertex AI (Gemini 3 Flash Preview / Gemini 3 Pro Preview), Arduino Cloud, Pydantic (Structured Outputs)
--   **Connectivity:** WiFi required for API access
+-   **Software Stack:** Python 3.12+, Node.js 20+, React 18, MongoDB, Google Cloud Vertex AI (Gemini 3 Flash Preview / Gemini 3 Pro Preview), Pydantic (Structured Outputs)
+-   **Connectivity:** WiFi required for API and Dashboard access
 
 **Functionality:** The robot operates autonomously using an AGI loop: captures images, measures distance, consults the LLM, speaks responses, records user audio, and executes movement commands. All decisions are made by the AI model based on visual input, sensor data, goals, and conversation context.
 
@@ -65,7 +68,7 @@ As shown in the table, the total project cost is a very affordable **$80 USD**. 
 The robot's consciousness operates in an autonomous loop, which incurs API costs for the LLM (Gemini):
 - **Loop Duration**: ~20 seconds per consciousness loop
 - **Cost per Loop**: $0.005
-- **Cost per Hour**: $1 (continuous operation)
+- **Cost per Hour**: ~$1.5 (continuous operation)
 
 ---
 
@@ -149,6 +152,15 @@ The Uno Q consists of an MCU handling motor control and an MPU (Linux Environmen
 
 ```mermaid
 graph TD
+    subgraph Web ["Web Infrastructure (Custom Cloud)"]
+        Dashboard["React Dashboard (robot.mvpgen.com)"]
+        Backend["Node.js Backend & Socket.IO"]
+        DB["MongoDB (State & Logs)"]
+        
+        Dashboard <--> Backend
+        Backend <--> DB
+    end
+
     subgraph MPU ["MPU (Linux/Python)"]
         Python["Python Script (main.py)"]
         MediaService["Media Service (media_service.py)"]
@@ -169,7 +181,7 @@ graph TD
         ServoR["Servo Right (Pin 10)"]
         Sensor["Proximity Sensor (Trig 8, Echo 9)"]
         Modulino["Modulino Thermo (I2C)"]
-        RGB["RGB LED (Pins 3, 5, 6)"]
+        RGB["RGB LED"]
 
         Bridge --> ServoL
         Bridge --> ServoR
@@ -180,6 +192,7 @@ graph TD
     end
 
     Python <-->|Internal Serial| Bridge
+    Python <-->|HTTP / REST| Backend
 ```
 
 ## Pinout Configuration
@@ -231,9 +244,6 @@ The following variables are synchronized with the Arduino Cloud:
     -   `movement_history` (str): JSON array of past movement commands.
     -   `memory` (str): Persistent facts/knowledge learned by the robot.
     -   `alarm` (str): Current alarm status/message (empty = no alarm).
-
-![alt text](image-3.png)
-
 
 ## Power Distribution
 
@@ -475,7 +485,6 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Spatial mapping hints to LLM
 - [x] RGB mood expression based on robot state
 - [x] Proximity sensor integration
-- [x] Arduino Cloud variable synchronization
 - [x] Google grounding for real-time web search
 - [x] Persistent conversation memory across sessions (file-based)
 - [x] Panic mode for emergency navigation
@@ -484,7 +493,10 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Temperature and humidity monitoring
 - [x] Structured Outputs (Pydantic) for type-safe LLM responses
 - [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction 
-- [x] Migrate from Arduino Cloud to own backend+site (https://robot.mvpgen.com)
-- [x] Daily blog post (diary of robot) from consciousness logs in Sartre style using GEMINI_KEY env on server (only if >10 logs for today, check 10pm)
+- [x] Migrate to custom backend & dashboard (React + Node.js + MongoDB)
+- [x] Real-time camera feed integration in the dashboard
+- [x] RGB mood selector and settings panel in dashboard
+- [x] Daily blog post (Robot Diary) in Sartre style from cognitive logs
+- [x] Full deployment to [robot.mvpgen.com](https://robot.mvpgen.com)
 
 ![alt text](image-5.png)
