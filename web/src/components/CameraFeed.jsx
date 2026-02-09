@@ -19,6 +19,24 @@ const CameraFeed = () => {
                 // Handle binary if needed
                 const blob = new Blob([data], { type: 'image/jpeg' });
                 frameSource = URL.createObjectURL(blob);
+            } else if (typeof data === 'object' && data !== null) {
+                // Handle object wrapper (e.g. { image: 'b64...' })
+                const possibleKeys = ['b64', 'image', 'img', 'data', 'payload', 'base64'];
+                let foundData = null;
+                for (const key of possibleKeys) {
+                    if (data[key] && typeof data[key] === 'string') {
+                        foundData = data[key];
+                        break;
+                    }
+                }
+
+                if (foundData) {
+                    if (!foundData.startsWith('data:image')) {
+                        frameSource = `data:image/jpeg;base64,${foundData}`;
+                    } else {
+                        frameSource = foundData;
+                    }
+                }
             }
 
             setFrame(frameSource);
