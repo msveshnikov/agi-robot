@@ -256,8 +256,6 @@ arduino_cloud.register("goal", on_write=goal_callback)
 arduino_cloud.register("lang", on_write=lang_callback)
 arduino_cloud.register("arm1", on_write=arm1_callback)
 arduino_cloud.register("arm2", on_write=arm2_callback)
-
-# Register RGB
 arduino_cloud.register("rgb", on_write=rgb_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
@@ -656,6 +654,7 @@ def loop():
         elif back:
             Bridge.call("move", f"MOVE|back|20|{speed}", False)
         elif panic:
+            logger.info("Panic mode activated")
             Bridge.call("panic", str(speed))
         elif agi:
             agi_loop()
