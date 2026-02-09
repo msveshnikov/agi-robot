@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Book, Calendar, Zap, MessageSquare } from 'lucide-react';
 import * as api from '../services/api';
 import './Dashboard.css'; // Reuse some styles
+import './Blog.css';
 
 const Blog = () => {
     const [posts, setPosts] = useState([]);
@@ -42,33 +43,32 @@ const Blog = () => {
     }
 
     return (
-        <div className="dashboard" style={{ minHeight: '100vh', padding: '2rem' }}>
+        <div className="dashboard blog-dashboard">
             <motion.header
-                className="dashboard-header"
+                className="dashboard-header blog-header"
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                style={{ marginBottom: '3rem' }}
             >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Link to="/" className="settings-toggle-button" style={{ marginRight: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="blog-header-content">
+                    <Link to="/" className="settings-toggle-button blog-back-button">
                         <ArrowLeft size={20} />
                     </Link>
-                    <h1 className="dashboard-title" style={{ margin: 0 }}>
+                    <h1 className="dashboard-title blog-title-text">
                         <span className="gradient-text">Robot</span> Diary
                     </h1>
                 </div>
-                <div className="header-actions">
+                {/* <div className="header-actions">
                     <Book size={24} className="text-gradient" />
-                </div>
+                </div> */}
             </motion.header>
 
-            <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <div className="container blog-container">
                 {error ? (
-                    <div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
+                    <div className="glass-card blog-empty-state">
                         <p style={{ color: 'var(--danger-color)' }}>{error}</p>
                     </div>
                 ) : posts.length === 0 ? (
-                    <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
+                    <div className="glass-card blog-empty-state">
                         <MessageSquare size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
                         <h3>The silence is absolute.</h3>
                         <p>No diary entries have been manifested yet. The robot needs at least 10 cognitive cycles in a day to contemplate its existence.</p>
@@ -81,32 +81,24 @@ const Blog = () => {
                         {posts.map((post, index) => (
                             <motion.article
                                 key={post._id}
-                                className="glass-card"
+                                className="glass-card blog-post"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                style={{ marginBottom: '2rem', padding: '2.5rem' }}
                             >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', opacity: 0.7 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}>
+                                <div className="blog-post-meta">
+                                    <div className="blog-post-date">
                                         <Calendar size={16} style={{ marginRight: '0.5rem' }} />
                                         {new Date(post.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                     </div>
-                                    <div style={{ fontSize: '0.8rem' }}>
+                                    <div className="blog-post-cycles">
                                         {post.logsCount} cognitive cycles
                                     </div>
                                 </div>
 
-                                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.8rem' }} className="gradient-text">{post.title}</h2>
+                                <h2 className="blog-post-title gradient-text">{post.title}</h2>
 
-                                <div style={{
-                                    lineHeight: '1.8',
-                                    fontSize: '1.1rem',
-                                    whiteSpace: 'pre-wrap',
-                                    fontFamily: '"Georgia", serif',
-                                    fontStyle: 'italic',
-                                    color: 'rgba(255, 255, 255, 0.9)'
-                                }}>
+                                <div className="blog-post-text">
                                     {post.content}
                                 </div>
                             </motion.article>
@@ -115,7 +107,7 @@ const Blog = () => {
                 )}
             </div>
 
-            <footer style={{ marginTop: '4rem', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem' }}>
+            <footer className="blog-footer">
                 <p>&copy; 2026 AGI Robot - Existential Module</p>
             </footer>
         </div>
