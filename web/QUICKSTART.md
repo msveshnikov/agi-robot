@@ -154,15 +154,3 @@ web/
 ├── docker-compose.yml             # Multi-container setup
 └── package.json
 ```
-
-## Next Steps
-
-- Test robot integration with Python `main.py`
-- Add camera feed viewer
-- Implement settings panel
-- Build spatial map visualization
-- Add movement history timeline
-
-## License
-
-MIT

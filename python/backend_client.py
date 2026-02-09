@@ -13,6 +13,7 @@ class BackendClient:
         self.running = False
         self.poll_thread = None
         self.last_updated = None
+        self.connected = False
 
     def register(self, var_name, on_write=None):
         """Registers a variable for polling/sync."""
@@ -33,6 +34,23 @@ class BackendClient:
         except Exception as e:
             logger.error(f"Error updating state: {e}")
             return False
+
+    def resync_state(self):
+        """Push all local state to backend (e.g. after backend restart)."""
+        if not self.state:
+            return
+        
+        logger.info(f"Resyncing {len(self.state)} items to backend")
+        try:
+            url = f"{self.base_url}/api/state"
+            # We push the whole state
+            response = requests.post(url, json=self.state, timeout=5)
+            if response.status_code == 200:
+                logger.info("State resync successful")
+            else:
+                logger.error(f"Failed to resync state: {response.status_code} - {response.text}")
+        except Exception as e:
+            logger.error(f"Error resyncing state: {e}")
 
     def fetch_state(self):
         """Fetch current state from backend."""
@@ -64,13 +82,34 @@ class BackendClient:
     def _poll_loop(self, interval):
         while self.running:
             new_state = self.fetch_state()
-            if new_state:
+            if new_state is not None:
+                if not self.connected:
+                    logger.info("Connection to backend established.")
+                    self.connected = True
+
+                # Check if backend lost state (redeployment)
+                # If we have local state but backend is missing keys, push local state
+                if self.state:
+                    missing_keys = [k for k in self.state if k not in new_state]
+                    if missing_keys:
+                        logger.info(f"Backend missing keys ({len(missing_keys)}), verifying consistency...")
+                        # We should trust local state for these keys and push them back
+                        self.resync_state()
+                        # After resync, we skip processing this state since it's incomplete
+                        time.sleep(interval)
+                        continue
+
                 # Track updated_at to avoid redundant trigger
                 updated_at = new_state.get('updated_at')
                 if updated_at != self.last_updated:
                     self._process_state_change(new_state)
                     self.last_updated = updated_at
                     self.state = new_state
+            else:
+                if self.connected:
+                    logger.warning("Connection to backend lost.")
+                    self.connected = False
+            
             time.sleep(interval)
 
     def _process_state_change(self, new_state):

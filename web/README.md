@@ -68,8 +68,8 @@ web/
 
 ```bash
 # Clone repository
-git clone https://github.com/msveshnikov/Arduino.git
-cd Arduino/web
+git clone https://github.com/msveshnikov/agi-robot.git
+cd agi-robot/web
 
 # Start with Docker Compose (recommended)
 docker-compose up -d
@@ -211,6 +211,3 @@ See [backend/README.md](backend/README.md) for complete API documentation.
 - `telemetry` - Live sensor updates
 - `camera` - Camera feed
 
-## License
-
-MIT
