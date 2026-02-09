@@ -1,0 +1,126 @@
+.arm-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 100%;
+}
+
+.arm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arm-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.arm-icon {
+  color: var(--color-accent);
+}
+
+.arm-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.arm-reset-button {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.arm-reset-button:hover {
+  transform: scale(1.05);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.arm-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.arm-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.angle-value {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.arm-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--glass-bg);
+  border-radius: var(--radius-full);
+  outline: none;
+  border: 1px solid var(--glass-border);
+}
+
+.arm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease;
+}
+
+.arm-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 480px) {
+  .arm-control {
+    gap: var(--spacing-md);
+  }
+
+  .arm-sliders {
+    gap: var(--spacing-lg);
+  }
+}

@@ -8,7 +8,9 @@ import {
 import TelemetryCard from '../components/TelemetryCard';
 import ControlButton from '../components/ControlButton';
 import SettingsPanel from '../components/SettingsPanel';
+import CameraFeed from '../components/CameraFeed';
 import RGBSelector from '../components/RGBSelector';
+import ArmControl from '../components/ArmControl';
 import CognitiveHistory from '../components/CognitiveHistory';
 import socketService from '../services/socket';
 import * as api from '../services/api';
@@ -21,6 +23,7 @@ const Dashboard = () => {
         temperature: 0,
         humidity: 0
     });
+    const [lastTelemetryTime, setLastTelemetryTime] = useState(null);
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(true);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -36,6 +39,9 @@ const Dashboard = () => {
                     temperature: state.temperature || 0,
                     humidity: state.humidity || 0
                 });
+                if (state.updatedAt || state.updated_at) {
+                    setLastTelemetryTime(new Date(state.updatedAt || state.updated_at).getTime());
+                }
             } catch (error) {
                 console.error('Failed to fetch initial state:', error);
             } finally {
@@ -51,11 +57,11 @@ const Dashboard = () => {
         socketService.connect();
 
         socketService.on('connect', () => {
-            setConnected(true);
+            console.log('Socket connected');
         });
 
         socketService.on('disconnect', () => {
-            setConnected(false);
+            console.log('Socket disconnected');
         });
 
         // Listen for state updates
@@ -70,6 +76,7 @@ const Dashboard = () => {
                 temperature: data.temperature,
                 humidity: data.humidity
             });
+            setLastTelemetryTime(Date.now());
         });
 
         return () => {
@@ -77,6 +84,25 @@ const Dashboard = () => {
             socketService.off('telemetry');
         };
     }, []);
+
+    // Connection monitor effect
+    useEffect(() => {
+        const checkConnection = () => {
+            if (!lastTelemetryTime) {
+                setConnected(false);
+                return;
+            }
+            const now = Date.now();
+            const isConnected = now - lastTelemetryTime < 10000;
+            setConnected(isConnected);
+        };
+
+        // Check immediately
+        checkConnection();
+
+        const interval = setInterval(checkConnection, 1000);
+        return () => clearInterval(interval);
+    }, [lastTelemetryTime]);
 
     const handleMoveCommand = async (direction) => {
         try {
@@ -120,6 +146,14 @@ const Dashboard = () => {
         }
     };
 
+    const handleArmUpdate = async (armData) => {
+        try {
+            await api.updateArm(armData.arm1, armData.arm2);
+        } catch (error) {
+            console.error('Arm update failed:', error);
+        }
+    };
+
     if (loading) {
         return (
             <div className="dashboard loading">
@@ -149,7 +183,7 @@ const Dashboard = () => {
                 <div className="header-actions">
                     <div className="connection-status">
                         <div className={`status-indicator ${connected ? 'connected' : 'disconnected'}`} />
-                        <span>{connected ? 'Connected' : 'Disconnected'}</span>
+                        <span>{connected ? 'Robot Online' : 'Robot Offline'}</span>
                     </div>
                     <button
                         className="settings-toggle-button"
@@ -201,6 +235,16 @@ const Dashboard = () => {
                             unit="%"
                         />
                     </div>
+                </motion.section>
+
+                {/* Camera Feed Section */}
+                <motion.section
+                    className="dashboard-section camera-section"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.15 }}
+                >
+                    <CameraFeed />
                 </motion.section>
 
                 {/* Movement Controls */}
@@ -319,6 +363,20 @@ const Dashboard = () => {
                             />
                         </div>
                     </div>
+                </motion.section>
+
+                {/* Arm Control Section */}
+                <motion.section
+                    className="dashboard-section arm-section"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.42 }}
+                >
+                    <ArmControl
+                        arm1={robotState?.arm1}
+                        arm2={robotState?.arm2}
+                        onUpdate={handleArmUpdate}
+                    />
                 </motion.section>
 
                 {/* Cognitive History Section */}

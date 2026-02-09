@@ -106,9 +106,13 @@
   margin: 0 auto;
 }
 
+.camera-section {
+  grid-column: 1 / span 2;
+}
+
 .history-section {
   grid-column: 3;
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 5;
 }
 
 .dashboard-section {
@@ -171,6 +175,11 @@
   width: 100%;
 }
 
+/* Arm Section */
+.arm-section {
+  grid-column: 1 / span 2;
+}
+
 .speed-display {
   padding: var(--spacing-lg);
   text-align: center;
@@ -213,17 +222,25 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .dashboard-content {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--spacing-lg) !important;
+    grid-template-columns: 1fr !important;
   }
   
-  .telemetry-section,
+  .dashboard-section {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
   .history-section {
-    grid-column: auto;
-    grid-row: auto;
+    min-height: 600px;
   }
 
   .telemetry-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
@@ -256,7 +273,8 @@
   }
 
   .dashboard-content {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
     gap: var(--spacing-md);
     width: 100%;
   }
