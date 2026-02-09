@@ -656,7 +656,7 @@ def loop():
         elif back:
             Bridge.call("move", f"MOVE|back|20|{speed}", False)
         elif panic:
-            Bridge.call("panic", speed)
+            Bridge.call("panic", str(speed))
         elif agi:
             agi_loop()
         else:

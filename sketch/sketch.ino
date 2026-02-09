@@ -143,8 +143,9 @@ void move(String mvcmd, boolean stop)
     }
 }
 
-void panic(int speed)
+void panic(String speedStr)
 {
+    int speed = speedStr.toInt();
     if (getDistance() > 25)
     {
         right_servo.write(90 - speed);
