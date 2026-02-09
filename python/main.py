@@ -632,6 +632,5 @@ def loop():
     except Exception as e:
         logger.error(f"Error in main loop: {e}")    
 
-# App.start_brick(arduino_cloud) # Removed Arduino Cloud brick
 arduino_cloud.start()
 App.run(user_loop=loop)
