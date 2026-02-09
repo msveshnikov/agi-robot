@@ -74,7 +74,7 @@ BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
 arduino_cloud = BackendClient(BACKEND_URL)
 camera_forwarder = CameraForwarder(local_url="http://localhost:4912", remote_url=BACKEND_URL)
 camera_forwarder.start()
-speed = 0
+speed = 45
 back = False
 left = False
 right = False
