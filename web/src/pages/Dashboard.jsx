@@ -23,6 +23,7 @@ const Dashboard = () => {
         temperature: 0,
         humidity: 0
     });
+    const [lastTelemetryTime, setLastTelemetryTime] = useState(null);
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(true);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -38,6 +39,9 @@ const Dashboard = () => {
                     temperature: state.temperature || 0,
                     humidity: state.humidity || 0
                 });
+                if (state.updatedAt || state.updated_at) {
+                    setLastTelemetryTime(new Date(state.updatedAt || state.updated_at).getTime());
+                }
             } catch (error) {
                 console.error('Failed to fetch initial state:', error);
             } finally {
@@ -53,11 +57,11 @@ const Dashboard = () => {
         socketService.connect();
 
         socketService.on('connect', () => {
-            setConnected(true);
+            console.log('Socket connected');
         });
 
         socketService.on('disconnect', () => {
-            setConnected(false);
+            console.log('Socket disconnected');
         });
 
         // Listen for state updates
@@ -72,6 +76,7 @@ const Dashboard = () => {
                 temperature: data.temperature,
                 humidity: data.humidity
             });
+            setLastTelemetryTime(Date.now());
         });
 
         return () => {
@@ -79,6 +84,25 @@ const Dashboard = () => {
             socketService.off('telemetry');
         };
     }, []);
+
+    // Connection monitor effect
+    useEffect(() => {
+        const checkConnection = () => {
+            if (!lastTelemetryTime) {
+                setConnected(false);
+                return;
+            }
+            const now = Date.now();
+            const isConnected = now - lastTelemetryTime < 10000;
+            setConnected(isConnected);
+        };
+
+        // Check immediately
+        checkConnection();
+
+        const interval = setInterval(checkConnection, 1000);
+        return () => clearInterval(interval);
+    }, [lastTelemetryTime]);
 
     const handleMoveCommand = async (direction) => {
         try {
@@ -159,7 +183,7 @@ const Dashboard = () => {
                 <div className="header-actions">
                     <div className="connection-status">
                         <div className={`status-indicator ${connected ? 'connected' : 'disconnected'}`} />
-                        <span>{connected ? 'Connected' : 'Disconnected'}</span>
+                        <span>{connected ? 'Robot Online' : 'Robot Offline'}</span>
                     </div>
                     <button
                         className="settings-toggle-button"
