@@ -28,6 +28,22 @@ class CameraForwarder:
         self.frame_interval = 0.1  # ~10 FPS limit
 
     def start(self):
+        @self.local_sio.event
+        def connect():
+            logger.info(f"CameraForwarder: Connected to local camera at {self.local_url}")
+
+        @self.local_sio.event
+        def disconnect():
+            logger.info(f"CameraForwarder: Disconnected from local camera")
+
+        @self.remote_sio.event
+        def connect():
+            logger.info(f"CameraForwarder: Connected to remote backend at {self.remote_url}")
+
+        @self.remote_sio.event
+        def disconnect():
+             logger.info(f"CameraForwarder: Disconnected from remote backend")
+
         @self.local_sio.on('image')
         def on_image(data):
             current_time = time.time()
@@ -40,10 +56,16 @@ class CameraForwarder:
             while True:
                 try:
                     if not self.remote_sio.connected:
-                        self.remote_sio.connect(self.remote_url)
+                        try:
+                            self.remote_sio.connect(self.remote_url)
+                        except Exception:
+                            pass
                     if not self.local_sio.connected:
-                        self.local_sio.connect(self.local_url)
-                    time.sleep(10)
+                        try:
+                            self.local_sio.connect(self.local_url)
+                        except Exception:
+                            pass
+                    time.sleep(5)
                 except Exception as e:
                     time.sleep(5)
 
@@ -72,7 +94,7 @@ detection_stream.on_detect_all(send_detections_to_ui)
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
 arduino_cloud = BackendClient(BACKEND_URL)
-camera_forwarder = CameraForwarder(local_url="http://localhost:4912", remote_url=BACKEND_URL)
+camera_forwarder = CameraForwarder(local_url="http://172.17.0.1:4912", remote_url=BACKEND_URL)
 camera_forwarder.start()
 speed = 45
 back = False
