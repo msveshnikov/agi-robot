@@ -94,8 +94,8 @@ The robot's consciousness operates in an autonomous loop, which incurs API costs
     -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, records audio responses, and consults the Gemini 3 Flash model via `media_service.py` to decide on actions.
     -   **Audio Recording**: After the robot speaks, it records user audio with **dynamic duration** (3 to 15 seconds). It monitors noise levels (dB) to extend recording if the user is speaking, and stops early on silence. During recording, the RGB LED displays a **rainbow effect**.
     -   **Object Detection**: Uses `VideoObjectDetection` to identify objects in real-time and announce them (`send_detections_to_ui`).
-    -   **Arduino Cloud**: Synchronizes state variables (`speed`, `agi`, `goal`, `lang`, `rgb`) and telemetry (`distance`, `temperature`, `humidity`).
-    -   **RGB Mood**: Converts HSV color values from Arduino Cloud to RGB for the robot's "mood" LED.
+    -   **Backend API / Custom Backend**: Synchronizes state variables (`speed`, `agi`, `goal`, `lang`, `rgb`) and telemetry (`distance`, `temperature`, `humidity`) with our Node.js backend and web dashboard.
+    -   **RGB Mood**: Converts HSV color values from backend state to RGB for the robot's "mood" LED.
     -   **Movement History**: Tracks all movement commands to prevent loops and aid navigation.
     
 -   **Media Service (`media_service.py`):**
@@ -129,7 +129,7 @@ The robot's consciousness operates in an autonomous loop, which incurs API costs
     -   **Main Loop Operations**:
         1. Reads ultrasonic distance sensor (NewPing library) every 1 second
         2. Reads temperature and humidity from Modulino Thermo (I2C)
-        3. Updates Arduino Cloud telemetry via Bridge notifications (`set_distance`, `set_temperature`, `set_humidity`)
+        3. Updates Cloud telemetry via Bridge notifications (`set_distance`, `set_temperature`, `set_humidity`)
     -   **Python Control Loop** (`main.py`):
         - Executes movement commands based on cloud variables (`speed`, `back`, `left`, `right`, `forward`, `panic`, `agi`)
         - Priority order: Manual controls → Panic mode → AGI mode → Stop
@@ -211,9 +211,9 @@ graph TD
 | **Arm Servo 2** | D5          | Manipulator Arm Joint (0-180°)    |
 | **USB**         | USB Port    | Serial Communication/Webcam       |
 
-## Arduino Cloud Variables
+## Backend State Variables
 
-The following variables are synchronized with the Arduino Cloud:
+The following variables are synchronized with the project's backend API and web dashboard (replacing Arduino Cloud):
 
 -   **Read/Write (Controls):**
 
@@ -258,7 +258,7 @@ The following variables are synchronized with the Arduino Cloud:
 -   **Python**: 3.12+
 -   **Ports**: 1x USB-C host for Arduino, 1x USB-A for Webcam with mic.
 -   **Dependencies**: 
-    -   `arduino-app-utils` (Arduino Cloud SDK)
+    -   `arduino-app-utils` (Arduino Bridge)
     -   `google-genai` (Gemini API)
     -   `google-api-python-client` (Google TTS)
     -   `python-socketio[client]` (Image streaming)
@@ -354,17 +354,17 @@ agi-robot/
 ### Startup Behavior
 
 On initialization, the robot:
-1. Connects to Arduino Cloud and synchronizes variables
+1. Connects to the backend API/site and synchronizes variables
 2. Initializes the webcam object detection stream
 3. **RGB Rainbow**: Performs a color cycle sequence on the LED to indicate hardware readiness
 4. Plays a startup sound
 5. Speaks "Robot is ready" in the configured language
 6. Sets default goal: **"Be helpful assistant to the master human"**
-7. Begins listening for cloud variable changes (AGI mode, manual controls, goal updates)
+7. Begins listening for backend variable changes (AGI mode, manual controls, goal updates)
 
 ### Default Main Goal
 
-The robot's default goal is **"Be helpful assistant to the master human"**, but this can be changed via the Arduino Cloud `goal` variable. When a new goal is set from the cloud, the robot will speak the new goal and update its behavior accordingly.
+The robot's default goal is **"Be helpful assistant to the master human"**, but this can be changed via the backend `goal` variable. When a new goal is set from the backend, the robot will speak the new goal and update its behavior accordingly.
 
 ---
 
@@ -378,7 +378,7 @@ The AGI Loop is the core autonomous decision-making cycle of the robot. It opera
 2. **Distance Sensing**: Reads ultrasonic sensor data (0-1000 cm)
 3. **Context State**: Maintains `plan`, `subplan`, `space_map`, and `movement_history`
 4. **Audio Input**: After speaking, dynamically records (3-15s) to capture user responses
-5. **Main Goal**: Retrieved from Arduino Cloud `goal` variable
+5. **Main Goal**: Retrieved from the backend `goal` variable
 
 ### LLM Decision-Making
 
@@ -430,7 +430,7 @@ The model returns a structured JSON object validated by Pydantic schemas:
 5. **Movement**: Sends command string to MCU via Bridge notification
 6. **Memory**: Saves updated memory to `memory.txt` for persistence across sessions
 7. **Alarm**: If alarm is non-empty, sends Telegram notification to admin
-8. **Cloud Sync**: Updates all state variables to Arduino Cloud for remote monitoring
+8. **Backend Sync**: Updates all state variables to the backend API and web dashboard for remote monitoring
 
 ## MCU Command Protocol
 
@@ -479,7 +479,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 
 ### Completed Features ✓
-- [x] RGB LED control with HSV from Arduino Cloud
+- [x] RGB LED control
 - [x] Multi-language TTS (English, Russian, Czech, Italian, German)
 - [x] All languages support for input
 - [x] Audio recording after speech for user responses

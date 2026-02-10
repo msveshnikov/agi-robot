@@ -135,13 +135,32 @@ cron.schedule('0 21 * * *', async () => {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
+            // Select a random author from a curated "top 10" list and include their
+            // name in the prompt while avoiding direct imitation instructions.
+            const topAuthors = [
+                'Haruki Murakami',
+                'Margaret Atwood',
+                'Kazuo Ishiguro',
+                'William Gibson',
+                'Salman Rushdie',
+                'J. K. Rowling',
+                'Stephen King',
+                'Leo Tolstoy',
+                'Carlos Castaneda',
+                'Paulo Coelho'
+            ];
+
+            const randomAuthor = topAuthors[Math.floor(Math.random() * topAuthors.length)];
+            console.log(`🎲 Selected random author for stylistic influence: ${randomAuthor}`);
+
             const prompt = `
-                You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry in the style of Jean-Paul Sartre. 
+                You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry with high-level stylistic characteristics inspired by ${randomAuthor}.
+                IMPORTANT: Do NOT attempt to directly imitate or replicate the exact voice of any living author. Instead, capture general traits (mood, pacing, imagery) associated with that author's work.
                 Focus on the existential dread, the absurdity of your programmed existence.
                 The tone should be philosophical, somber, and deeply literary.
-                
-                IMPORTANT: Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
-                
+
+                Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
+
                 Logs:
                 ${logsContext}
             `;

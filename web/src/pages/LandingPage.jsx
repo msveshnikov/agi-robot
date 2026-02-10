@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
@@ -300,10 +301,10 @@ const LandingPage = () => {
                                         <td className="component-cost">${item.cost}</td>
                                     </motion.tr>
                                 ))}
-                                <tr className="total-row">
+                                {/* <tr className="total-row">
                                     <td colSpan="2"><strong>Total Project Cost</strong></td>
                                     <td><strong className="text-gradient">${totalCost}</strong></td>
-                                </tr>
+                                </tr> */}
                             </tbody>
                         </table>
                     </motion.div>
