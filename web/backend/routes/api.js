@@ -90,7 +90,7 @@ router.post('/state', async (req, res) => {
 // Movement control
 router.post('/control/move', async (req, res) => {
     try {
-        const { direction, distance_cm, angle_deg, speed } = req.body;
+        const { direction, distance_cm, angle_deg } = req.body;
 
         // Validate command
         if (!['forward', 'back', 'left', 'right', 'stop'].includes(direction)) {
@@ -100,7 +100,7 @@ router.post('/control/move', async (req, res) => {
         // Log command
         await CommandLog.create({
             command_type: direction === 'stop' ? 'stop' : 'move',
-            command_data: { direction, distance_cm, angle_deg, speed },
+            command_data: { direction, distance_cm, angle_deg },
             source: 'api'
         });
 
@@ -118,15 +118,11 @@ router.post('/control/move', async (req, res) => {
                 state[direction] = true;
             }
 
-            if (speed !== undefined) {
-                state.speed = speed;
-            }
-
             await state.save();
             req.app.get('io').emit('state', state);
         }
 
-        res.json({ success: true, command: { direction, distance_cm, angle_deg, speed } });
+        res.json({ success: true, command: { direction, distance_cm, angle_deg } });
     } catch (error) {
         console.error('Error sending move command:', error);
         res.status(500).json({ error: 'Failed to send move command' });

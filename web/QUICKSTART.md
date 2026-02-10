@@ -60,7 +60,6 @@ Access:
 - **Live Telemetry**: Distance, temperature, humidity
 - **Movement Controls**: Forward, back, left, right, stop
 - **Robot Modes**: AGI, Panic, ASI toggles
-- **Speed Display**: Current RPM with progress bar
 - **Real-time Updates**: Socket.IO connection
 
 ## API Endpoints
