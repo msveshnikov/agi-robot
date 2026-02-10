@@ -218,18 +218,18 @@ server {
     listen 80;
     server_name robot.mvpgen.com;
 
-    # Frontend (Docker container on port 80)
+    # Frontend (Docker container on port 8080)
     location / {
-        proxy_pass http://localhost:80;
+        proxy_pass http://localhost:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Backend API (Docker container on port 3000)
+    # Backend API (Docker container on port 8300)
     location /api {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:8300;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -256,8 +256,6 @@ sudo nginx -t
 sudo systemctl reload nginx
 sudo certbot --nginx -d robot.mvpgen.com
 ```
-
-Update `docker-compose.yml` to change frontend port to `8080:80` to avoid conflict.
 
 ## Monitoring & Maintenance
 
