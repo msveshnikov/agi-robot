@@ -10,6 +10,10 @@ Backend API server for AGI Robot control and telemetry.
 - Command audit trail
 - CORS-enabled for frontend integration
 
+## Models
+
+Detailed documentation of the data models can be found in [MODELS.md](./MODELS.md).
+
 ## Prerequisites
 
 - Node.js 18+
