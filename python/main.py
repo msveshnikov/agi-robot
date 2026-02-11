@@ -1,6 +1,5 @@
 from arduino.app_utils import App
 from arduino.app_utils import Bridge
-from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from backend_client import BackendClient
 from arduino.app_peripherals.microphone import Microphone
