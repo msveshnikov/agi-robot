@@ -1,30 +1,34 @@
 <!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/png" href="/android-chrome-192x192.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="AGI Robot - Autonomous LLM-powered mobile robot with real-time AI decision-making, computer vision, and natural language interaction"
+        />
+        <meta name="keywords" content="AGI, robot, AI, Gemini, autonomous navigation, LLM, Arduino" />
+        <meta name="author" content="AGI Robot Project" />
+        <meta name="robots" content="index, follow" />
+        <meta name="theme-color" content="#0d9488" />
 
-<head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/android-chrome-192x192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description"
-        content="AGI Robot - Autonomous LLM-powered mobile robot with real-time AI decision-making, computer vision, and natural language interaction" />
-    <meta name="keywords" content="AGI, robot, AI, Gemini, autonomous navigation, LLM, Arduino" />
-    <meta name="author" content="AGI Robot Project" />
-    <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#0d9488" />
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap"
+            rel="stylesheet"
+        />
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap"
-        rel="stylesheet">
-
-    <title>AGI Robot - Autonomous LLM-Powered Mobile Robot</title>
-        <link rel="canonical" href="https://example.com/" />
+        <title>AGI Robot - Autonomous LLM-Powered Mobile Robot</title>
 
         <!-- Open Graph -->
         <meta property="og:title" content="AGI Robot - Autonomous LLM-Powered Mobile Robot" />
-        <meta property="og:description" content="AGI Robot - Autonomous LLM-powered mobile robot with real-time AI decision-making, computer vision, and natural language interaction" />
+        <meta
+            property="og:description"
+            content="AGI Robot - Autonomous LLM-powered mobile robot with real-time AI decision-making, computer vision, and natural language interaction"
+        />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://example.com/" />
         <meta property="og:image" content="https://example.com/android-chrome-192x192.png" />
@@ -33,24 +37,36 @@
         <!-- Twitter Card -->
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AGI Robot - Autonomous LLM-Powered Mobile Robot" />
-        <meta name="twitter:description" content="AGI Robot - Autonomous LLM-powered mobile robot with real-time AI decision-making, computer vision, and natural language interaction" />
+        <meta
+            name="twitter:description"
+            content="AGI Robot - Autonomous LLM-powered mobile robot with real-time AI decision-making, computer vision, and natural language interaction"
+        />
         <meta name="twitter:image" content="https://example.com/android-chrome-192x192.png" />
 
         <!-- Structured Data -->
         <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "AGI Robot",
-            "url": "https://example.com/",
-            "logo": "https://example.com/android-chrome-192x192.png"
-        }
+            {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "AGI Robot",
+                "url": "https://example.com/",
+                "logo": "https://example.com/android-chrome-192x192.png"
+            }
         </script>
-</head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-64BGD0LCLF"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
 
-<body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-</body>
+            gtag("config", "G-64BGD0LCLF");
+        </script>
+    </head>
 
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/main.jsx"></script>
+    </body>
 </html>
