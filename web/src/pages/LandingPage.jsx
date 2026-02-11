@@ -32,7 +32,7 @@ const LandingPage = () => {
         }, 3000); // Change image every 3 seconds
 
         return () => clearInterval(interval);
-    }, []);
+    }, [heroImages.length]);
 
     const features = [
         {

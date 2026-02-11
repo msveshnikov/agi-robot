@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import './ControlButton.css';
 
 const ControlButton = ({
+    // eslint-disable-next-line no-unused-vars
     icon: Icon,
     label,
     active = false,
@@ -10,7 +11,7 @@ const ControlButton = ({
     disabled = false,
     variant = 'default' // default, primary, danger
 }) => {
-    const [isPressed, setIsPressed] = useState(false);
+    const [, setIsPressed] = useState(false);
 
     const handleMouseDown = () => setIsPressed(true);
     const handleMouseUp = () => setIsPressed(false);

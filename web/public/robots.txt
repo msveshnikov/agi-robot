@@ -1,0 +1,10 @@
+# robots.txt for AGI Robot
+# Allow all crawlers. Replace example.com with your real domain.
+
+User-agent: *
+Disallow:
+
+# Link to sitemap (update URL to your actual sitemap location)
+Sitemap: https://robot.mvpgen.com/sitemap.xml
+# Host directive is non-standard but some crawlers respect it
+Host: robot.mvpgen.com

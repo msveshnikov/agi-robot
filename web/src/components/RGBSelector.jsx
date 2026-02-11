@@ -75,7 +75,7 @@ const RGBSelector = ({ rgb, onUpdate }) => {
     const handleColorChange = (e) => {
         const hex = e.target.value;
         setLocalColor(hex);
-        const { hue, sat, bri } = hexToHsv(hex);
+        const { hue, sat } = hexToHsv(hex);
         onUpdate({ hue, sat, bri: brightness, swi: isOn });
     };
 

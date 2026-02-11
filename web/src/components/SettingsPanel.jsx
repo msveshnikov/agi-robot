@@ -1,23 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Settings as SettingsIcon, Globe, Zap, Target, Save, X, ChevronRight, MessageSquare, Shield, Activity, Map } from 'lucide-react';
-import * as api from '../services/api';
-import './SettingsPanel.css';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Settings as SettingsIcon,
+    Globe,
+    Zap,
+    Target,
+    Save,
+    X,
+    ChevronRight,
+    MessageSquare,
+    Shield,
+    Activity,
+    Map,
+} from "lucide-react";
+import * as api from "../services/api";
+import "./SettingsPanel.css";
 
 const SettingsPanel = ({ isOpen, onClose, currentState }) => {
-    const [language, setLanguage] = useState('en');
-    const [speed, setSpeed] = useState(45);
-    const [goal, setGoal] = useState('Be helpful assistant to the master human');
+    const [language, setLanguage] = useState(() => currentState?.lang || "en");
+    const [speed, setSpeed] = useState(() => currentState?.speed || 45);
+    const [goal, setGoal] = useState(() => currentState?.goal || "Be helpful assistant to the master human");
     const [saving, setSaving] = useState(false);
-
-    // Initialize from current state
-    useEffect(() => {
-        if (currentState) {
-            setLanguage(currentState.lang || 'en');
-            setSpeed(currentState.speed || 45);
-            setGoal(currentState.goal || 'Be helpful assistant to the master human');
-        }
-    }, [currentState]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -25,7 +28,7 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
             await api.updateState({
                 lang: language,
                 speed: parseInt(speed),
-                goal: goal
+                goal: goal,
             });
 
             // Close panel after successful save
@@ -34,64 +37,64 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
                 onClose();
             }, 500);
         } catch (error) {
-            console.error('Failed to save settings:', error);
+            console.error("Failed to save settings:", error);
             setSaving(false);
         }
     };
 
     const languages = [
-        { code: 'en', name: 'English', flag: '🇬🇧' },
-        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-        { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-        { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-        { code: 'cs', name: 'Čeština', flag: '🇨🇿' },
-        { code: 'disabled', name: 'Voice Disabled', flag: '🔇' }
+        { code: "en", name: "English", flag: "🇬🇧" },
+        { code: "de", name: "Deutsch", flag: "🇩🇪" },
+        { code: "it", name: "Italiano", flag: "🇮🇹" },
+        { code: "ru", name: "Русский", flag: "🇷🇺" },
+        { code: "cs", name: "Čeština", flag: "🇨🇿" },
+        { code: "disabled", name: "Voice Disabled", flag: "🔇" },
     ];
 
     const presets = [
         {
-            id: 'assistant',
+            id: "assistant",
             icon: <MessageSquare size={18} />,
-            label: 'Assistant',
-            text: 'Be helpful assistant to the master human'
+            label: "Assistant",
+            text: "Be helpful assistant to the master human",
         },
         {
-            id: 'explorer',
+            id: "explorer",
             icon: <Map size={18} />,
-            label: 'Explorer',
-            text: 'Explore the environment and map the space'
+            label: "Explorer",
+            text: "Explore the environment and map the space",
         },
         {
-            id: 'guard',
+            id: "guard",
             icon: <Shield size={18} />,
-            label: 'Guard',
-            text: 'Guard the perimeter and detect intruders'
+            label: "Guard",
+            text: "Guard the perimeter and detect intruders",
         },
         {
-            id: 'personal',
+            id: "personal",
             icon: <Activity size={18} />,
-            label: 'Personal',
-            text: 'Follow the human and assist with tasks'
-        }
+            label: "Personal",
+            text: "Follow the human and assist with tasks",
+        },
     ];
 
     // Animation variants
     const panelVariants = {
-        hidden: { x: '100%' },
+        hidden: { x: "100%" },
         visible: {
             x: 0,
             transition: {
-                type: 'spring',
+                type: "spring",
                 damping: 30,
                 stiffness: 300,
                 staggerChildren: 0.1,
-                delayChildren: 0.2
-            }
+                delayChildren: 0.2,
+            },
         },
         exit: {
-            x: '100%',
-            transition: { type: 'spring', damping: 30, stiffness: 300 }
-        }
+            x: "100%",
+            transition: { type: "spring", damping: 30, stiffness: 300 },
+        },
     };
 
     const itemVariants = {
@@ -99,8 +102,8 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
         visible: {
             opacity: 1,
             y: 0,
-            transition: { type: 'spring', damping: 20, stiffness: 200 }
-        }
+            transition: { type: "spring", damping: 20, stiffness: 200 },
+        },
     };
 
     return (
@@ -124,7 +127,9 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
                         {/* Header */}
                         <div className="settings-header">
                             <h2 className="settings-title">
-                                <span className="icon-wrapper"><SettingsIcon size={24} /></span>
+                                <span className="icon-wrapper">
+                                    <SettingsIcon size={24} />
+                                </span>
                                 Settings
                             </h2>
                             <button className="close-button" onClick={onClose}>
@@ -176,7 +181,7 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
                                             onChange={(e) => setSpeed(e.target.value)}
                                             className="speed-slider"
                                             style={{
-                                                background: `linear-gradient(to right, var(--color-primary) ${speed / 90 * 100}%, var(--color-bg-secondary) ${speed / 90 * 100}%)`
+                                                background: `linear-gradient(to right, var(--color-primary) ${(speed / 90) * 100}%, var(--color-bg-secondary) ${(speed / 90) * 100}%)`,
                                             }}
                                         />
                                     </div>
@@ -198,7 +203,7 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
                                     {presets.map((preset) => (
                                         <button
                                             key={preset.id}
-                                            className={`preset-card ${goal === preset.text ? 'active' : ''}`}
+                                            className={`preset-card ${goal === preset.text ? "active" : ""}`}
                                             onClick={() => setGoal(preset.text)}
                                         >
                                             <div className="preset-icon">{preset.icon}</div>
@@ -222,13 +227,9 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
                             <button className="cancel-button" onClick={onClose} disabled={saving}>
                                 Cancel
                             </button>
-                            <button
-                                className="save-button"
-                                onClick={handleSave}
-                                disabled={saving}
-                            >
+                            <button className="save-button" onClick={handleSave} disabled={saving}>
                                 <Save size={18} />
-                                {saving ? 'Saving...' : 'Save'}
+                                {saving ? "Saving..." : "Save"}
                             </button>
                         </div>
                     </motion.div>
