@@ -2,7 +2,6 @@ name: robot
 description: ""
 ports: []
 bricks:
-- arduino:web_ui: {}
 - arduino:video_object_detection:
-    model: yolox-object-detection
+    model: face-detection
 icon: 🛻

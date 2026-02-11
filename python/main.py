@@ -1,6 +1,5 @@
 from arduino.app_utils import App
 from arduino.app_utils import Bridge
-from arduino.app_bricks.web_ui import WebUI
 from arduino.app_bricks.video_objectdetection import VideoObjectDetection
 from datetime import datetime, UTC
 from backend_client import BackendClient
@@ -72,26 +71,10 @@ class CameraForwarder:
         threading.Thread(target=_connect_loop, daemon=True).start()
         logger.info(f"CameraForwarder started: Local={self.local_url}, Remote={self.remote_url}")
      
-ui = WebUI()
-detection_stream = VideoObjectDetection(confidence=0.5, debounce_sec=0.0)
-ui.on_message("override_th", lambda sid, threshold: detection_stream.override_threshold(threshold))
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("robot.main")
 
 MAIN_GOAL = "Be helpful assistant to the master human"
-
-def send_detections_to_ui(detections: dict):
-  for key, value in detections.items():
-    entry = {
-      "content": key,
-      "confidence": value.get("confidence"),
-      "timestamp": datetime.now(UTC).isoformat()
-    }
-    ui.send_message("detection", message=entry)
- 
-detection_stream.on_detect_all(send_detections_to_ui)
-
 BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
 arduino_cloud = BackendClient(BACKEND_URL)
 camera_forwarder = CameraForwarder(local_url="http://172.17.0.1:4912", remote_url=BACKEND_URL)
@@ -676,7 +659,6 @@ def loop():
         elif back:
             Bridge.call("move", f"MOVE|back|20|{speed}", False)
         elif panic:
-            logger.info("Panic mode activated")
             Bridge.call("panic", str(speed))
         elif agi:
             agi_loop()
