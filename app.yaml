@@ -1,7 +1,7 @@
 name: robot
 description: ""
 ports: []
-bricks:
-- arduino:video_object_detection:
-    model: face-detection
+# bricks:
+# - arduino:video_object_detection:
+#     model: face-detection
 icon: 🛻
