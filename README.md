@@ -480,7 +480,6 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 ### Completed Features ✓
 - [x] Multi-language TTS (English, Russian, Czech, Italian, German)
-- [x] All languages support for input
 - [x] Audio recording after speech for user responses
 - [x] Movement history tracking
 - [x] Spatial mapping hints to LLM
@@ -497,7 +496,10 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Migrate to custom backend & dashboard (React + Node.js + MongoDB)
 - [x] Real-time camera feed integration in the dashboard
 - [x] Settings panel in dashboard
-- [x] Daily blog post (Robot Diary) in Sartre style from cognitive logs
-- [x] Full deployment to [robot.mvpgen.com](https://robot.mvpgen.com)
+- [x] Daily blog post (Robot Diary) from cognitive logs
 
 ![alt text](image-5.png)
+
+# TODO
+
+-get rid of video brick and implement direct webcam capture in media_service.py using OpenCV (cv2.VideoCapture) to reduce latency and complexity, create there similar websocket server on localhost:4912 that will be used for image_llm and inside main.py camforwarder

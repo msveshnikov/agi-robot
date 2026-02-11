@@ -7,6 +7,7 @@ import tempfile
 import base64
 import os
 import socketio
+import time
 import threading
 import json
 import re
@@ -21,7 +22,7 @@ from pydantic import BaseModel, Field
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
 import logging
-
+ 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -30,6 +31,11 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("SoundService")
+
+try:
+    import cv2
+except Exception:
+    cv2 = None
 
 # ===== PYDANTIC SCHEMAS FOR STRUCTURED OUTPUTS =====
 
@@ -189,100 +195,39 @@ def init_llm():
 
 
 def get_image_from_socket(timeout=5):
-    sio = socketio.Client(logger=False, engineio_logger=False)
-    result = {'data': None}
-    done = threading.Event()
+    """
+    Return the latest captured frame from the local OpenCV capture buffer.
+    If no local capture is available, fall back to returning None.
+    """
+    # latest_frame is populated by the camera capture thread started below
+    global _camera_latest_frame, _camera_lock
+    if '_camera_latest_frame' not in globals():
+        return None
 
-    @sio.on('image')
-    def _on_image(data):
-        try:
-            b64 = None
-            if isinstance(data, bytes):
-                result['data'] = data
-                done.set()
-                return
-            if isinstance(data, str):
-                b64 = data
-            if isinstance(data, dict):
-                for key in ('b64', 'image', 'img', 'data', 'payload'):
-                    v = data.get(key)
-                    if v:
-                        b64 = v
-                        break
-                if not b64 and 'frames' in data and data['frames']:
-                    first = data['frames'][0]
-                    if isinstance(first, (str, bytes)):
-                        b64 = first
-            if isinstance(data, (list, tuple)) and data:
-                for item in data:
-                    if isinstance(item, (str, bytes)):
-                        b64 = item
-                        break
-                    if isinstance(item, dict):
-                        for key in ('b64', 'image', 'img', 'data'):
-                            if item.get(key):
-                                b64 = item.get(key)
-                                break
-                        if b64:
-                            break
-
-            if b64 is None:
-                result['data'] = None
-                done.set()
-                return
-
-            if isinstance(b64, bytes):
-                result['data'] = b64
-                done.set()
-                return
-
-            if isinstance(b64, str) and b64.startswith('data:image'):
-                parts = b64.split(',', 1)
-                if len(parts) == 2:
-                    b64 = parts[1]
-
-            try:
-                result['data'] = base64.b64decode(b64)
-            except Exception:
-                result['data'] = None
-            finally:
-                done.set()
-        except Exception:
-            result['data'] = None
-            done.set()
-
-    try:
-        server_url = os.environ.get('IMAGE_SERVER_URL', 'http://localhost:4912')
-        sio.connect(server_url)
-        done.wait(timeout)
-
-        if result['data']:
+    deadline = time.time() + float(timeout or 0)
+    while True:
+        with _camera_lock:
+            data = _camera_latest_frame
+        if data:
+            # Optionally save to google drive folder as before
             try:
                 save_dir = '/home/arduino/google-drive/robot'
                 if not os.path.exists(save_dir):
                     os.makedirs(save_dir, exist_ok=True)
-                
-                # Use timestamp for unique filename
                 filename = f"img_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
                 filepath = os.path.join(save_dir, filename)
-                
                 with open(filepath, 'wb') as f:
-                    f.write(result['data'])
+                    f.write(data)
                 logger.info(f"Saved image to {filepath}")
             except Exception as e:
                 logger.warning(f"Failed to save image to {save_dir}: {e}")
 
-        try:
-            sio.disconnect()
-        except Exception:
-            pass
-        return result['data']
-    except Exception:
-        try:
-            sio.disconnect()
-        except Exception:
-            pass
-        return None
+            return data
+
+        if time.time() > deadline:
+            return None
+
+        time.sleep(0.05)
 
 
 def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
@@ -389,6 +334,119 @@ def normalize_response_object(response_text):
         return response_text
     if isinstance(response_text, (dict, list)):
         return json.dumps(response_text).encode('utf-8')
+
+
+# ===== Camera capture + local Socket.IO image server (port 4912) =====
+# Shared latest frame buffer and control
+_camera_latest_frame = None
+_camera_lock = threading.Lock()
+_camera_stop_event = threading.Event()
+
+def _camera_capture_loop(device=0, width=None, height=None, fps=10):
+    if cv2 is None:
+        logger.warning("OpenCV (cv2) not available — camera capture disabled")
+        return
+    try:
+        cap = cv2.VideoCapture(int(device))
+        if not cap.isOpened():
+            logger.warning(f"Could not open video device {device}")
+            return
+        if width:
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
+        if height:
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
+
+        interval = 1.0 / max(1, int(fps))
+        logger.info(f"Camera capture started (device={device}, fps={fps})")
+        while not _camera_stop_event.is_set():
+            ret, frame = cap.read()
+            if not ret:
+                time.sleep(0.1)
+                continue
+            # encode as jpeg
+            try:
+                ok, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                if ok:
+                    data = jpeg.tobytes()
+                    with _camera_lock:
+                        _camera_latest_frame = data
+            except Exception as e:
+                logger.warning(f"Failed to encode camera frame: {e}")
+            time.sleep(interval)
+    except Exception as e:
+        logger.exception(f"Camera capture error: {e}")
+    finally:
+        try:
+            cap.release()
+        except Exception:
+            pass
+        logger.info("Camera capture stopped")
+
+
+def _start_camera_socket_server(host='0.0.0.0', port=4912, broadcast_fps=10):
+    """Start a local Socket.IO server that emits 'image' events with JPEG bytes."""
+    sio_server = socketio.Server(cors_allowed_origins='*', async_mode='threading')
+    app = socketio.WSGIApp(sio_server)
+
+    @sio_server.event
+    def connect(sid, environ):
+        logger.info(f"Image socket connected: {sid}")
+
+    @sio_server.event
+    def disconnect(sid):
+        logger.info(f"Image socket disconnected: {sid}")
+
+    def _broadcaster():
+        interval = 1.0 / max(1, int(broadcast_fps))
+        logger.info(f"Image broadcaster started (fps={broadcast_fps})")
+        while not _camera_stop_event.is_set():
+            with _camera_lock:
+                frame = _camera_latest_frame
+            if frame:
+                try:
+                    sio_server.emit('image', frame)
+                except Exception:
+                    pass
+            time.sleep(interval)
+        logger.info("Image broadcaster stopped")
+
+    def _run_sio():
+        try:
+            import eventlet
+            try:
+                eventlet.monkey_patch()
+            except Exception:
+                pass
+            logger.info(f"Starting Socket.IO image server on {host}:{port} using eventlet")
+            eventlet.wsgi.server(eventlet.listen((host, port)), app)
+        except Exception:
+            # Fallback to wsgiref (will use long-polling transport)
+            try:
+                from wsgiref.simple_server import make_server
+                logger.info(f"Starting Socket.IO image server on {host}:{port} using wsgiref (polling fallback)")
+                httpd = make_server(host, port, app)
+                httpd.serve_forever()
+            except Exception as e:
+                logger.exception(f"Failed to start image socket server: {e}")
+
+    # start server thread
+    t = threading.Thread(target=_run_sio, daemon=True)
+    t.start()
+    # start broadcaster thread
+    tb = threading.Thread(target=_broadcaster, daemon=True)
+    tb.start()
+
+
+def start_local_camera_service():
+    device = os.environ.get('VIDEO_DEVICE', '0')
+    fps = int(os.environ.get('IMAGE_SERVER_FPS', '10'))
+    width = os.environ.get('IMAGE_WIDTH')
+    height = os.environ.get('IMAGE_HEIGHT')
+
+    tc = threading.Thread(target=_camera_capture_loop, args=(device, width, height, fps), daemon=True)
+    tc.start()
+    # Start socket server that broadcasts frames to clients
+    _start_camera_socket_server(port=int(os.environ.get('IMAGE_SERVER_PORT', '4912')), broadcast_fps=fps)
 
 
 class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
@@ -625,6 +683,12 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
 if __name__ == "__main__":
+    # Start local camera capture and image socket server for low-latency frames
+    try:
+        start_local_camera_service()
+    except Exception:
+        logger.exception("Failed to start local camera service")
+
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), MediaServiceHandler) as httpd:
         logger.info(f"Media and LLM service running on http://localhost:{PORT}")
