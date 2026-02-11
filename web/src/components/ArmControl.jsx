@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Cpu, RotateCcw } from 'lucide-react';
-import './ArmControl.css';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Cpu, RotateCcw } from "lucide-react";
+import "./ArmControl.css";
 
 const ArmControl = ({ arm1, arm2, onUpdate }) => {
     const [localArm1, setLocalArm1] = useState(arm1 || 0);
     const [localArm2, setLocalArm2] = useState(arm2 || 0);
 
-    // Sync with prop updates
+    // Sync with prop updates — defer updates to avoid synchronous setState in effect
     useEffect(() => {
-        if (arm1 !== undefined) setLocalArm1(arm1);
+        if (arm1 === undefined) return undefined;
+
+        const t = setTimeout(() => setLocalArm1(arm1), 0);
+        return () => clearTimeout(t);
     }, [arm1]);
 
     useEffect(() => {
-        if (arm2 !== undefined) setLocalArm2(arm2);
+        if (arm2 === undefined) return undefined;
+
+        const t = setTimeout(() => setLocalArm2(arm2), 0);
+        return () => clearTimeout(t);
     }, [arm2]);
 
     const handleArm1Change = (e) => {
@@ -41,11 +47,7 @@ const ArmControl = ({ arm1, arm2, onUpdate }) => {
                     <Cpu className="arm-icon" size={24} />
                     <h3 className="arm-title">Manipulator Arms</h3>
                 </div>
-                <button
-                    className="arm-reset-button"
-                    onClick={resetArms}
-                    title="Reset to 0°"
-                >
+                <button className="arm-reset-button" onClick={resetArms} title="Reset to 0°">
                     <RotateCcw size={18} />
                 </button>
             </div>
