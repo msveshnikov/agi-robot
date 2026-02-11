@@ -479,7 +479,6 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 
 ### Completed Features ✓
-- [x] RGB LED control
 - [x] Multi-language TTS (English, Russian, Czech, Italian, German)
 - [x] All languages support for input
 - [x] Audio recording after speech for user responses
@@ -497,7 +496,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Manipulator arm with 2 SG90 180° servos on the roof for object interaction 
 - [x] Migrate to custom backend & dashboard (React + Node.js + MongoDB)
 - [x] Real-time camera feed integration in the dashboard
-- [x] RGB mood selector and settings panel in dashboard
+- [x] Settings panel in dashboard
 - [x] Daily blog post (Robot Diary) in Sartre style from cognitive logs
 - [x] Full deployment to [robot.mvpgen.com](https://robot.mvpgen.com)
 
