@@ -501,3 +501,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 
 ![alt text](image-5.png)
 
+# TODO
+
+- remove triples of changes in the db (temp, humidity, distance) - only keep one row, same for plan/subplan/goal
+- allow direct control while in agi_loop() - currently manual controls are ignored when AGI mode is on, but we want to allow manual override at any time - threading or async handling of manual commands while AGI loop is running
