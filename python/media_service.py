@@ -346,6 +346,7 @@ def _camera_capture_loop(device=0, width=None, height=None, fps=10):
     if cv2 is None:
         logger.warning("OpenCV (cv2) not available — camera capture disabled")
         return
+    global _camera_latest_frame
     try:
         cap = cv2.VideoCapture(int(device))
         if not cap.isOpened():
@@ -368,6 +369,7 @@ def _camera_capture_loop(device=0, width=None, height=None, fps=10):
                 ok, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
                 if ok:
                     data = jpeg.tobytes()
+                    logger.info(f"Captured camera frame, size: {len(data)} bytes")
                     with _camera_lock:
                         _camera_latest_frame = data
             except Exception as e:
@@ -384,62 +386,111 @@ def _camera_capture_loop(device=0, width=None, height=None, fps=10):
 
 
 def _start_camera_socket_server(host='0.0.0.0', port=4912, broadcast_fps=10):
-    """Start a local Socket.IO server that emits 'image' events with JPEG bytes."""
-    sio_server = socketio.Server(cors_allowed_origins='*', async_mode='threading')
+    """Start a local Socket.IO server that emits 'image' events with JPEG bytes.
+
+    Uses eventlet when available (websocket support). The broadcaster is
+    started via `sio_server.start_background_task` when possible; otherwise
+    it runs in a separate thread.
+    """
+    # Detect eventlet availability and choose async mode accordingly
+    try:
+        import eventlet
+        async_mode = 'eventlet'
+    except Exception:
+        eventlet = None
+        async_mode = 'threading'
+
+    sio_server = socketio.Server(cors_allowed_origins='*', async_mode=async_mode)
     app = socketio.WSGIApp(sio_server)
 
     @sio_server.event
     def connect(sid, environ):
         logger.info(f"Image socket connected: {sid}")
+        try:
+            # Try to count connected clients in default namespace
+            if hasattr(sio_server, 'manager'):
+                rooms = sio_server.manager.rooms.get('/', {})
+                default_room = rooms.get('')
+                clients = len(default_room) if default_room else 0
+            else:
+                clients = None
+            logger.info(f"Total clients in default room: {clients}")
+        except Exception as e:
+            logger.debug(f"Could not count clients: {e}")
 
     @sio_server.event
     def disconnect(sid):
         logger.info(f"Image socket disconnected: {sid}")
+        try:
+            if hasattr(sio_server, 'manager'):
+                rooms = sio_server.manager.rooms.get('/', {})
+                default_room = rooms.get('')
+                remaining = len(default_room) if default_room else 0
+            else:
+                remaining = None
+            logger.info(f"Remaining clients in default room: {remaining}")
+        except Exception:
+            pass
 
     def _broadcaster():
         interval = 1.0 / max(1, int(broadcast_fps))
         logger.info(f"Image broadcaster started (fps={broadcast_fps})")
+        frame_count = 0
         while not _camera_stop_event.is_set():
             with _camera_lock:
                 frame = _camera_latest_frame
             if frame:
                 try:
-                    sio_server.emit('image', frame)
-                except Exception:
-                    pass
+                    # Get current client count for debugging
+                    try:
+                        clients = len(sio_server.manager.rooms.get('/', {}).get('', [])) if hasattr(sio_server, 'manager') else 0
+                    except Exception:
+                        clients = '?'
+                    
+                    frame_count += 1
+                    # Emit raw JPEG bytes to all connected clients in default namespace/room
+                    sio_server.emit('image', frame, to=None, namespace='/')
+                    if frame_count % 15 == 0:  # Log every 15 frames (~1 sec at 15 FPS)
+                        logger.info(f"Broadcasting frame #{frame_count}, size: {len(frame)} bytes, clients: {clients}")
+                except Exception as e:
+                    logger.warning(f"Failed to emit frame: {e}", exc_info=False)
             time.sleep(interval)
         logger.info("Image broadcaster stopped")
 
     def _run_sio():
-        try:
-            import eventlet
+        if eventlet is not None:
             try:
-                eventlet.monkey_patch()
+                try:
+                    eventlet.monkey_patch()
+                except Exception:
+                    pass
+                logger.info(f"Starting Socket.IO image server on {host}:{port} using eventlet")
+                eventlet.wsgi.server(eventlet.listen((host, port)), app)
+                return
             except Exception:
-                pass
-            logger.info(f"Starting Socket.IO image server on {host}:{port} using eventlet")
-            eventlet.wsgi.server(eventlet.listen((host, port)), app)
-        except Exception:
-            # Fallback to wsgiref (will use long-polling transport)
-            try:
-                from wsgiref.simple_server import make_server
-                logger.info(f"Starting Socket.IO image server on {host}:{port} using wsgiref (polling fallback)")
-                httpd = make_server(host, port, app)
-                httpd.serve_forever()
-            except Exception as e:
-                logger.exception(f"Failed to start image socket server: {e}")
+                logger.exception("Eventlet server failed, falling back to WSGI")
+
+        # Fallback to wsgiref (long-polling)
+        try:
+            from wsgiref.simple_server import make_server
+            logger.info(f"Starting Socket.IO image server on {host}:{port} using wsgiref (polling fallback)")
+            httpd = make_server(host, port, app)
+            httpd.serve_forever()
+        except Exception as e:
+            logger.exception(f"Failed to start image socket server: {e}")
 
     # start server thread
     t = threading.Thread(target=_run_sio, daemon=True)
     t.start()
-    # start broadcaster thread
+
+    # Always start broadcaster thread (more reliable across transports)
     tb = threading.Thread(target=_broadcaster, daemon=True)
     tb.start()
 
 
 def start_local_camera_service():
     device = os.environ.get('VIDEO_DEVICE', '0')
-    fps = int(os.environ.get('IMAGE_SERVER_FPS', '10'))
+    fps = int(os.environ.get('IMAGE_SERVER_FPS', '15'))
     width = os.environ.get('IMAGE_WIDTH')
     height = os.environ.get('IMAGE_HEIGHT')
 
