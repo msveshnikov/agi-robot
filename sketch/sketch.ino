@@ -8,12 +8,12 @@ const int echoPin = 9;
 const int left_wheel = 11;
 const int right_wheel = 10;
 
-const int redPin = 4;
+const int redPin = 5;
 const int greenPin = 6;
-const int bluePin = 2;
+const int bluePin = 3;
 
 const int arm1Pin = 7;
-const int arm2Pin = 5;
+const int arm2Pin = 4;
 
 Servo right_servo;
 Servo left_servo;
