@@ -224,7 +224,6 @@ class WebcamServer:
                     if e.errno == 98:  # Address already in use
                         logger.error(f"Port {self.port} is already in use. Please stop the existing service or change the port.")
                         logger.error("To find what's using the port: sudo lsof -i :%d", self.port)
-                        logger.error("To kill existing video brick: docker stop $(docker ps -q --filter ancestor=video-brick)")
                     raise
                 
                 logger.info(f"WebcamServer: WebSocket server bound to port {self.port}")

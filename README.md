@@ -332,7 +332,7 @@ The system requires the following environment variables:
     - Linux: `/home/arduino/google.json`
     - Windows: `C:\My-progs\Python\agi-robot\google.json`
 -   **`GEMINI_KEY`**: Google Gemini API key for LLM access
--   **`IMAGE_SERVER_URL`** (optional): Socket.IO server URL for webcam feed (default: `http://localhost:4912`, coming from video detection brick)
+-   **`IMAGE_SERVER_URL`**: Socket.IO server URL for webcam feed (default: `http://localhost:4912`)
 -   **`TELEGRAM_KEY`** (optional): Telegram Bot API token for alarm notifications
 -   **`ADMIN_ID`** (optional): Telegram chat ID for receiving robot alarms
 
@@ -497,9 +497,7 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Real-time camera feed integration in the dashboard
 - [x] Settings panel in dashboard
 - [x] Daily blog post (Robot Diary) from cognitive logs
+- [x] Native webcam, no bricks anymore
 
 ![alt text](image-5.png)
 
-# TODO
-
--get rid of video brick and implement direct webcam capture in media_service.py using OpenCV (cv2.VideoCapture) to reduce latency and complexity, create there similar websocket server on localhost:4912 that will be used for image_llm and inside main.py camforwarder
