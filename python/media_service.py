@@ -114,7 +114,7 @@ except ImportError:
 class WebcamServer:
     """WebSocket server that captures webcam frames and broadcasts them to connected clients"""
     
-    def __init__(self, port=4912, camera_index=0, fps=10):
+    def __init__(self, port=4912, camera_index=0, fps=15):
         self.port = port
         self.camera_index = camera_index
         self.fps = fps
@@ -159,8 +159,8 @@ class WebcamServer:
             return
         
         # Set camera properties for better performance
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         cap.set(cv2.CAP_PROP_FPS, self.fps)
         
         logger.info(f"WebcamServer: Camera {self.camera_index} opened successfully")
@@ -176,7 +176,7 @@ class WebcamServer:
                     continue
                 
                 # Encode frame as JPEG
-                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
                 if not ret:
                     logger.warning("Failed to encode frame")
                     continue
