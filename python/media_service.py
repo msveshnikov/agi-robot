@@ -7,7 +7,6 @@ import tempfile
 import base64
 import os
 import socketio
-import time
 import threading
 import json
 import re
@@ -15,14 +14,20 @@ import ast
 import random
 import glob
 import requests
+import cv2
+import numpy as np
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from engineio.payload import Payload
+
+# Increase max decode packets to handle larger image payloads
+Payload.max_decode_packets = 500
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/arduino/google.json'
 
 import logging
- 
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -31,11 +36,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("SoundService")
-
-try:
-    import cv2
-except Exception:
-    cv2 = None
 
 # ===== PYDANTIC SCHEMAS FOR STRUCTURED OUTPUTS =====
 
@@ -107,6 +107,173 @@ try:
     from google.genai import types
 except ImportError:
     logger.warning("google-genai library not found. LLM will not work.")
+
+
+# ===== WEBCAM CAPTURE & WEBSOCKET SERVER =====
+
+class WebcamServer:
+    """WebSocket server that captures webcam frames and broadcasts them to connected clients"""
+    
+    def __init__(self, port=4912, camera_index=0, fps=10):
+        self.port = port
+        self.camera_index = camera_index
+        self.fps = fps
+        self.frame_interval = 1.0 / fps
+        self.latest_frame = None
+        self.latest_frame_lock = threading.Lock()
+        self.running = False
+        self.capture_thread = None
+        self.server_thread = None
+        
+        # Create Socket.IO server
+        self.sio = socketio.Server(
+            cors_allowed_origins='*',
+            logger=False,
+            engineio_logger=False,
+            async_mode='threading'
+        )
+        self.app = socketio.WSGIApp(self.sio)
+        
+        # Register Socket.IO events
+        @self.sio.event
+        def connect(sid, environ):
+            logger.info(f"WebcamServer: Client connected: {sid}")
+        
+        @self.sio.event
+        def disconnect(sid):
+            logger.info(f"WebcamServer: Client disconnected: {sid}")
+        
+        @self.sio.event
+        def request_frame(sid):
+            """Client can request the latest frame"""
+            with self.latest_frame_lock:
+                if self.latest_frame is not None:
+                    self.sio.emit('image', self.latest_frame, room=sid)
+    
+    def capture_loop(self):
+        """Continuously capture frames from webcam and broadcast to clients"""
+        cap = cv2.VideoCapture(self.camera_index)
+        
+        if not cap.isOpened():
+            logger.error(f"Failed to open camera {self.camera_index}")
+            return
+        
+        # Set camera properties for better performance
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        cap.set(cv2.CAP_PROP_FPS, self.fps)
+        
+        logger.info(f"WebcamServer: Camera {self.camera_index} opened successfully")
+        
+        try:
+            while self.running:
+                start_time = threading.Event()
+                
+                ret, frame = cap.read()
+                if not ret:
+                    logger.warning("Failed to read frame from camera")
+                    threading.Event().wait(0.1)
+                    continue
+                
+                # Encode frame as JPEG
+                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                if not ret:
+                    logger.warning("Failed to encode frame")
+                    continue
+                
+                frame_bytes = buffer.tobytes()
+                
+                # Update latest frame
+                with self.latest_frame_lock:
+                    self.latest_frame = frame_bytes
+                
+                # Broadcast to all connected clients
+                self.sio.emit('image', frame_bytes)
+                
+                # Maintain target FPS
+                threading.Event().wait(self.frame_interval)
+                
+        finally:
+            cap.release()
+            logger.info("WebcamServer: Camera released")
+    
+    def start(self):
+        """Start the webcam capture and WebSocket server"""
+        if self.running:
+            logger.warning("WebcamServer already running")
+            return
+        
+        self.running = True
+        
+        # Start capture thread
+        self.capture_thread = threading.Thread(target=self.capture_loop, daemon=True)
+        self.capture_thread.start()
+        
+        # Start WebSocket server thread using eventlet
+        def run_server():
+            try:
+                import eventlet
+                import eventlet.wsgi
+                
+                logger.info(f"WebcamServer: Attempting to start WebSocket server on port {self.port}")
+                
+                # Try to bind to the port
+                try:
+                    listener = eventlet.listen(('0.0.0.0', self.port))
+                except OSError as e:
+                    if e.errno == 98:  # Address already in use
+                        logger.error(f"Port {self.port} is already in use. Please stop the existing service or change the port.")
+                        logger.error("To find what's using the port: sudo lsof -i :%d", self.port)
+                        logger.error("To kill existing video brick: docker stop $(docker ps -q --filter ancestor=video-brick)")
+                    raise
+                
+                logger.info(f"WebcamServer: WebSocket server bound to port {self.port}")
+                eventlet.wsgi.server(
+                    listener, 
+                    self.app,
+                    log_output=False
+                )
+            except Exception as e:
+                logger.error(f"Failed to start WebSocket server: {e}", exc_info=True)
+                self.running = False
+        
+        self.server_thread = threading.Thread(target=run_server, daemon=True)
+        self.server_thread.start()
+        
+        # Give the server a moment to start
+        import time
+        time.sleep(0.5)
+        
+        if self.running:
+            logger.info(f"WebcamServer: Started on port {self.port}")
+        else:
+            logger.error(f"WebcamServer: Failed to start on port {self.port}")
+    
+    def stop(self):
+        """Stop the webcam capture and server"""
+        self.running = False
+        if self.capture_thread:
+            self.capture_thread.join(timeout=2.0)
+        logger.info("WebcamServer: Stopped")
+    
+    def get_latest_frame(self):
+        """Get the most recent frame (blocking until available)"""
+        with self.latest_frame_lock:
+            return self.latest_frame
+
+
+# Global webcam server instance
+WEBCAM_SERVER = None
+
+def init_webcam_server():
+    """Initialize and start the webcam server"""
+    global WEBCAM_SERVER
+    if WEBCAM_SERVER is None:
+        WEBCAM_SERVER = WebcamServer(port=4912, camera_index=0, fps=10)
+        WEBCAM_SERVER.start()
+        logger.info("Webcam server initialized")
+
+# ===== END WEBCAM CAPTURE =====
 
 
 def send_telegram_alarm(message):
@@ -194,40 +361,40 @@ def init_llm():
         raise
 
 
-def get_image_from_socket(timeout=5):
+def get_image_from_webcam(timeout=5):
     """
-    Return the latest captured frame from the local OpenCV capture buffer.
-    If no local capture is available, fall back to returning None.
+    Get the latest frame from the local webcam server.
+    Replaces the old get_image_from_socket function.
     """
-    # latest_frame is populated by the camera capture thread started below
-    global _camera_latest_frame, _camera_lock
-    if '_camera_latest_frame' not in globals():
-        return None
-
-    deadline = time.time() + float(timeout or 0)
-    while True:
-        with _camera_lock:
-            data = _camera_latest_frame
-        if data:
-            # Optionally save to google drive folder as before
+    try:
+        if WEBCAM_SERVER is None:
+            logger.error("Webcam server not initialized")
+            return None
+        
+        # Get the latest frame directly from the webcam server
+        frame_bytes = WEBCAM_SERVER.get_latest_frame()
+        
+        if frame_bytes:
             try:
                 save_dir = '/home/arduino/google-drive/robot'
                 if not os.path.exists(save_dir):
                     os.makedirs(save_dir, exist_ok=True)
+                
+                # Use timestamp for unique filename
                 filename = f"img_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
                 filepath = os.path.join(save_dir, filename)
+                
                 with open(filepath, 'wb') as f:
-                    f.write(data)
+                    f.write(frame_bytes)
                 logger.info(f"Saved image to {filepath}")
             except Exception as e:
                 logger.warning(f"Failed to save image to {save_dir}: {e}")
-
-            return data
-
-        if time.time() > deadline:
-            return None
-
-        time.sleep(0.05)
+        
+        return frame_bytes
+        
+    except Exception as e:
+        logger.error(f"Failed to get image from webcam: {e}", exc_info=True)
+        return None
 
 
 def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
@@ -334,170 +501,6 @@ def normalize_response_object(response_text):
         return response_text
     if isinstance(response_text, (dict, list)):
         return json.dumps(response_text).encode('utf-8')
-
-
-# ===== Camera capture + local Socket.IO image server (port 4912) =====
-# Shared latest frame buffer and control
-_camera_latest_frame = None
-_camera_lock = threading.Lock()
-_camera_stop_event = threading.Event()
-
-def _camera_capture_loop(device=0, width=None, height=None, fps=10):
-    if cv2 is None:
-        logger.warning("OpenCV (cv2) not available — camera capture disabled")
-        return
-    global _camera_latest_frame
-    try:
-        cap = cv2.VideoCapture(int(device))
-        if not cap.isOpened():
-            logger.warning(f"Could not open video device {device}")
-            return
-        if width:
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
-        if height:
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
-
-        interval = 1.0 / max(1, int(fps))
-        logger.info(f"Camera capture started (device={device}, fps={fps})")
-        while not _camera_stop_event.is_set():
-            ret, frame = cap.read()
-            if not ret:
-                time.sleep(0.1)
-                continue
-            # encode as jpeg
-            try:
-                ok, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
-                if ok:
-                    data = jpeg.tobytes()
-                    logger.info(f"Captured camera frame, size: {len(data)} bytes")
-                    with _camera_lock:
-                        _camera_latest_frame = data
-            except Exception as e:
-                logger.warning(f"Failed to encode camera frame: {e}")
-            time.sleep(interval)
-    except Exception as e:
-        logger.exception(f"Camera capture error: {e}")
-    finally:
-        try:
-            cap.release()
-        except Exception:
-            pass
-        logger.info("Camera capture stopped")
-
-
-def _start_camera_socket_server(host='0.0.0.0', port=4912, broadcast_fps=10):
-    """Start a local Socket.IO server that emits 'image' events with JPEG bytes.
-
-    Uses eventlet when available (websocket support). The broadcaster is
-    started via `sio_server.start_background_task` when possible; otherwise
-    it runs in a separate thread.
-    """
-    # Detect eventlet availability and choose async mode accordingly
-    try:
-        import eventlet
-        async_mode = 'eventlet'
-    except Exception:
-        eventlet = None
-        async_mode = 'threading'
-
-    sio_server = socketio.Server(cors_allowed_origins='*', async_mode=async_mode)
-    app = socketio.WSGIApp(sio_server)
-
-    @sio_server.event
-    def connect(sid, environ):
-        logger.info(f"Image socket connected: {sid}")
-        try:
-            # Try to count connected clients in default namespace
-            if hasattr(sio_server, 'manager'):
-                rooms = sio_server.manager.rooms.get('/', {})
-                default_room = rooms.get('')
-                clients = len(default_room) if default_room else 0
-            else:
-                clients = None
-            logger.info(f"Total clients in default room: {clients}")
-        except Exception as e:
-            logger.debug(f"Could not count clients: {e}")
-
-    @sio_server.event
-    def disconnect(sid):
-        logger.info(f"Image socket disconnected: {sid}")
-        try:
-            if hasattr(sio_server, 'manager'):
-                rooms = sio_server.manager.rooms.get('/', {})
-                default_room = rooms.get('')
-                remaining = len(default_room) if default_room else 0
-            else:
-                remaining = None
-            logger.info(f"Remaining clients in default room: {remaining}")
-        except Exception:
-            pass
-
-    def _broadcaster():
-        interval = 1.0 / max(1, int(broadcast_fps))
-        logger.info(f"Image broadcaster started (fps={broadcast_fps})")
-        frame_count = 0
-        while not _camera_stop_event.is_set():
-            with _camera_lock:
-                frame = _camera_latest_frame
-            if frame:
-                try:
-                    # Get current client count for debugging
-                    try:
-                        clients = len(sio_server.manager.rooms.get('/', {}).get('', [])) if hasattr(sio_server, 'manager') else 0
-                    except Exception:
-                        clients = '?'
-                    
-                    frame_count += 1
-                    # Emit raw JPEG bytes to all connected clients in default namespace/room
-                    sio_server.emit('image', frame, to=None, namespace='/')
-                    if frame_count % 15 == 0:  # Log every 15 frames (~1 sec at 15 FPS)
-                        logger.info(f"Broadcasting frame #{frame_count}, size: {len(frame)} bytes, clients: {clients}")
-                except Exception as e:
-                    logger.warning(f"Failed to emit frame: {e}", exc_info=False)
-            time.sleep(interval)
-        logger.info("Image broadcaster stopped")
-
-    def _run_sio():
-        if eventlet is not None:
-            try:
-                try:
-                    eventlet.monkey_patch()
-                except Exception:
-                    pass
-                logger.info(f"Starting Socket.IO image server on {host}:{port} using eventlet")
-                eventlet.wsgi.server(eventlet.listen((host, port)), app)
-                return
-            except Exception:
-                logger.exception("Eventlet server failed, falling back to WSGI")
-
-        # Fallback to wsgiref (long-polling)
-        try:
-            from wsgiref.simple_server import make_server
-            logger.info(f"Starting Socket.IO image server on {host}:{port} using wsgiref (polling fallback)")
-            httpd = make_server(host, port, app)
-            httpd.serve_forever()
-        except Exception as e:
-            logger.exception(f"Failed to start image socket server: {e}")
-
-    # start server thread
-    t = threading.Thread(target=_run_sio, daemon=True)
-    t.start()
-
-    # Always start broadcaster thread (more reliable across transports)
-    tb = threading.Thread(target=_broadcaster, daemon=True)
-    tb.start()
-
-
-def start_local_camera_service():
-    device = os.environ.get('VIDEO_DEVICE', '0')
-    fps = int(os.environ.get('IMAGE_SERVER_FPS', '15'))
-    width = os.environ.get('IMAGE_WIDTH')
-    height = os.environ.get('IMAGE_HEIGHT')
-
-    tc = threading.Thread(target=_camera_capture_loop, args=(device, width, height, fps), daemon=True)
-    tc.start()
-    # Start socket server that broadcasts frames to clients
-    _start_camera_socket_server(port=int(os.environ.get('IMAGE_SERVER_PORT', '4912')), broadcast_fps=fps)
 
 
 class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
@@ -701,7 +704,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     f"Choose the best movement command to safely progress toward the Main Goal."
                 )
 
-                image_data = get_image_from_socket(timeout=5)
+                image_data = get_image_from_webcam(timeout=5)
 
                 if not image_data:
                     raise Exception('No image available for llm_vision')
@@ -734,16 +737,16 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
 
 if __name__ == "__main__":
-    # Start local camera capture and image socket server for low-latency frames
-    try:
-        start_local_camera_service()
-    except Exception:
-        logger.exception("Failed to start local camera service")
-
+    # Initialize webcam server first
+    init_webcam_server()
+    
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), MediaServiceHandler) as httpd:
         logger.info(f"Media and LLM service running on http://localhost:{PORT}")
+        logger.info(f"Webcam WebSocket server running on ws://localhost:4912")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
+            if WEBCAM_SERVER:
+                WEBCAM_SERVER.stop()
             pass
