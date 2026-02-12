@@ -45,9 +45,9 @@ void setRGB(String rgb_str)
         b = rgb_str.substring(secondComma + 1).toInt();
     }
 
-    digitalWrite(bluePin, (b > 128) ? HIGH : LOW);
-    digitalWrite(redPin, (r > 128) ? HIGH : LOW);
-    digitalWrite(greenPin, (g > 128) ? HIGH : LOW);
+    analogWrite(bluePin, b);
+    analogWrite(redPin, r);
+    analogWrite(greenPin, g);
 }
 
 void move(String mvcmd, boolean stop)
@@ -167,7 +167,6 @@ void setArm1(int targetAngle)
 {
     arm1_servo.write(targetAngle);
 }
- 
 
 void setArm2(int targetAngle)
 {
@@ -194,51 +193,34 @@ void setup()
 
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
-    pinMode(redPin, OUTPUT);
-    pinMode(greenPin, OUTPUT);
-    pinMode(bluePin, OUTPUT);
 
     pinMode(arm1Pin, OUTPUT);
     pinMode(arm2Pin, OUTPUT);
     arm1_servo.attach(arm1Pin);
     arm2_servo.attach(arm2Pin);
 
-    // Make rainbow two times
+    // Make rainbow two times using setRGB
     for (int i = 0; i < 2; i++)
     {
-        digitalWrite(redPin, HIGH);
-        digitalWrite(greenPin, LOW);
-        digitalWrite(bluePin, LOW);
-        
-        delay(100);
-        digitalWrite(redPin, HIGH);
-        digitalWrite(greenPin, LOW);
-        digitalWrite(bluePin, 130);
-        
-        delay(100);
-        digitalWrite(redPin, HIGH);
-        digitalWrite(greenPin, HIGH);
-        digitalWrite(bluePin, LOW);
+        setRGB("255,0,0");
         delay(100);
 
-        digitalWrite(redPin, LOW);
-        digitalWrite(greenPin, HIGH);
-        digitalWrite(bluePin, LOW);
-        delay(100);
-        
-        digitalWrite(redPin, LOW);
-        digitalWrite(greenPin, LOW);
-        digitalWrite(bluePin, HIGH);
-        delay(100);
-        
-        digitalWrite(redPin, LOW);
-        digitalWrite(greenPin, LOW);
-        digitalWrite(bluePin, HIGH);
+        setRGB("255,0,130");
         delay(100);
 
-        digitalWrite(redPin, HIGH);
-        digitalWrite(greenPin, LOW);
-        digitalWrite(bluePin, HIGH);
+        setRGB("255,255,0");
+        delay(100);
+
+        setRGB("0,255,0");
+        delay(100);
+
+        setRGB("0,0,255");
+        delay(100);
+
+        setRGB("0,0,255");
+        delay(100);
+
+        setRGB("255,0,255");
         delay(100);
     }
 }

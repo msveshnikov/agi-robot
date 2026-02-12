@@ -99,11 +99,11 @@ class BackendClient:
                         time.sleep(interval)
                         continue
 
-                # Track updated_at to avoid redundant trigger
-                updated_at = new_state.get('updated_at')
-                if updated_at != self.last_updated:
+                # Track timestamp to avoid redundant trigger
+                timestamp = new_state.get('timestamp')
+                if timestamp != self.last_updated:
                     self._process_state_change(new_state)
-                    self.last_updated = updated_at
+                    self.last_updated = timestamp
                     self.state = new_state
             else:
                 if self.connected:

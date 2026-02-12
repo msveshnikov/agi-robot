@@ -50,8 +50,8 @@ const Dashboard = () => {
                     temperature: state.temperature || 0,
                     humidity: state.humidity || 0,
                 });
-                if (state.updatedAt || state.updated_at) {
-                    setLastTelemetryTime(new Date(state.updatedAt || state.updated_at).getTime());
+                if (state.timestamp) {
+                    setLastTelemetryTime(new Date(state.timestamp).getTime());
                 }
             } catch (error) {
                 console.error("Failed to fetch initial state:", error);

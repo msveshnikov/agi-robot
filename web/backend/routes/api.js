@@ -15,7 +15,7 @@ router.get('/health', (req, res) => {
 // Get current robot state
 router.get('/state', async (req, res) => {
     try {
-        let state = await RobotState.findOne().sort({ updated_at: -1 });
+        let state = await RobotState.findOne().sort({ timestamp: -1 });
 
         // Initialize state if doesn't exist
         if (!state) {
@@ -34,7 +34,7 @@ router.post('/state', async (req, res) => {
     try {
         const updates = req.body;
 
-        let state = await RobotState.findOne().sort({ updated_at: -1 });
+        let state = await RobotState.findOne().sort({ timestamp: -1 });
 
         if (!state) {
             state = await RobotState.create(updates);
@@ -105,7 +105,7 @@ router.post('/control/move', async (req, res) => {
         });
 
         // Update state
-        const state = await RobotState.findOne().sort({ updated_at: -1 });
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
         if (state) {
             // Reset all directions
             state.forward = false;
@@ -134,7 +134,7 @@ router.post('/control/agi', async (req, res) => {
     try {
         const { enabled } = req.body;
 
-        const state = await RobotState.findOne().sort({ updated_at: -1 });
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
         if (state) {
             state.agi = enabled;
             await state.save();
@@ -159,7 +159,7 @@ router.post('/control/panic', async (req, res) => {
     try {
         const { enabled } = req.body;
 
-        const state = await RobotState.findOne().sort({ updated_at: -1 });
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
         if (state) {
             state.panic = enabled;
             await state.save();
@@ -295,7 +295,7 @@ router.post('/control/rgb', async (req, res) => {
     try {
         const { hue, sat, bri, swi } = req.body;
 
-        const state = await RobotState.findOne().sort({ updated_at: -1 });
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
         if (state) {
             if (hue !== undefined) state.rgb.hue = hue;
             if (sat !== undefined) state.rgb.sat = sat;
@@ -324,7 +324,7 @@ router.post('/control/arm', async (req, res) => {
     try {
         const { arm1, arm2 } = req.body;
 
-        const state = await RobotState.findOne().sort({ updated_at: -1 });
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
         if (state) {
             if (arm1 !== undefined) state.arm1 = Math.max(0, Math.min(180, arm1));
             if (arm2 !== undefined) state.arm2 = Math.max(0, Math.min(180, arm2));

@@ -2,20 +2,16 @@ import http.server
 import socketserver
 import subprocess
 import urllib.parse
-import sys
 import tempfile
 import base64
 import os
 import socketio
 import threading
 import json
-import re
-import ast
 import random
 import glob
 import requests
 import cv2
-import numpy as np
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field

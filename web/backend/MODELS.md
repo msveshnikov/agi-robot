@@ -12,7 +12,6 @@ Represents a generated blog post, typically creating a narrative from the robot'
   - `content` (String, required): The main body text of the post.
   - `date` (Date, default: `Date.now`): When the post was created. Indexed for sorting.
   - `logsCount` (Number, required): Number of logs aggregated to create this post.
-  - `timestamps`: Automatically manages `createdAt` and `updatedAt`.
 
 ## 2. CognitiveLog
 
@@ -25,7 +24,6 @@ Stores the robot's internal cognitive state, including plans and goals.
   - `memory` (String): Short-term or context-specific memory string.
   - `goal` (String): The current overarching goal.
   - `timestamp` (Date, default: `Date.now`): Time of the log entry. Indexed.
-  - `timestamps`: Automatically manages `createdAt` and `updatedAt`.
 
 ## 3. CommandLog
 
@@ -40,7 +38,6 @@ Records commands sent to or executed by the robot.
   - `llm_response` (Mixed): The raw response from the LLM if the command originated there.
   - `source` (String, default: 'user'): Origin of the command.
     - Enum: `['user', 'agi', 'panic', 'api']`
-  - `timestamps`: Automatically manages `createdAt` and `updatedAt`.
 
 ## 4. RobotState
 
@@ -73,8 +70,6 @@ The single source of truth for the robot's current capabilities and status. Note
     - `movement_history` (Array of Strings).
   - **Alarm**:
     - `alarm` (String)
-  - `updated_at` (Date): Manually updated on save.
-  - `timestamps`: Automatically manages `createdAt` and `updatedAt`.
 
 ## 5. TelemetryLog
 
@@ -89,4 +84,3 @@ Historical record of sensor data.
   - `position_estimate`:
     - `x` (Number)
     - `y` (Number)
-  - `timestamps`: Automatically manages `createdAt` and `updatedAt`.
