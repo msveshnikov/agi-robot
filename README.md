@@ -206,7 +206,7 @@ graph TD
 | **Sensor**      | D8, D9      | Proximity/Distance (Trig/Echo)    |
 | **Modulino**    | I2C         | Temperature & Humidity Sensor     |
 | **Matrix**      | Built-in    | 12x8 LED Matrix                   |
-| **RGB LED**     | D6, D2, D1  | Red, Green, Blue (Common Cathode) |
+| **RGB LED**     | D4, D6, D2  | Red, Green, Blue (Common Cathode) |
 | **Arm Servo 1** | D3          | Manipulator Arm Base (0-180°)     |
 | **Arm Servo 2** | D5          | Manipulator Arm Joint (0-180°)    |
 | **USB**         | USB Port    | Serial Communication/Webcam       |

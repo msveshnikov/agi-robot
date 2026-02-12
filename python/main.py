@@ -73,7 +73,6 @@ class CameraForwarder:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("robot.main")
 
-MAIN_GOAL = "Be helpful assistant to the master human"
 BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
 arduino_cloud = BackendClient(BACKEND_URL)
 camera_forwarder = CameraForwarder(local_url="http://172.17.0.1:4912", remote_url=BACKEND_URL)
@@ -91,7 +90,12 @@ lang = "en"
 rgb = "255,0,255"
 arm1 = 0
 arm2 = 0
-
+goal = "Be helpful assistant to the master human"
+plan = ""
+subplan = ""
+space_map = ""
+movement_history = []
+memory = ""
 
 def speed_callback(client: object, value: int):
     global speed
@@ -134,14 +138,13 @@ def asi_callback(client: object, value: bool):
     asi = value
 
 def goal_callback(client: object, value: str):
-    global MAIN_GOAL
-    logger.info(f"Main Goal updated from cloud: {value}")
-    MAIN_GOAL = value
+    global goal
+    logger.info(f"Goal updated from cloud: {value}")
+    goal = value
     try:
         speak(f"New goal received: {value}")
     except Exception:
         pass
-
 
 def lang_callback(client: object, value: str):
     global lang
@@ -331,11 +334,11 @@ def ask_llm_vision(distance: float, temperature: float = None, humidity: float =
             "distance": distance,
             "temperature": temperature,
             "humidity": humidity,
+            "goal": goal,
             "plan": plan,
             "subplan": subplan,
             "space_map": space_map,
             "memory": memory,
-            "main_goal": MAIN_GOAL,
             "movement_history": movement_history,
             "lang": lang,
             "asi": asi,
@@ -370,13 +373,6 @@ def ask_llm_vision(distance: float, temperature: float = None, humidity: float =
     except Exception as e:
         logger.warning(f"Could not call LLM vision service: {e}")
         return {}
-
-# Internal subplan/context for AGI loop
-plan = ""
-subplan = ""
-space_map = ""
-movement_history = []
-memory = ""
 
 MEMORY_FILE = "memory.txt"
 

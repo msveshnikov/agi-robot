@@ -668,7 +668,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 subplan = payload.get('subplan', '')
                 space_map = payload.get('space_map', '')
                 memory = payload.get('memory', '')
-                main_goal = payload.get('main_goal', '')
+                goal = payload.get('goal', '')
                 movement_history = payload.get('movement_history', [])
                 lang = payload.get('lang', 'en')
                 asi = payload.get('asi', False)
@@ -688,7 +688,7 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 # Compose a prompt for the multimodal model
                 prompt = payload.get('prompt') or (
                     f"ROBOT STATE REPORT:\n"
-                    f"- Main Goal: {main_goal}\n"
+                    f"- Main Goal: {goal}\n"
                     f"- Global Plan: {plan}\n"
                     f"- Current Subplan: {subplan}\n"
                     f"- Permanent Memory: {memory}\n"
