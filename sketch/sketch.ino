@@ -46,8 +46,8 @@ void setRGB(String rgb_str)
     }
 
     analogWrite(bluePin, b);
-    analogWrite(redPin, r);
-    analogWrite(greenPin, g);
+    analogWrite(redPin, r / 1.2);
+    analogWrite(greenPin, g / 2);
 }
 
 void move(String mvcmd, boolean stop)

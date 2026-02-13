@@ -402,7 +402,7 @@ const LandingPage = () => {
                         </div>
                     </div>
                     <div className="footer-bottom">
-                        <p>&copy; 2026 AGI Robot Project. Built with passion for AI and robotics.</p>
+                        <p>&copy; 2026 MaxSoft. Built with passion for AI and robotics.</p>
                     </div>
                 </div>
             </footer>
