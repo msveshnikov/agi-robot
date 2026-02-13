@@ -455,6 +455,9 @@ def agi_loop():
         distance = Bridge.call("getDistance")
         temperature = getattr(arduino_cloud, 'temperature', None)
         humidity = getattr(arduino_cloud, 'humidity', None)
+    except Exception as e:
+        logger.warning("%s", e)
+        
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
     # Check for manual override before expensive LLM call
