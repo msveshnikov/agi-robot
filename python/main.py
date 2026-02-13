@@ -202,6 +202,27 @@ def rgb_callback(client: object, value):
     except Exception as e:
         logger.error(f"Error handling RGB update: {e}")
 
+def volume_callback(client: object, value: int):
+    """Callback function to handle volume updates from backend."""
+    try:
+        level = int(value)
+        level = max(0, min(100, level))  # Clamp to 0-100
+        logger.info(f"Volume updated from backend: {level}%")
+        
+        # Call media service to set PulseAudio volume
+        payload = json.dumps({"level": level}).encode("utf-8")
+        req = urllib.request.Request(
+            "http://172.17.0.1:5000/volume",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            resp = response.read().decode("utf-8")
+            logger.info(f"Volume set successfully: {resp}")
+    except Exception as e:
+        logger.error(f"Error setting volume: {e}")
+
 # Rainbow effect for listening mode
 rainbow_stop_event = None
 rainbow_thread = None
@@ -269,6 +290,7 @@ arduino_cloud.register("lang", on_write=lang_callback)
 arduino_cloud.register("arm1", on_write=arm1_callback)
 arduino_cloud.register("arm2", on_write=arm2_callback)
 arduino_cloud.register("rgb", on_write=rgb_callback)
+arduino_cloud.register("volume", on_write=volume_callback)
 arduino_cloud.register("distance")
 arduino_cloud.register("temperature")
 arduino_cloud.register("humidity")
