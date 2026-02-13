@@ -101,6 +101,7 @@ memory = ""
 agi_running = False
 manual_override_event = threading.Event()
 agi_lock = threading.Lock()
+was_manual = False  # Track if we were just in manual mode
 
 def bridge_call(method, *args, **kwargs):
     with agi_lock:
@@ -621,16 +622,23 @@ def agi_loop():
                     movement_history.append(mv)
                     # Execute the command and wait (stop=True for all but the last command)
                     is_last_move = (idx == len(moves) - 1)
-                    bridge_call("move", move_cmd, True)
+                    bridge_call("move", move_cmd, False)
                     
                     # Check for manual override after move completes
                     if manual_override_event.is_set() or not agi:
                         logger.info(f"Manual override or AGI disabled after move {idx + 1}, stopping AGI movements")
+                        bridge_call("move", "STOP", True)
                         return
                     
                     # Add a small delay between moves for stability
                     if not is_last_move:
-                        time.sleep(0.2)
+                        # Wait for the move to complete in a non-blocking way to stay responsive to overrides
+                        start_move = time.time()
+                        while time.time() - start_move < 1.5:
+                            if manual_override_event.is_set() or not agi:
+                                bridge_call("move", "STOP", True)
+                                return
+                            time.sleep(0.1)
         
         # Also support single 'move' command for backward compatibility
         elif "move" in resp:
@@ -655,7 +663,14 @@ def agi_loop():
                 # Add to history if a valid move command was generated
                 if move_cmd:
                     movement_history.append(mv)
-                    bridge_notify("move", move_cmd, True)
+                    bridge_call("move", move_cmd, False)
+                    # Small wait for single move too
+                    start_move = time.time()
+                    while time.time() - start_move < 1.0:
+                        if manual_override_event.is_set() or not agi:
+                            bridge_call("move", "STOP", True)
+                            return
+                        time.sleep(0.1)
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
 
@@ -768,7 +783,7 @@ def agi_loop():
         agi_running = False
 
 def loop():
-    global speed, back, left, right, forward, agi, panic, agi_running, manual_override_event
+    global speed, back, left, right, forward, agi, panic, agi_running, manual_override_event, was_manual
     try:
         # Check for manual controls first (highest priority)
         manual_control_active = left or right or forward or back
@@ -779,7 +794,7 @@ def loop():
                 logger.info("Manual override detected during AGI mode")
                 manual_override_event.set()
             
-            # Execute manual controls
+            # Execute manual controls (non-blocking)
             if left:
                 bridge_call("move", f"TURN|left|20|{speed}", False)
             elif right:
@@ -788,19 +803,35 @@ def loop():
                 bridge_call("move", f"MOVE|forward|20|{speed}", False)
             elif back:
                 bridge_call("move", f"MOVE|back|20|{speed}", False)
+            
+            was_manual = True
+            
         elif panic:
             # Panic mode (second priority)
             if agi_running:
                 manual_override_event.set()
             bridge_call("panic", str(speed))
-        elif agi:
-            # AGI mode (third priority)
-            if not agi_running:
-                logger.info("Starting AGI thread...")
-                threading.Thread(target=agi_loop, daemon=True).start()
+            was_manual = True
+            
         else:
-            # No controls active - stop
-            bridge_call("move", "STOP", True)
+            # No manual/panic active. If we were just manual, send STOP before AI takes over
+            if was_manual:
+                logger.info("Manual control released, sending STOP")
+                bridge_call("move", "STOP", True)
+                was_manual = False
+                
+            if agi:
+                # AGI mode (third priority)
+                if not agi_running:
+                    logger.info("Starting AGI thread...")
+                    threading.Thread(target=agi_loop, daemon=True).start()
+            else:
+                # Completely idle, ensure stopped if we were just running
+                if agi_running:
+                    logger.info("AGI was running but is now disabled, signaling stop")
+                    manual_override_event.set()
+                    bridge_call("move", "STOP", True)
+                # Avoid spamming STOP in the idle loop
         
         time.sleep(0.1)
 
