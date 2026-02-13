@@ -598,10 +598,16 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
 
                     play_audio_file(temp_filename)
 
+                    # Read the audio file to send it back to the robot for broadcasting
+                    with open(temp_filename, 'rb') as f:
+                        audio_data = f.read()
+
                     self.send_response(200)
-                    self.send_header('Content-type', 'text/plain; charset=utf-8')
+                    self.send_header('Content-type', 'audio/wav')
+                    self.send_header('Content-length', len(audio_data))
                     self.end_headers()
-                    self.wfile.write(f"Speaking ({lang}): {text}".encode('utf-8'))
+                    self.wfile.write(audio_data)
+                    logger.info(f"Speaking ({lang}): {text} and returned audio data")
                 
                 except Exception as e:
                     logger.error(f"Error calling Google TTS: {e}", exc_info=True)

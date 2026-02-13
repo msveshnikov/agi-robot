@@ -44,7 +44,17 @@ const CameraFeed = () => {
             setActive(true);
         };
 
+        const handleSpeech = (data) => {
+            if (data && data.audio) {
+                console.log("Receiving robot speech broadcast:", data.text);
+                const audioUrl = `data:audio/wav;base64,${data.audio}`;
+                const audio = new Audio(audioUrl);
+                audio.play().catch(e => console.error("Error playing broadcasted speech:", e));
+            }
+        };
+
         socketService.on('camera', handleCameraFrame);
+        socketService.on('speech', handleSpeech);
 
         // Heartbeat to detect stale feed
         const interval = setInterval(() => {
@@ -55,6 +65,7 @@ const CameraFeed = () => {
 
         return () => {
             socketService.off('camera', handleCameraFrame);
+            socketService.off('speech', handleSpeech);
             clearInterval(interval);
         };
     }, [lastFrameTime]);

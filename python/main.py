@@ -355,9 +355,21 @@ def speak(text):
         query = urllib.parse.urlencode({'text': text, 'lang': lang})
         url = f"http://172.17.0.1:5000/speak?{query}"
         with urllib.request.urlopen(url, timeout=55) as response:
-            logger.info(f"Speak service called: {response.read().decode()}")
+            audio_data = response.read()
+            logger.info(f"Speak service called, received {len(audio_data)} bytes of audio")
+            
+            # Broadcast speech audio to client browsers via CameraForwarder's remote socket
+            if camera_forwarder.remote_sio.connected:
+                # Send as base64 encoded string for easier transit over JSON
+                audio_b64 = base64.b64encode(audio_data).decode('utf-8')
+                camera_forwarder.remote_sio.emit('speech', {
+                    'audio': audio_b64,
+                    'text': text,
+                    'lang': lang
+                })
+                logger.info("Speech broadcasted to backend")
     except Exception as e:
-        logger.warning(f"Could not call speak service: {e}")
+        logger.warning(f"Could not call speak service or broadcast speech: {e}")
 
 def set_distance(d):
   arduino_cloud.distance = int(d)

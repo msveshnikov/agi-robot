@@ -62,6 +62,12 @@ io.on("connection", (socket) => {
         // Broadcast camera feed to all clients
         socket.broadcast.emit("camera", data);
     });
+
+    // Handle robot speech broadcast
+    socket.on("speech", (data) => {
+        // Broadcast speech audio and text to all clients
+        socket.broadcast.emit("speech", data);
+    });
 });
 
 // API Routes
