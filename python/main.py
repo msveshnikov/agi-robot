@@ -465,8 +465,34 @@ def agi_loop():
         logger.info("Manual override detected before LLM call, aborting AGI loop")
         return
     
-    resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory, arm1=arm1, arm2=arm2)
+    # Run LLM call in a separate thread so we can interrupt it
+    logger.info("Starting LLM call in background thread...")
+    llm_result = [None]  # Use list to share result between threads
+    llm_exception = [None]
     
+    def llm_thread():
+        try:
+            llm_result[0] = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory, arm1=arm1, arm2=arm2)
+        except Exception as e:
+            llm_exception[0] = e
+    
+    thread = threading.Thread(target=llm_thread, daemon=True)
+    thread.start()
+    
+    # Poll for completion or manual override every 0.5 seconds
+    while thread.is_alive():
+        if manual_override_event.is_set():
+            logger.info("Manual override detected during LLM call, aborting AGI loop")
+            # Thread will continue but we'll ignore the result
+            return
+        thread.join(timeout=0.5)
+    
+    # Check if there was an exception
+    if llm_exception[0]:
+        logger.error(f"LLM call failed: {llm_exception[0]}")
+        return
+    
+    resp = llm_result[0]
     if not resp:
         return
 
