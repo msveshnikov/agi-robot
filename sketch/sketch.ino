@@ -12,8 +12,8 @@ const int redPin = 5;
 const int greenPin = 6;
 const int bluePin = 3;
 
-const int arm1Pin = 7;
-const int arm2Pin = 4;
+const int arm1Pin = 4;
+const int arm2Pin = 7;
 
 Servo right_servo;
 Servo left_servo;
