@@ -622,7 +622,7 @@ def agi_loop():
                     movement_history.append(mv)
                     # Execute the command and wait (stop=True for all but the last command)
                     is_last_move = (idx == len(moves) - 1)
-                    bridge_call("move", move_cmd, False)
+                    bridge_call("move", move_cmd, True)
                     
                     # Check for manual override after move completes
                     if manual_override_event.is_set() or not agi:
@@ -663,7 +663,7 @@ def agi_loop():
                 # Add to history if a valid move command was generated
                 if move_cmd:
                     movement_history.append(mv)
-                    bridge_call("move", move_cmd, False)
+                    bridge_call("move", move_cmd, True)
                     # Small wait for single move too
                     start_move = time.time()
                     while time.time() - start_move < 1.0:
