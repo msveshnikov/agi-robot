@@ -615,7 +615,7 @@ def agi_loop():
                     logger.info(f"Executing move {idx + 1}/{len(moves)}: {move_cmd}")
                     # Add to history
                     movement_history.append(mv)
-                    # Execute the command and wait (stop=True for all but the last command)
+                    # Execute the command and wait (stop=True always)
                     is_last_move = (idx == len(moves) - 1)
                     bridge_call("move", move_cmd, True)
                     
