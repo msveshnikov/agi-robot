@@ -418,7 +418,7 @@ const LandingPage = () => {
                                 className={`btn ${selectedPlan === 'Free' ? 'btn-primary' : 'btn-secondary'}`}
                                 onClick={() => setSelectedPlan('Free')}
                             >
-                                {selectedPlan === 'Free' ? 'Selected' : 'Select Plan'}
+                                <span>{selectedPlan === 'Free' ? 'Selected' : 'Select Plan'}</span>
                             </button>
                         </motion.div>
 
@@ -446,7 +446,7 @@ const LandingPage = () => {
                                 className={`btn ${selectedPlan === '$200' ? 'btn-primary' : 'btn-secondary'}`}
                                 onClick={() => setSelectedPlan('$200')}
                             >
-                                {selectedPlan === '$200' ? 'Selected' : 'Select Plan'}
+                                <span>{selectedPlan === '$200' ? 'Selected' : 'Select Plan'}</span>
                             </button>
                         </motion.div>
 
@@ -475,7 +475,7 @@ const LandingPage = () => {
                                 className={`btn ${selectedPlan === '$300' ? 'btn-primary' : 'btn-secondary'}`}
                                 onClick={() => setSelectedPlan('$300')}
                             >
-                                {selectedPlan === '$300' ? 'Selected' : 'Select Plan'}
+                                <span>{selectedPlan === '$300' ? 'Selected' : 'Select Plan'}</span>
                             </button>
                         </motion.div>
                     </div>
