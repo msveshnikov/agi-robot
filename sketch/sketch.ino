@@ -229,7 +229,7 @@ void loop()
 {
     static unsigned long lastTelemetryTime = 0;
 
-    if (millis() - lastTelemetryTime >= 1000)
+    if (millis() - lastTelemetryTime >= 3000)
     {
         lastTelemetryTime = millis();
 

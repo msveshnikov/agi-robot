@@ -97,6 +97,11 @@ space_map = ""
 movement_history = []
 memory = ""
 
+# Manual override support
+agi_running = False
+manual_override_event = threading.Event()
+agi_lock = threading.Lock()
+
 def speed_callback(client: object, value: int):
     global speed
     logger.info(f"Speed value updated from cloud: {value}")
@@ -413,11 +418,16 @@ def agi_loop():
     }
     """
     
-    distance = Bridge.call("getDistance")
-    temperature = getattr(arduino_cloud, 'temperature', None)
-    humidity = getattr(arduino_cloud, 'humidity', None)
-
-    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm, arm1, arm2
+    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm, arm1, arm2, agi_running, manual_override_event
+    
+    # Mark AGI as running and clear any previous override
+    agi_running = True
+    manual_override_event.clear()
+    
+    try:
+        distance = Bridge.call("getDistance")
+        temperature = getattr(arduino_cloud, 'temperature', None)
+        humidity = getattr(arduino_cloud, 'humidity', None)
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
     resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory, arm1=arm1, arm2=arm2)
@@ -640,24 +650,41 @@ def agi_loop():
         logger.info("Synced variables to Arduino Cloud")
     except Exception as e:
         logger.warning(f"Error syncing to cloud: {e}")
+    finally:
+        # Mark AGI as no longer running
+        agi_running = False
 
 def loop():
-    global speed, back, left, right, forward, agi, panic
+    global speed, back, left, right, forward, agi, panic, agi_running, manual_override_event
     try:
+        # Check for manual controls first (highest priority)
+        manual_control_active = left or right or forward or back
         
-        if left:
-            Bridge.call("move", f"TURN|left|20|{speed}", False)
-        elif right:
-            Bridge.call("move", f"TURN|right|20|{speed}", False)
-        elif forward:
-            Bridge.call("move", f"MOVE|forward|20|{speed}", False)
-        elif back:
-            Bridge.call("move", f"MOVE|back|20|{speed}", False)
+        if manual_control_active:
+            # If manual control is active and AGI is running, signal override
+            if agi_running:
+                logger.info("Manual override detected during AGI mode")
+                manual_override_event.set()
+            
+            # Execute manual controls
+            if left:
+                Bridge.call("move", f"TURN|left|20|{speed}", False)
+            elif right:
+                Bridge.call("move", f"TURN|right|20|{speed}", False)
+            elif forward:
+                Bridge.call("move", f"MOVE|forward|20|{speed}", False)
+            elif back:
+                Bridge.call("move", f"MOVE|back|20|{speed}", False)
         elif panic:
+            # Panic mode (second priority)
+            if agi_running:
+                manual_override_event.set()
             Bridge.call("panic", str(speed))
         elif agi:
+            # AGI mode (third priority)
             agi_loop()
         else:
+            # No controls active - stop
             Bridge.call("move", "STOP", True)
         
         time.sleep(0.1)

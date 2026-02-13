@@ -27,6 +27,9 @@ const robotStateSchema = new mongoose.Schema({
     arm1: { type: Number, default: 0, min: 0, max: 180 },
     arm2: { type: Number, default: 0, min: 0, max: 180 },
 
+    // Audio Control
+    volume: { type: Number, default: 70, min: 0, max: 100 },
+
     // Telemetry (Read-only from robot)
     distance: { type: Number, default: 0 },
     temperature: { type: Number, default: 0 },

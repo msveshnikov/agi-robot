@@ -615,6 +615,36 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b"Missing 'text' parameter. Usage: /speak?text=Hello")
         
+        elif parsed_url.path == '/volume':
+            # Get current PulseAudio volume
+            try:
+                result = subprocess.run(
+                    ['pactl', 'get-sink-volume', '@DEFAULT_SINK@'],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                # Parse output like: "Volume: front-left: 65536 / 100% / 0.00 dB, front-right: 65536 / 100% / 0.00 dB"
+                output = result.stdout
+                # Extract percentage (look for first occurrence of XX%)
+                import re
+                match = re.search(r'(\d+)%', output)
+                if match:
+                    volume = int(match.group(1))
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'volume': volume}).encode('utf-8'))
+                    logger.info(f"Current volume: {volume}%")
+                else:
+                    raise Exception("Could not parse volume from pactl output")
+            except Exception as e:
+                logger.error(f"Error getting volume: {e}", exc_info=True)
+                self.send_response(500)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(f"Error getting volume: {e}".encode('utf-8'))
+        
         elif parsed_url.path == '/telegram':
             query_components = urllib.parse.parse_qs(parsed_url.query)
             message = query_components.get('message', [None])[0]
@@ -727,6 +757,47 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/plain')
                 self.end_headers()
                 self.wfile.write(f"Error: {e}".encode('utf-8'))
+        
+        elif parsed_url.path == '/volume':
+            # Set PulseAudio volume
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(content_length) if content_length else b''
+                try:
+                    payload = json.loads(body.decode('utf-8')) if body else {}
+                except Exception:
+                    payload = {}
+                
+                level = payload.get('level')
+                if level is None:
+                    self.send_response(400)
+                    self.send_header('Content-type', 'text/plain')
+                    self.end_headers()
+                    self.wfile.write(b"Missing 'level' parameter. Usage: POST /volume with JSON {\"level\": 0-100}")
+                    return
+                
+                # Validate level
+                level = max(0, min(100, int(level)))
+                
+                # Set volume using pactl
+                subprocess.run(
+                    ['pactl', 'set-sink-volume', '@DEFAULT_SINK@', f'{level}%'],
+                    check=True
+                )
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'volume': level}).encode('utf-8'))
+                logger.info(f"Volume set to {level}%")
+                
+            except Exception as e:
+                logger.error(f"Error setting volume: {e}", exc_info=True)
+                self.send_response(500)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(f"Error setting volume: {e}".encode('utf-8'))
+        
         else:
             self.send_response(404)
             self.end_headers()

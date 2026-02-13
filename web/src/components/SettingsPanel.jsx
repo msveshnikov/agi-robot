@@ -12,6 +12,7 @@ import {
     Shield,
     Activity,
     Map,
+    Volume2,
 } from "lucide-react";
 import * as api from "../services/api";
 import "./SettingsPanel.css";
@@ -19,6 +20,7 @@ import "./SettingsPanel.css";
 const SettingsPanel = ({ isOpen, onClose, currentState }) => {
     const [language, setLanguage] = useState(() => currentState?.lang || "en");
     const [speed, setSpeed] = useState(() => currentState?.speed || 45);
+    const [volume, setVolume] = useState(() => currentState?.volume || 70);
     const [goal, setGoal] = useState(() => currentState?.goal || "Be helpful assistant to the master human");
     const [saving, setSaving] = useState(false);
 
@@ -28,6 +30,7 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
             await api.updateState({
                 lang: language,
                 speed: parseInt(speed),
+                volume: parseInt(volume),
                 goal: goal,
             });
 
@@ -187,6 +190,34 @@ const SettingsPanel = ({ isOpen, onClose, currentState }) => {
                                     </div>
                                     <div className="speed-labels">
                                         <span>Idle</span>
+                                        <span>Max</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Volume Setting */}
+                            <motion.div className="setting-group" variants={itemVariants}>
+                                <div className="group-header">
+                                    <Volume2 size={20} className="group-icon" />
+                                    <span className="group-title">Speaker Volume</span>
+                                    <span className="speed-badge">{volume}%</span>
+                                </div>
+                                <div className="speed-control-container">
+                                    <div className="range-wrapper">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={volume}
+                                            onChange={(e) => setVolume(e.target.value)}
+                                            className="speed-slider"
+                                            style={{
+                                                background: `linear-gradient(to right, var(--color-primary) ${volume}%, var(--color-bg-secondary) ${volume}%)`,
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="speed-labels">
+                                        <span>Mute</span>
                                         <span>Max</span>
                                     </div>
                                 </div>

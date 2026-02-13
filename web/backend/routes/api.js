@@ -48,11 +48,25 @@ router.post('/state', async (req, res) => {
 
         // Log telemetry if updated
         if (updates.distance !== undefined || updates.temperature !== undefined || updates.humidity !== undefined) {
-            await TelemetryLog.create({
-                distance: updates.distance || state.distance,
-                temperature: updates.temperature || state.temperature,
-                humidity: updates.humidity || state.humidity
-            });
+            // Check if we should update existing log or create new one
+            const oneSecondAgo = new Date(Date.now() - 1000);
+            const lastTelemetry = await TelemetryLog.findOne().sort({ timestamp: -1 });
+
+            if (lastTelemetry && lastTelemetry.timestamp > oneSecondAgo) {
+                // Update existing log if within 1 second
+                if (updates.distance !== undefined) lastTelemetry.distance = updates.distance;
+                if (updates.temperature !== undefined) lastTelemetry.temperature = updates.temperature;
+                if (updates.humidity !== undefined) lastTelemetry.humidity = updates.humidity;
+                lastTelemetry.timestamp = new Date();
+                await lastTelemetry.save();
+            } else {
+                // Create new log if more than 1 second has passed
+                await TelemetryLog.create({
+                    distance: updates.distance || state.distance,
+                    temperature: updates.temperature || state.temperature,
+                    humidity: updates.humidity || state.humidity
+                });
+            }
 
             req.app.get('io').emit('telemetry', {
                 distance: state.distance,
@@ -64,12 +78,27 @@ router.post('/state', async (req, res) => {
 
         // Log cognitive state if updated
         if (updates.plan !== undefined || updates.subplan !== undefined || updates.memory !== undefined || updates.goal !== undefined) {
-            await CognitiveLog.create({
-                plan: updates.plan || state.plan,
-                subplan: updates.subplan || state.subplan,
-                memory: updates.memory || state.memory,
-                goal: updates.goal || state.goal
-            });
+            // Check if we should update existing log or create new one
+            const oneSecondAgo = new Date(Date.now() - 1000);
+            const lastCognitive = await CognitiveLog.findOne().sort({ timestamp: -1 });
+
+            if (lastCognitive && lastCognitive.timestamp > oneSecondAgo) {
+                // Update existing log if within 1 second
+                if (updates.plan !== undefined) lastCognitive.plan = updates.plan;
+                if (updates.subplan !== undefined) lastCognitive.subplan = updates.subplan;
+                if (updates.memory !== undefined) lastCognitive.memory = updates.memory;
+                if (updates.goal !== undefined) lastCognitive.goal = updates.goal;
+                lastCognitive.timestamp = new Date();
+                await lastCognitive.save();
+            } else {
+                // Create new log if more than 1 second has passed
+                await CognitiveLog.create({
+                    plan: updates.plan || state.plan,
+                    subplan: updates.subplan || state.subplan,
+                    memory: updates.memory || state.memory,
+                    goal: updates.goal || state.goal
+                });
+            }
 
             req.app.get('io').emit('cognitive', {
                 plan: state.plan,
@@ -343,6 +372,35 @@ router.post('/control/arm', async (req, res) => {
     } catch (error) {
         console.error('Error updating arm:', error);
         res.status(500).json({ error: 'Failed to update arm positions' });
+    }
+});
+
+// Update volume
+router.post('/control/volume', async (req, res) => {
+    try {
+        const { level } = req.body;
+
+        if (level === undefined || level < 0 || level > 100) {
+            return res.status(400).json({ error: 'Invalid volume level (must be 0-100)' });
+        }
+
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
+        if (state) {
+            state.volume = Math.max(0, Math.min(100, level));
+            await state.save();
+            req.app.get('io').emit('state', state);
+
+            await CommandLog.create({
+                command_type: 'volume',
+                command_data: { level },
+                source: 'api'
+            });
+        }
+
+        res.json({ success: true, volume: level });
+    } catch (error) {
+        console.error('Error updating volume:', error);
+        res.status(500).json({ error: 'Failed to update volume' });
     }
 });
 
