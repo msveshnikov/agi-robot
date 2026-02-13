@@ -351,18 +351,13 @@ def play_random_sound():
 def speak(text):
     if lang == "disabled":
         return
-    def speak_task():
-        try:
-            query = urllib.parse.urlencode({'text': text, 'lang': lang})
-            url = f"http://172.17.0.1:5000/speak?{query}"
-            with urllib.request.urlopen(url, timeout=55) as response:
-                logger.info(f"Speak service called: {response.read().decode()}")
-        except Exception as e:
-            logger.warning(f"Could not call speak service: {e}")
-    
-    # Run speech in background to avoid blocking robot logic
-    threading.Thread(target=speak_task, daemon=True).start()
-
+    try:
+        query = urllib.parse.urlencode({'text': text, 'lang': lang})
+        url = f"http://172.17.0.1:5000/speak?{query}"
+        with urllib.request.urlopen(url, timeout=55) as response:
+            logger.info(f"Speak service called: {response.read().decode()}")
+    except Exception as e:
+        logger.warning(f"Could not call speak service: {e}")
 
 def set_distance(d):
   arduino_cloud.distance = int(d)
