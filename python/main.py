@@ -102,6 +102,22 @@ agi_running = False
 manual_override_event = threading.Event()
 agi_lock = threading.Lock()
 
+def bridge_call(method, *args, **kwargs):
+    with agi_lock:
+        try:
+            return Bridge.call(method, *args, **kwargs)
+        except Exception as e:
+            logger.warning(f"Bridge call '{method}' failed: {e}")
+            return None
+
+def bridge_notify(method, *args, **kwargs):
+    with agi_lock:
+        try:
+            return Bridge.notify(method, *args, **kwargs)
+        except Exception as e:
+            logger.warning(f"Bridge notify '{method}' failed: {e}")
+            return None
+
 def speed_callback(client: object, value: int):
     global speed
     logger.info(f"Speed value updated from cloud: {value}")
@@ -111,31 +127,43 @@ def panic_callback(client: object, value: bool):
     global panic
     logger.info(f"Panic value updated from cloud: {value}")
     panic = value
+    if value and agi_running:
+        manual_override_event.set()
 
 def back_callback(client: object, value: bool):
     global back
     logger.info(f"Back value updated from cloud: {value}")
     back = value
+    if value and agi_running:
+        manual_override_event.set()
 
 def left_callback(client: object, value: bool):
     global left
     logger.info(f"Left value updated from cloud: {value}")
     left = value
+    if value and agi_running:
+        manual_override_event.set()
 
 def right_callback(client: object, value: bool):
     global right
     logger.info(f"Right value updated from cloud: {value}")
     right = value
+    if value and agi_running:
+        manual_override_event.set()
 
 def forward_callback(client: object, value: bool):
     global forward
     logger.info(f"Forward value updated from cloud: {value}")
     forward = value
+    if value and agi_running:
+        manual_override_event.set()
 
 def agi_callback(client: object, value: bool):
     global agi
     logger.info(f"AGI value updated from cloud: {value}")
     agi = value
+    if not value and agi_running:
+        manual_override_event.set()
 
 def asi_callback(client: object, value: bool):
     global asi
@@ -165,7 +193,7 @@ def arm1_callback(client, value):
     logger.info(f"Arm1 value updated from cloud: {value}")
     try:
         arm1 = int(value)
-        Bridge.call("setArm1", arm1)
+        bridge_call("setArm1", arm1)
     except Exception as e:
         logger.error(f"Error handling Arm1 update: {e}")
 
@@ -174,7 +202,7 @@ def arm2_callback(client, value):
     logger.info(f"Arm2 value updated from cloud: {value}")
     try:
         arm2 = int(value)
-        Bridge.call("setArm2", arm2)
+        bridge_call("setArm2", arm2)
     except Exception as e:
         logger.error(f"Error handling Arm2 update: {e}")
 
@@ -198,7 +226,7 @@ def rgb_callback(client: object, value):
             rgb = f"{int(r_float * 255)},{int(g_float * 255)},{int(b_float * 255)}"
             
         logger.info(f"RGB value updated from backend: {rgb}")
-        Bridge.notify("setRGB", rgb)
+        bridge_notify("setRGB", rgb)
     except Exception as e:
         logger.error(f"Error handling RGB update: {e}")
 
@@ -236,7 +264,7 @@ def rainbow_effect(stop_event, interval=0.1):
         rgb_string = f"{int(r * 255)},{int(g * 255)},{int(b * 255)}"
         
         try:
-            Bridge.notify("setRGB", rgb_string)
+            bridge_notify("setRGB", rgb_string)
         except Exception as e:
             logger.warning(f"Error setting RGB during rainbow: {e}")
         
@@ -246,7 +274,7 @@ def rainbow_effect(stop_event, interval=0.1):
     
     # When stopping, turn off LED
     try:
-        Bridge.notify("setRGB", "0,0,0")
+        bridge_notify("setRGB", "0,0,0")
     except Exception:
         pass
 
@@ -272,7 +300,7 @@ def rainbow_while_listening():
             if rainbow_thread:
                 rainbow_thread.join(timeout=1.0)
             logger.info("Rainbow effect stopped")
-            Bridge.notify("setRGB", rgb)
+            bridge_notify("setRGB", rgb)
     
     return stop_rainbow
 
@@ -322,13 +350,17 @@ def play_random_sound():
 def speak(text):
     if lang == "disabled":
         return
-    try:
-        query = urllib.parse.urlencode({'text': text, 'lang': lang})
-        url = f"http://172.17.0.1:5000/speak?{query}"
-        with urllib.request.urlopen(url, timeout=55) as response:
-            logger.info(f"Speak service called: {response.read().decode()}")
-    except Exception as e:
-        logger.warning(f"Could not call speak service: {e}")
+    def speak_task():
+        try:
+            query = urllib.parse.urlencode({'text': text, 'lang': lang})
+            url = f"http://172.17.0.1:5000/speak?{query}"
+            with urllib.request.urlopen(url, timeout=55) as response:
+                logger.info(f"Speak service called: {response.read().decode()}")
+        except Exception as e:
+            logger.warning(f"Could not call speak service: {e}")
+    
+    # Run speech in background to avoid blocking robot logic
+    threading.Thread(target=speak_task, daemon=True).start()
 
 
 def set_distance(d):
@@ -452,7 +484,7 @@ def agi_loop():
             logger.info("Manual override detected before AGI processing, aborting")
             return
         
-        distance = Bridge.call("getDistance")
+        distance = bridge_call("getDistance")
         temperature = getattr(arduino_cloud, 'temperature', None)
         humidity = getattr(arduino_cloud, 'humidity', None)
     except Exception as e:
@@ -481,8 +513,8 @@ def agi_loop():
     
     # Poll for completion or manual override every 0.5 seconds
     while thread.is_alive():
-        if manual_override_event.is_set():
-            logger.info("Manual override detected during LLM call, aborting AGI loop")
+        if manual_override_event.is_set() or not agi:
+            logger.info("Manual override or AGI disabled during LLM call, aborting AGI loop")
             # Thread will continue but we'll ignore the result
             return
         thread.join(timeout=0.5)
@@ -520,7 +552,7 @@ def agi_loop():
             if len(parts) == 3:
                  rgb = rgb_val
                  logger.info(f"AGI set RGB to: {rgb}")
-        Bridge.notify("setRGB", rgb)
+        bridge_notify("setRGB", rgb)
     except Exception as e:
         logger.warning("Warning handling rgb: %s", e)
 
@@ -530,14 +562,14 @@ def agi_loop():
              val = int(resp["arm1"])
              arm1 = val # Update global variable
              arduino_cloud.arm1 = val
-             Bridge.call("setArm1", val)
+             bridge_call("setArm1", val)
              logger.info(f"AGI set Arm1 to: {val}")
         
         if "arm2" in resp and resp["arm2"] is not None:
              val = int(resp["arm2"])
              arm2 = val # Update global variable
              arduino_cloud.arm2 = val
-             Bridge.call("setArm2", val)
+             bridge_call("setArm2", val)
              logger.info(f"AGI set Arm2 to: {val}")
     except Exception as e:
         logger.warning("Warning handling arm: %s", e)
@@ -580,8 +612,8 @@ def agi_loop():
                 # Execute the move command and wait for completion
                 if move_cmd:
                     # Check for manual override before each move
-                    if manual_override_event.is_set():
-                        logger.info(f"Manual override detected before move {idx + 1}, stopping AGI movements")
+                    if manual_override_event.is_set() or not agi:
+                        logger.info(f"Manual override or AGI disabled before move {idx + 1}, stopping AGI movements")
                         return
                     
                     logger.info(f"Executing move {idx + 1}/{len(moves)}: {move_cmd}")
@@ -589,11 +621,11 @@ def agi_loop():
                     movement_history.append(mv)
                     # Execute the command and wait (stop=True for all but the last command)
                     is_last_move = (idx == len(moves) - 1)
-                    Bridge.call("move", move_cmd, True)
+                    bridge_call("move", move_cmd, True)
                     
                     # Check for manual override after move completes
-                    if manual_override_event.is_set():
-                        logger.info(f"Manual override detected after move {idx + 1}, stopping AGI movements")
+                    if manual_override_event.is_set() or not agi:
+                        logger.info(f"Manual override or AGI disabled after move {idx + 1}, stopping AGI movements")
                         return
                     
                     # Add a small delay between moves for stability
@@ -623,7 +655,7 @@ def agi_loop():
                 # Add to history if a valid move command was generated
                 if move_cmd:
                     movement_history.append(mv)
-                    Bridge.notify("move", move_cmd, True)
+                    bridge_notify("move", move_cmd, True)
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
 
@@ -634,8 +666,8 @@ def agi_loop():
             text = sp.get("text")
             if text and lang != "disabled":
                 # Check for manual override before speaking (which triggers recording)
-                if manual_override_event.is_set():
-                    logger.info("Manual override detected before speaking, skipping speech and recording")
+                if manual_override_event.is_set() or not agi:
+                    logger.info("Manual override or AGI disabled before speaking, skipping speech and recording")
                     return
                 
                 speak(text)
@@ -749,24 +781,26 @@ def loop():
             
             # Execute manual controls
             if left:
-                Bridge.call("move", f"TURN|left|20|{speed}", False)
+                bridge_call("move", f"TURN|left|20|{speed}", False)
             elif right:
-                Bridge.call("move", f"TURN|right|20|{speed}", False)
+                bridge_call("move", f"TURN|right|20|{speed}", False)
             elif forward:
-                Bridge.call("move", f"MOVE|forward|20|{speed}", False)
+                bridge_call("move", f"MOVE|forward|20|{speed}", False)
             elif back:
-                Bridge.call("move", f"MOVE|back|20|{speed}", False)
+                bridge_call("move", f"MOVE|back|20|{speed}", False)
         elif panic:
             # Panic mode (second priority)
             if agi_running:
                 manual_override_event.set()
-            Bridge.call("panic", str(speed))
+            bridge_call("panic", str(speed))
         elif agi:
             # AGI mode (third priority)
-            agi_loop()
+            if not agi_running:
+                logger.info("Starting AGI thread...")
+                threading.Thread(target=agi_loop, daemon=True).start()
         else:
             # No controls active - stop
-            Bridge.call("move", "STOP", True)
+            bridge_call("move", "STOP", True)
         
         time.sleep(0.1)
 
