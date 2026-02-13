@@ -487,11 +487,6 @@ def agi_loop():
     manual_override_event.clear()
     
     try:
-        # Check for manual override before starting
-        if manual_override_event.is_set():
-            logger.info("Manual override detected before AGI processing, aborting")
-            return
-        
         distance = bridge_call("getDistance")
         temperature = getattr(arduino_cloud, 'temperature', None)
         humidity = getattr(arduino_cloud, 'humidity', None)
@@ -822,6 +817,7 @@ def loop():
             
         else:
             # No manual/panic active. If we were just manual, send STOP before AI takes over
+            manual_override_event.clear()
             if was_manual:
                 logger.info("Manual control released, sending STOP")
                 bridge_call("move", "STOP", True)
@@ -832,13 +828,13 @@ def loop():
                 if not agi_running:
                     logger.info("Starting AGI thread...")
                     threading.Thread(target=agi_loop, daemon=True).start()
-            else:
-                # Completely idle, ensure stopped if we were just running
-                if agi_running:
-                    logger.info("AGI was running but is now disabled, signaling stop")
-                    manual_override_event.set()
-                    bridge_call("move", "STOP", True)
-                # Avoid spamming STOP in the idle loop
+            # else:
+            #     # Completely idle, ensure stopped if we were just running
+            #     if agi_running:
+            #         logger.info("AGI was running but is now disabled, signaling stop")
+            #         manual_override_event.set()
+            #         bridge_call("move", "STOP", True)
+            #     # Avoid spamming STOP in the idle loop
         
         time.sleep(0.1)
 
