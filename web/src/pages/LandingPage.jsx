@@ -10,7 +10,8 @@ import {
     ArrowRight,
     Zap,
     Eye,
-    MessageSquare
+    MessageSquare,
+    Check
 } from 'lucide-react';
 import './LandingPage.css';
 import './LandingPage-buttons.css';
@@ -23,6 +24,36 @@ const LandingPage = () => {
     ];
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [waitlistEmail, setWaitlistEmail] = useState('');
+    const [selectedPlan, setSelectedPlan] = useState('Free');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error' | null
+
+    const handleJoinWaitlist = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitStatus(null);
+
+        try {
+            const response = await fetch('/api/waitlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: waitlistEmail, plan: selectedPlan })
+            });
+
+            if (response.ok) {
+                setSubmitStatus('success');
+                setWaitlistEmail('');
+            } else {
+                setSubmitStatus('error');
+            }
+        } catch (error) {
+            console.error('Waitlist error:', error);
+            setSubmitStatus('error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -342,6 +373,159 @@ const LandingPage = () => {
                                 <span className="api-cost-value">$1</span>
                             </motion.div>
                         </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Pricing Section */}
+            <section className="section pricing-section">
+                <div className="container">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="section-header text-center"
+                    >
+                        <h2>Choose Your Path</h2>
+                        <p className="section-description">
+                            Join the waitlist for the first batch of AGI Robots. No payment required now.
+                        </p>
+                    </motion.div>
+
+                    <div className="pricing-grid">
+                        {/* Plan 1: DIY */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5 }}
+                            className={`glass-card pricing-card ${selectedPlan === 'Free' ? 'featured' : ''}`}
+                            onClick={() => setSelectedPlan('Free')}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="pricing-header">
+                                <h3 className="pricing-name">DIY Enthusiast</h3>
+                                <div className="pricing-price">Free<span>/ ($80 parts)</span></div>
+                            </div>
+                            <ul className="pricing-features">
+                                <li><Check size={18} /> <span>3D Print Files (STL)</span></li>
+                                <li><Check size={18} /> <span>Complete Parts List</span></li>
+                                <li><Check size={18} /> <span>Assembly Guide</span></li>
+                                <li><Check size={18} /> <span>Source Code Access</span></li>
+                            </ul>
+                            <button
+                                className={`btn ${selectedPlan === 'Free' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setSelectedPlan('Free')}
+                            >
+                                {selectedPlan === 'Free' ? 'Selected' : 'Select Plan'}
+                            </button>
+                        </motion.div>
+
+                        {/* Plan 2: Full Set */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className={`glass-card pricing-card ${selectedPlan === '$200' ? 'featured' : ''}`}
+                            onClick={() => setSelectedPlan('$200')}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="pricing-header">
+                                <h3 className="pricing-name">Full Detail Set</h3>
+                                <div className="pricing-price">$200<span>/set</span></div>
+                            </div>
+                            <ul className="pricing-features">
+                                <li><Check size={18} /> <span>All Hardware Components</span></li>
+                                <li><Check size={18} /> <span>3D Printed Parts Included</span></li>
+                                <li><Check size={18} /> <span>Personal Mobile App</span></li>
+                                <li><Check size={18} /> <span>Priority Support</span></li>
+                            </ul>
+                            <button
+                                className={`btn ${selectedPlan === '$200' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setSelectedPlan('$200')}
+                            >
+                                {selectedPlan === '$200' ? 'Selected' : 'Select Plan'}
+                            </button>
+                        </motion.div>
+
+                        {/* Plan 3: Assembled */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className={`glass-card pricing-card ${selectedPlan === '$300' ? 'featured' : ''}`}
+                            onClick={() => setSelectedPlan('$300')}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="featured-badge">Best Value</div>
+                            <div className="pricing-header">
+                                <h3 className="pricing-name">Assembled Robot</h3>
+                                <div className="pricing-price">$300<span>/unit</span></div>
+                            </div>
+                            <ul className="pricing-features">
+                                <li><Check size={18} /> <span>Fully Assembled & Tested</span></li>
+                                <li><Check size={18} /> <span>Personal Mobile App</span></li>
+                                <li><Check size={18} /> <span>50 Hours Thinking Included</span></li>
+                                <li><Check size={18} /> <span>White-glove Setup</span></li>
+                            </ul>
+                            <button
+                                className={`btn ${selectedPlan === '$300' ? 'btn-primary' : 'btn-secondary'}`}
+                                onClick={() => setSelectedPlan('$300')}
+                            >
+                                {selectedPlan === '$300' ? 'Selected' : 'Select Plan'}
+                            </button>
+                        </motion.div>
+                    </div>
+
+                    {/* Waitlist Form */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        className="glass-card waitlist-form"
+                    >
+                        <h3>Join the Waitlist</h3>
+                        <p className="text-muted">Selected Plan: <span className="text-gradient" style={{ fontWeight: 700 }}>{
+                            selectedPlan === 'Free' ? 'DIY Enthusiast' :
+                                selectedPlan === '$200' ? 'Full Detail Set' : 'Assembled Robot'
+                        }</span></p>
+
+                        <form onSubmit={handleJoinWaitlist} className="waitlist-input-group">
+                            <input
+                                type="email"
+                                placeholder="Enter your email"
+                                className="waitlist-input"
+                                value={waitlistEmail}
+                                onChange={(e) => setWaitlistEmail(e.target.value)}
+                                required
+                            />
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Joining...' : 'Secure My Spot'}
+                            </button>
+                        </form>
+
+                        {submitStatus === 'success' && (
+                            <div className="waitlist-success-msg animate-fade-in">
+                                Success! We will contact you asap when we are ready for shipping.
+                            </div>
+                        )}
+                        {submitStatus === 'error' && (
+                            <div className="waitlist-error-msg animate-fade-in" style={{ color: '#ef4444', marginTop: '1rem' }}>
+                                Something went wrong. Please try again later.
+                            </div>
+                        )}
+
+                        <p className="waitlist-note">
+                            * No credit card required. We just collect emails to gauge interest.
+                        </p>
                     </motion.div>
                 </div>
             </section>

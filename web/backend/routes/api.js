@@ -4,6 +4,7 @@ import TelemetryLog from '../models/TelemetryLog.js';
 import CommandLog from '../models/CommandLog.js';
 import CognitiveLog from '../models/CognitiveLog.js';
 import BlogPost from '../models/BlogPost.js';
+import Waitlist from '../models/Waitlist.js';
 
 const router = express.Router();
 
@@ -401,6 +402,23 @@ router.post('/control/volume', async (req, res) => {
     } catch (error) {
         console.error('Error updating volume:', error);
         res.status(500).json({ error: 'Failed to update volume' });
+    }
+});
+
+// Waitlist submission
+router.post('/waitlist', async (req, res) => {
+    try {
+        const { email, plan } = req.body;
+
+        if (!email || !plan) {
+            return res.status(400).json({ error: 'Email and plan are required' });
+        }
+
+        const entry = await Waitlist.create({ email, plan });
+        res.status(201).json({ success: true, entry });
+    } catch (error) {
+        console.error('Error saving to waitlist:', error);
+        res.status(500).json({ error: 'Failed to join waitlist' });
     }
 });
 

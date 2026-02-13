@@ -797,3 +797,156 @@
     font-size: 2rem;
   }
 }
+
+/* Pricing Section */
+.pricing-section {
+    background: var(--color-bg-primary);
+    position: relative;
+    padding: var(--spacing-3xl) 0;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-2xl);
+}
+
+.pricing-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-2xl);
+    border: 1px solid var(--glass-border);
+    transition: all var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+}
+
+.pricing-card.featured {
+    border-color: var(--color-primary);
+    background: rgba(168, 85, 247, 0.05);
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+.featured-badge {
+    position: absolute;
+    top: 20px;
+    right: -35px;
+    background: var(--color-primary);
+    color: white;
+    padding: 5px 40px;
+    transform: rotate(45deg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.pricing-header {
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.pricing-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text-primary);
+}
+
+.pricing-price {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--color-primary);
+}
+
+.pricing-price span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+}
+
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-2xl);
+    flex-grow: 1;
+}
+
+.pricing-features li {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-secondary);
+}
+
+.pricing-features li svg {
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+/* Waitlist Form */
+.waitlist-form {
+    margin-top: 4rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: var(--spacing-2xl);
+    text-align: center;
+}
+
+.waitlist-form h3 {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.waitlist-input-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xl);
+}
+
+.waitlist-input {
+    flex-grow: 1;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    transition: all var(--transition-base);
+}
+
+.waitlist-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.waitlist-success-msg {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgb(34, 197, 94);
+    color: rgb(34, 197, 94);
+}
+
+.waitlist-note {
+    margin-top: var(--spacing-md);
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+    .pricing-card.featured {
+        transform: scale(1);
+    }
+    
+    .waitlist-input-group {
+        flex-direction: column;
+    }
+}
