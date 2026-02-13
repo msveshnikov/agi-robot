@@ -447,11 +447,21 @@ def agi_loop():
     manual_override_event.clear()
     
     try:
+        # Check for manual override before starting
+        if manual_override_event.is_set():
+            logger.info("Manual override detected before AGI processing, aborting")
+            return
+        
         distance = Bridge.call("getDistance")
         temperature = getattr(arduino_cloud, 'temperature', None)
         humidity = getattr(arduino_cloud, 'humidity', None)
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
+    # Check for manual override before expensive LLM call
+    if manual_override_event.is_set():
+        logger.info("Manual override detected before LLM call, aborting AGI loop")
+        return
+    
     resp = ask_llm_vision(distance=distance, temperature=temperature, humidity=humidity, plan=plan, subplan=subplan, movement_history=movement_history, space_map=space_map, memory=memory, arm1=arm1, arm2=arm2)
     
     if not resp:
@@ -540,12 +550,22 @@ def agi_loop():
                 
                 # Execute the move command and wait for completion
                 if move_cmd:
+                    # Check for manual override before each move
+                    if manual_override_event.is_set():
+                        logger.info(f"Manual override detected before move {idx + 1}, stopping AGI movements")
+                        return
+                    
                     logger.info(f"Executing move {idx + 1}/{len(moves)}: {move_cmd}")
                     # Add to history
                     movement_history.append(mv)
                     # Execute the command and wait (stop=True for all but the last command)
                     is_last_move = (idx == len(moves) - 1)
                     Bridge.call("move", move_cmd, True)
+                    
+                    # Check for manual override after move completes
+                    if manual_override_event.is_set():
+                        logger.info(f"Manual override detected after move {idx + 1}, stopping AGI movements")
+                        return
                     
                     # Add a small delay between moves for stability
                     if not is_last_move:
@@ -584,6 +604,11 @@ def agi_loop():
         if sp and isinstance(sp, dict):
             text = sp.get("text")
             if text and lang != "disabled":
+                # Check for manual override before speaking (which triggers recording)
+                if manual_override_event.is_set():
+                    logger.info("Manual override detected before speaking, skipping speech and recording")
+                    return
+                
                 speak(text)
                 logger.info("Robot spoke!! Starting dynamic recording (up to 15 seconds)...")
     
@@ -610,6 +635,11 @@ def agi_loop():
                         wf.setframerate(16000)
                         
                         for chunk in audio_chunk_iterator:
+                            # Check for manual override during recording
+                            if manual_override_event.is_set():
+                                logger.info("Manual override detected during recording, stopping early")
+                                break
+                            
                             wf.writeframes(chunk.tobytes())
                             elapsed = time.time() - start_time
                             
