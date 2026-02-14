@@ -98,14 +98,10 @@ movement_history = []
 memory = ""
 
 # Manual override support
-agi_thread = None
+agi_running = False
 manual_override_event = threading.Event()
 agi_lock = threading.Lock()
 was_manual = False  # Track if we were just in manual mode
-
-def is_agi_running():
-    global agi_thread
-    return agi_thread is not None and agi_thread.is_alive()
 
 def bridge_call(method, *args, **kwargs):
     with agi_lock:
@@ -132,47 +128,46 @@ def panic_callback(client: object, value: bool):
     global panic
     logger.info(f"Panic value updated from cloud: {value}")
     panic = value
-    if value and is_agi_running():
+    if value and agi_running:
         manual_override_event.set()
 
 def back_callback(client: object, value: bool):
     global back
     logger.info(f"Back value updated from cloud: {value}")
     back = value
-    if value and is_agi_running():
+    if value and agi_running:
         manual_override_event.set()
 
 def left_callback(client: object, value: bool):
     global left
     logger.info(f"Left value updated from cloud: {value}")
     left = value
-    if value and is_agi_running():
+    if value and agi_running:
         manual_override_event.set()
 
 def right_callback(client: object, value: bool):
     global right
     logger.info(f"Right value updated from cloud: {value}")
     right = value
-    if value and is_agi_running():
+    if value and agi_running:
         manual_override_event.set()
 
 def forward_callback(client: object, value: bool):
     global forward
     logger.info(f"Forward value updated from cloud: {value}")
     forward = value
-    if value and is_agi_running():
+    if value and agi_running:
         manual_override_event.set()
 
 def agi_callback(client: object, value: bool):
     global agi
-    active = is_agi_running()
-    logger.info(f"[CALLBACK] AGI updated: {value} (was: {agi}, running: {active})")
+    logger.info(f"[CALLBACK] AGI value updated from cloud: {value} (was: {agi}, agi_running: {agi_running})")
     agi = value
-    if not value and active:
-        logger.info(f"[CALLBACK] AGI disabled while running, stopping current automation.")
+    if not value and agi_running:
+        logger.info(f"[CALLBACK] AGI disabled while running, setting manual override event")
         manual_override_event.set()
-    elif value and not active:
-        logger.info(f"[CALLBACK] AGI enabled, automation will resume in main loop.")
+    elif value and not agi_running:
+        logger.info(f"[CALLBACK] AGI enabled and not running, will start in main loop")
 
 def asi_callback(client: object, value: bool):
     global asi
@@ -487,25 +482,18 @@ def agi_loop():
       "alarm": "alarm message if needed"
     }
     """
-    global plan, subplan, space_map, memory, movement_history, rgb, alarm, arm1, arm2, manual_override_event
     
-    logger.info("[AGI] --- Starting AGI Loop Iteration ---")
+    global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm, arm1, arm2, agi_running, manual_override_event
     
-    distance = -1
-    temperature = None
-    humidity = None
+    # Clear any previous override at the start
+    manual_override_event.clear()
     
     try:
-        # Check override immediately
-        if manual_override_event.is_set():
-            logger.info("[AGI] Aborting: Manual override set at start")
-            return
-            
         distance = bridge_call("getDistance")
         temperature = getattr(arduino_cloud, 'temperature', None)
         humidity = getattr(arduino_cloud, 'humidity', None)
     except Exception as e:
-        logger.warning(f"[AGI] Sensor read failed: {e}")
+        logger.warning("%s", e)
         
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
@@ -628,30 +616,33 @@ def agi_loop():
                 
                 # Execute the move command and wait for completion
                 if move_cmd:
-                    logger.info(f"[AGI] Executing move {idx + 1}/{len(moves)}: {move_cmd}")
+                    # Check for manual override before each move
+                    if manual_override_event.is_set() or not agi:
+                        logger.info(f"Manual override or AGI disabled before move {idx + 1}, stopping AGI movements")
+                        return
+                    
+                    logger.info(f"Executing move {idx + 1}/{len(moves)}: {move_cmd}")
                     # Add to history
                     movement_history.append(mv)
+                    # Execute the command and wait (stop=True always)
+                    is_last_move = (idx == len(moves) - 1)
+                    bridge_call("move", move_cmd, True)
                     
-                    # Execute movement without blocking the lock for too long
-                    # We call it with wait=False and then we wait in a loop checking for overrides
-                    bridge_call("move", move_cmd, False)
+                    # Check for manual override after move completes
+                    if manual_override_event.is_set() or not agi:
+                        logger.info(f"Manual override or AGI disabled after move {idx + 1}, stopping AGI movements")
+                        bridge_call("move", "STOP", True)
+                        return
                     
-                    # Wait for move completion or interrupt
-                    # We expect moves to take roughly 1s per 10cm or 1s per 90deg
-                    start_wait = time.time()
-                    # Calculate expected duration plus buffer
-                    timeout = 5.0 
-                    if mv_distance: timeout = (mv_distance / 5.0) + 2.0
-                    if angle: timeout = (angle / 30.0) + 2.0
-                    
-                    while time.time() - start_wait < timeout:
-                        if manual_override_event.is_set() or not agi:
-                            logger.info("[AGI] Interrupt detected during movement, stopping.")
-                            bridge_call("move", "STOP", True)
-                            return
-                        time.sleep(0.1)
-                    
-                    logger.info(f"[AGI] Move {idx + 1} finished (or timeout)")
+                    # Add a small delay between moves for stability
+                    if not is_last_move:
+                        # Wait for the move to complete in a non-blocking way to stay responsive to overrides
+                        start_move = time.time()
+                        while time.time() - start_move < 1.5:
+                            if manual_override_event.is_set() or not agi:
+                                bridge_call("move", "STOP", True)
+                                return
+                            time.sleep(0.1)
         
         # Also support single 'move' command for backward compatibility
         elif "move" in resp:
@@ -675,11 +666,11 @@ def agi_loop():
                 
                 # Add to history if a valid move command was generated
                 if move_cmd:
-                    logger.info(f"[AGI] Executing single move: {move_cmd}")
                     movement_history.append(mv)
-                    bridge_call("move", move_cmd, False)
-                    start_wait = time.time()
-                    while time.time() - start_wait < 5.0:
+                    bridge_call("move", move_cmd, True)
+                    # Small wait for single move too
+                    start_move = time.time()
+                    while time.time() - start_move < 1.0:
                         if manual_override_event.is_set() or not agi:
                             bridge_call("move", "STOP", True)
                             return
@@ -792,20 +783,23 @@ def agi_loop():
     except Exception as e:
         logger.warning(f"Error syncing to cloud: {e}")
     finally:
-        logger.info("[AGI] --- AGI Loop Iteration Finished ---")
+        # Mark AGI as no longer running
+        agi_running = False
+        logger.info("AGI loop iteration finished")
 
 def loop():
-    global speed, back, left, right, forward, agi, panic, was_manual, agi_thread
+    global speed, back, left, right, forward, agi, panic, agi_running, manual_override_event, was_manual
     try:
         # Check for manual controls first (highest priority)
         manual_control_active = left or right or forward or back
-        agi_active = is_agi_running()
+        
+        # Log state changes for debugging
+        current_state = f"agi={agi}, agi_running={agi_running}, manual={manual_control_active}, panic={panic}, was_manual={was_manual}"
         
         if manual_control_active:
             # If manual control is active and AGI is running, signal override
-            if agi_active:
-                if not manual_override_event.is_set():
-                    logger.info(f"[STATE] Manual override triggered. agi={agi}, manual=True")
+            if agi_running:
+                logger.info(f"[STATE] Manual override detected during AGI mode. {current_state}")
                 manual_override_event.set()
             
             # Execute manual controls (non-blocking)
@@ -818,44 +812,52 @@ def loop():
             elif back:
                 bridge_call("move", f"MOVE|back|20|{speed}", False)
             
+            if not was_manual:
+                logger.info(f"[STATE] Entering manual mode. {current_state}")
             was_manual = True
             
         elif panic:
-            if agi_active:
+            # Panic mode (second priority)
+            if agi_running:
+                logger.info(f"[STATE] Panic mode interrupting AGI. {current_state}")
                 manual_override_event.set()
             bridge_call("panic", str(speed))
+            if not was_manual:
+                logger.info(f"[STATE] Entering panic mode. {current_state}")
             was_manual = True
             
         else:
             # No manual/panic active
+            # Always clear the override event when no manual control
+            manual_override_event.clear()
+            
+            # If we were just in manual mode, send STOP
             if was_manual:
-                logger.info("[STATE] Manual mode ended, stopping robot.")
+                logger.info(f"[STATE] Manual/Panic mode ended, sending STOP. {current_state}")
                 bridge_call("move", "STOP", True)
                 was_manual = False
+                # Give the robot a moment to fully stop
                 time.sleep(0.2)
+                logger.info(f"[STATE] Ready for next mode. {current_state}")
             
-            # If AGI is requested but not running, start it
+            # Check if we should start AGI
             if agi:
-                if not agi_active:
-                    # ONLY clear the event when starting a NEW cycle
-                    manual_override_event.clear()
-                    logger.info("[STATE] Starting new AGI cycle...")
-                    agi_thread = threading.Thread(target=agi_loop, daemon=True)
-                    agi_thread.start()
+                if not agi_running:
+                    logger.info(f"[STATE] AGI requested and not running, starting AGI thread. {current_state}")
+                    agi_running = True
+                    manual_override_event.clear()  # Ensure event is clear before starting
+                    threading.Thread(target=agi_loop, daemon=True).start()
+                    logger.info(f"[STATE] AGI thread started. agi_running={agi_running}")
             else:
-                # Signal stop if active
-                if agi_active:
+                # AGI is disabled but might be running, signal it to stop
+                if agi_running:
+                    logger.info(f"[STATE] AGI disabled but still running, setting override. {current_state}")
                     manual_override_event.set()
         
-        # Periodic status check
-        if time.time() % 30 < 0.1:
-            logger.info(f"[STATUS] agi={agi}, running={agi_active}, manual_event={manual_override_event.is_set()}")
-
         time.sleep(0.1)
 
     except Exception as e:
-        logger.error(f"[ERROR] Main loop crashed: {e}")
-    
+        logger.error(f"[ERROR] Error in main loop: {e}")    
 
 arduino_cloud.start()
 App.run(user_loop=loop)
