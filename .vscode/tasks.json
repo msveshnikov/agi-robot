@@ -4,12 +4,13 @@
         {
             "label": "Start Robot App",
             "type": "shell",
-            "command": "./start"
+            "command": "arduino-app-cli app start user:robot"
         },
         {
             "label": "Stop Robot App",
             "type": "shell",
-            "command": "./stop"
+            "command": "arduino-app-cli app stop user:robot",
+            "problemMatcher": []
         }
     ]
 }
