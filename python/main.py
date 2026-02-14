@@ -487,8 +487,13 @@ def agi_loop():
       "alarm": "alarm message if needed"
     }
     """
+    global plan, subplan, space_map, memory, movement_history, rgb, alarm, arm1, arm2, manual_override_event
     
     logger.info("[AGI] --- Starting AGI Loop Iteration ---")
+    
+    distance = -1
+    temperature = None
+    humidity = None
     
     try:
         # Check override immediately
@@ -500,7 +505,7 @@ def agi_loop():
         temperature = getattr(arduino_cloud, 'temperature', None)
         humidity = getattr(arduino_cloud, 'humidity', None)
     except Exception as e:
-        logger.warning("%s", e)
+        logger.warning(f"[AGI] Sensor read failed: {e}")
         
     logger.info(f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, subplan: {subplan}, memory size: {len(memory)}")
 
