@@ -161,10 +161,13 @@ def forward_callback(client: object, value: bool):
 
 def agi_callback(client: object, value: bool):
     global agi
-    logger.info(f"AGI value updated from cloud: {value}")
+    logger.info(f"[CALLBACK] AGI value updated from cloud: {value} (was: {agi}, agi_running: {agi_running})")
     agi = value
     if not value and agi_running:
+        logger.info(f"[CALLBACK] AGI disabled while running, setting manual override event")
         manual_override_event.set()
+    elif value and not agi_running:
+        logger.info(f"[CALLBACK] AGI enabled and not running, will start in main loop")
 
 def asi_callback(client: object, value: bool):
     global asi
@@ -790,10 +793,13 @@ def loop():
         # Check for manual controls first (highest priority)
         manual_control_active = left or right or forward or back
         
+        # Log state changes for debugging
+        current_state = f"agi={agi}, agi_running={agi_running}, manual={manual_control_active}, panic={panic}, was_manual={was_manual}"
+        
         if manual_control_active:
             # If manual control is active and AGI is running, signal override
             if agi_running:
-                logger.info("Manual override detected during AGI mode")
+                logger.info(f"[STATE] Manual override detected during AGI mode. {current_state}")
                 manual_override_event.set()
             
             # Execute manual controls (non-blocking)
@@ -806,38 +812,52 @@ def loop():
             elif back:
                 bridge_call("move", f"MOVE|back|20|{speed}", False)
             
+            if not was_manual:
+                logger.info(f"[STATE] Entering manual mode. {current_state}")
             was_manual = True
             
         elif panic:
             # Panic mode (second priority)
             if agi_running:
+                logger.info(f"[STATE] Panic mode interrupting AGI. {current_state}")
                 manual_override_event.set()
             bridge_call("panic", str(speed))
+            if not was_manual:
+                logger.info(f"[STATE] Entering panic mode. {current_state}")
             was_manual = True
             
         else:
-            # No manual/panic active. If we were just manual, send STOP before AI takes over
+            # No manual/panic active
+            # Always clear the override event when no manual control
             manual_override_event.clear()
+            
+            # If we were just in manual mode, send STOP
             if was_manual:
-                logger.info("Manual control released, sending STOP")
+                logger.info(f"[STATE] Manual/Panic mode ended, sending STOP. {current_state}")
                 bridge_call("move", "STOP", True)
                 was_manual = False
-                
-            if agi:
-                # AGI mode (third priority)
-                if not agi_running:
-                    agi_running = True
-                    logger.info(f"Starting AGI thread... (agi={agi}, panic={panic}, manual={manual_control_active})")
-                    threading.Thread(target=agi_loop, daemon=True).start()
+                # Give the robot a moment to fully stop
+                time.sleep(0.2)
+                logger.info(f"[STATE] Ready for next mode. {current_state}")
             
-            # Periodic status log (every ~10 seconds)
-            if time.time() % 10 < 0.1:
-                logger.info(f"Status: agi={agi}, agi_running={agi_running}, manual={manual_control_active}, panic={panic}")
+            # Check if we should start AGI
+            if agi:
+                if not agi_running:
+                    logger.info(f"[STATE] AGI requested and not running, starting AGI thread. {current_state}")
+                    agi_running = True
+                    manual_override_event.clear()  # Ensure event is clear before starting
+                    threading.Thread(target=agi_loop, daemon=True).start()
+                    logger.info(f"[STATE] AGI thread started. agi_running={agi_running}")
+            else:
+                # AGI is disabled but might be running, signal it to stop
+                if agi_running:
+                    logger.info(f"[STATE] AGI disabled but still running, setting override. {current_state}")
+                    manual_override_event.set()
         
         time.sleep(0.1)
 
     except Exception as e:
-        logger.error(f"Error in main loop: {e}")    
+        logger.error(f"[ERROR] Error in main loop: {e}")    
 
 arduino_cloud.start()
 App.run(user_loop=loop)
