@@ -132,46 +132,47 @@ def panic_callback(client: object, value: bool):
     global panic
     logger.info(f"Panic value updated from cloud: {value}")
     panic = value
-    if value and agi_running:
+    if value and is_agi_running():
         manual_override_event.set()
 
 def back_callback(client: object, value: bool):
     global back
     logger.info(f"Back value updated from cloud: {value}")
     back = value
-    if value and agi_running:
+    if value and is_agi_running():
         manual_override_event.set()
 
 def left_callback(client: object, value: bool):
     global left
     logger.info(f"Left value updated from cloud: {value}")
     left = value
-    if value and agi_running:
+    if value and is_agi_running():
         manual_override_event.set()
 
 def right_callback(client: object, value: bool):
     global right
     logger.info(f"Right value updated from cloud: {value}")
     right = value
-    if value and agi_running:
+    if value and is_agi_running():
         manual_override_event.set()
 
 def forward_callback(client: object, value: bool):
     global forward
     logger.info(f"Forward value updated from cloud: {value}")
     forward = value
-    if value and agi_running:
+    if value and is_agi_running():
         manual_override_event.set()
 
 def agi_callback(client: object, value: bool):
     global agi
-    logger.info(f"[CALLBACK] AGI value updated from cloud: {value} (was: {agi}, agi_running: {agi_running})")
+    active = is_agi_running()
+    logger.info(f"[CALLBACK] AGI updated: {value} (was: {agi}, running: {active})")
     agi = value
-    if not value and is_agi_running():
-        logger.info(f"[CALLBACK] AGI disabled while running, setting manual override event")
+    if not value and active:
+        logger.info(f"[CALLBACK] AGI disabled while running, stopping current automation.")
         manual_override_event.set()
-    elif value and not agi_running:
-        logger.info(f"[CALLBACK] AGI enabled and not running, will start in main loop")
+    elif value and not active:
+        logger.info(f"[CALLBACK] AGI enabled, automation will resume in main loop.")
 
 def asi_callback(client: object, value: bool):
     global asi
