@@ -482,8 +482,7 @@ def agi_loop():
     
     global plan, subplan, space_map, memory, forward, back, left, right, movement_history, rgb, alarm, arm1, arm2, agi_running, manual_override_event
     
-    # Mark AGI as running and clear any previous override
-    agi_running = True
+    # Clear any previous override at the start
     manual_override_event.clear()
     
     try:
@@ -713,9 +712,9 @@ def agi_loop():
                         wf.setframerate(16000)
                         
                         for chunk in audio_chunk_iterator:
-                            # Check for manual override during recording
-                            if manual_override_event.is_set():
-                                logger.info("Manual override detected during recording, stopping early")
+                            # Check for manual override or AGI disabled during recording
+                            if manual_override_event.is_set() or not agi:
+                                logger.info("Manual override or AGI disabled during recording, stopping early")
                                 break
                             
                             wf.writeframes(chunk.tobytes())
@@ -783,6 +782,7 @@ def agi_loop():
     finally:
         # Mark AGI as no longer running
         agi_running = False
+        logger.info("AGI loop iteration finished")
 
 def loop():
     global speed, back, left, right, forward, agi, panic, agi_running, manual_override_event, was_manual
@@ -826,15 +826,13 @@ def loop():
             if agi:
                 # AGI mode (third priority)
                 if not agi_running:
-                    logger.info("Starting AGI thread...")
+                    agi_running = True
+                    logger.info(f"Starting AGI thread... (agi={agi}, panic={panic}, manual={manual_control_active})")
                     threading.Thread(target=agi_loop, daemon=True).start()
-            # else:
-            #     # Completely idle, ensure stopped if we were just running
-            #     if agi_running:
-            #         logger.info("AGI was running but is now disabled, signaling stop")
-            #         manual_override_event.set()
-            #         bridge_call("move", "STOP", True)
-            #     # Avoid spamming STOP in the idle loop
+            
+            # Periodic status log (every ~10 seconds)
+            if time.time() % 10 < 0.1:
+                logger.info(f"Status: agi={agi}, agi_running={agi_running}, manual={manual_control_active}, panic={panic}")
         
         time.sleep(0.1)
 

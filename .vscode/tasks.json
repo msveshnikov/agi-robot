@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Robot App",
+            "type": "shell",
+            "command": "./start"
+        },
+        {
+            "label": "Stop Robot App",
+            "type": "shell",
+            "command": "./stop"
+        }
+    ]
+}
