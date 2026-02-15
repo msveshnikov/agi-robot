@@ -2,20 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://robot.mvpgen.com/</loc>
-    <lastmod>2026-02-11</lastmod>
-    <changefreq>weekly</changefreq>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://robot.mvpgen.com/blog</loc>
-    <lastmod>2026-02-11</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://robot.mvpgen.com/dashboard</loc>
-    <lastmod>2026-02-11</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
 
