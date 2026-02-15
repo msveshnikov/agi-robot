@@ -70,7 +70,7 @@ As shown in the table, the total project cost is a very affordable **$80 USD**. 
 The robot's consciousness operates in an autonomous loop, which incurs API costs for the LLM (Gemini):
 - **Loop Duration**: ~20 seconds per consciousness loop
 - **Cost per Loop**: $0.005
-- **Cost per Hour**: ~$1.5 (continuous operation)
+- **Cost per Hour**: ~$1.0 (continuous operation)
 
 ---
 
