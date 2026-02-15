@@ -74,7 +74,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger("robot.main")
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "https://robot.mvpgen.com")
-arduino_cloud = BackendClient(BACKEND_URL)
+backend = BackendClient(BACKEND_URL)
 camera_forwarder = CameraForwarder(local_url="http://172.17.0.1:4912", remote_url=BACKEND_URL)
 camera_forwarder.start()
 speed = 45
@@ -309,29 +309,29 @@ def rainbow_while_listening():
     return stop_rainbow
 
 
-arduino_cloud.register("speed", on_write=speed_callback)
-arduino_cloud.register("panic", on_write=panic_callback)
-arduino_cloud.register("back",  on_write=back_callback)
-arduino_cloud.register("left",  on_write=left_callback)
-arduino_cloud.register("right", on_write=right_callback)
-arduino_cloud.register("forward", on_write=forward_callback)
-arduino_cloud.register("agi", on_write=agi_callback)
-arduino_cloud.register("asi", on_write=asi_callback)
-arduino_cloud.register("goal", on_write=goal_callback)
-arduino_cloud.register("lang", on_write=lang_callback)
-arduino_cloud.register("arm1", on_write=arm1_callback)
-arduino_cloud.register("arm2", on_write=arm2_callback)
-arduino_cloud.register("rgb", on_write=rgb_callback)
-arduino_cloud.register("volume", on_write=volume_callback)
-arduino_cloud.register("distance")
-arduino_cloud.register("temperature")
-arduino_cloud.register("humidity")
-arduino_cloud.register("plan")
-arduino_cloud.register("subplan")
-arduino_cloud.register("space_map")
-arduino_cloud.register("movement_history")
-arduino_cloud.register("memory")
-arduino_cloud.register("alarm")
+backend.register("speed", on_write=speed_callback)
+backend.register("panic", on_write=panic_callback)
+backend.register("back",  on_write=back_callback)
+backend.register("left",  on_write=left_callback)
+backend.register("right", on_write=right_callback)
+backend.register("forward", on_write=forward_callback)
+backend.register("agi", on_write=agi_callback)
+backend.register("asi", on_write=asi_callback)
+backend.register("goal", on_write=goal_callback)
+backend.register("lang", on_write=lang_callback)
+backend.register("arm1", on_write=arm1_callback)
+backend.register("arm2", on_write=arm2_callback)
+backend.register("rgb", on_write=rgb_callback)
+backend.register("volume", on_write=volume_callback)
+backend.register("distance")
+backend.register("temperature")
+backend.register("humidity")
+backend.register("plan")
+backend.register("subplan")
+backend.register("space_map")
+backend.register("movement_history")
+backend.register("memory")
+backend.register("alarm")
 
 def play_sound(filename):
     try:
@@ -375,13 +375,13 @@ def speak(text):
         logger.warning(f"Could not call speak service or broadcast speech: {e}")
 
 def set_distance(d):
-  arduino_cloud.distance = int(d)
+  backend.distance = int(d)
 
 def set_temperature(t):
-  arduino_cloud.temperature = t
+  backend.temperature = t
 
 def set_humidity(h):
-  arduino_cloud.humidity = h
+  backend.humidity = h
 
 Bridge.provide("set_temperature", set_temperature)
 Bridge.provide("set_humidity", set_humidity)
@@ -490,8 +490,8 @@ def agi_loop():
     
     try:
         distance = bridge_call("getDistance")
-        temperature = getattr(arduino_cloud, 'temperature', None)
-        humidity = getattr(arduino_cloud, 'humidity', None)
+        temperature = getattr(backend, 'temperature', None)
+        humidity = getattr(backend, 'humidity', None)
     except Exception as e:
         logger.warning("%s", e)
         
@@ -566,14 +566,14 @@ def agi_loop():
         if "arm1" in resp and resp["arm1"] is not None:
              val = int(resp["arm1"])
              arm1 = val # Update global variable
-             arduino_cloud.arm1 = val
+             backend.arm1 = val
              bridge_call("setArm1", val)
              logger.info(f"AGI set Arm1 to: {val}")
         
         if "arm2" in resp and resp["arm2"] is not None:
              val = int(resp["arm2"])
              arm2 = val # Update global variable
-             arduino_cloud.arm2 = val
+             backend.arm2 = val
              bridge_call("setArm2", val)
              logger.info(f"AGI set Arm2 to: {val}")
     except Exception as e:
@@ -773,12 +773,12 @@ def agi_loop():
 
     # Sync variables to Arduino Cloud
     try:
-        arduino_cloud.plan = plan
-        arduino_cloud.subplan = subplan
-        arduino_cloud.space_map = space_map
-        arduino_cloud.movement_history = json.dumps(movement_history)
-        arduino_cloud.memory = memory
-        arduino_cloud.alarm = alarm
+        backend.plan = plan
+        backend.subplan = subplan
+        backend.space_map = space_map
+        backend.movement_history = json.dumps(movement_history)
+        backend.memory = memory
+        backend.alarm = alarm
         logger.info("Synced variables to Arduino Cloud")
     except Exception as e:
         logger.warning(f"Error syncing to cloud: {e}")
@@ -859,5 +859,5 @@ def loop():
     except Exception as e:
         logger.error(f"[ERROR] Error in main loop: {e}")    
 
-arduino_cloud.start()
+backend.start()
 App.run(user_loop=loop)
