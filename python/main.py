@@ -780,10 +780,6 @@ def agi_loop():
         logger.info("Synced variables to Backend")
     except Exception as e:
         logger.warning(f"Error syncing to cloud: {e}")
-    finally:
-        # Mark AGI as no longer running
-        agi_running = False
-        logger.info("AGI loop iteration finished")
 
 
 def loop():
@@ -843,10 +839,10 @@ def loop():
                     )
                     agi_running = True
                     manual_override_event.clear()  # Ensure event is clear before starting
-                    threading.Thread(target=agi_loop, daemon=True).start()
-                    logger.info(
-                        f"[STATE] AGI thread started. agi_running={agi_running}"
-                    )
+                    try:
+                        agi_loop()
+                    finally:
+                        agi_running = False
 
         time.sleep(0.1)
 
