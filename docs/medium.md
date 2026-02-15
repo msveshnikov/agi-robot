@@ -77,7 +77,7 @@ This is the robot's spinal cord. It operates on a tight `loop()`. It's responsib
 
 ### 2. The Coordination Layer (Python MPU - main.py)
 This is the robot's autonomic nervous system. It handles:
-*   **Bridging**: Communicating with the Arduino Cloud IoT variables.
+*   **Bridging**: Communicating with the Backend IoT variables.
 *   **Media Pipeline**: Capturing MJPEG frames from the `/dev/video0` device and managing the audio recording thread.
 *   **State Management**: It keeps track of the "Local Plan" so that if the internet drops for a second, the robot doesn't just freeze mid-turn.
 

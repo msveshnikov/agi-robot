@@ -83,7 +83,7 @@ LLM **сам решает**, какой цвет выбрать, основыв�
 \"  - SCARED/CAUTIOUS: \\\"255,165,0\\\" (Orange)\\n\"
 ```
 
-Но вот фокус: **Arduino Cloud использует CloudColoredLight**, который работает с HSV (Hue, Saturation, Brightness). Поэтому в Python есть конвертер:
+Но вот фокус: **Backend использует CloudColoredLight**, который работает с HSV (Hue, Saturation, Brightness). Поэтому в Python есть конвертер:
 
 ```python
 # main.py - преобразование HSV → RGB для MCU
@@ -115,7 +115,7 @@ Google TTS с голосами WaveNet — это просто космос. В�
 - **Русский**: `ru-RU-Wavenet-D` (мужской, с легким акцентом, но приятный)
 - **Чешский**: `cs-CZ-Wavenet-A` (женский, мелодичный)
 
-Язык выбирается через Arduino Cloud переменную `lang`. Меняю в облаке → робот тут же переключается.
+Язык выбирается через Backend переменную `lang`. Меняю в облаке → робот тут же переключается.
 
 ```python
 # media_service.py - выбор голоса

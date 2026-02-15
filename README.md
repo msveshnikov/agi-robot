@@ -213,7 +213,7 @@ graph TD
 
 ## Backend State Variables
 
-The following variables are synchronized with the project's backend API and web dashboard (replacing Arduino Cloud):
+The following variables are synchronized with the project's backend API and web dashboard (replacing Backend):
 
 -   **Read/Write (Controls):**
 

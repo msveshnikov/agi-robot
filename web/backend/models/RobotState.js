@@ -15,7 +15,7 @@ const robotStateSchema = new mongoose.Schema({
     lang: { type: String, default: "en" },
     goal: { type: String, default: "Be helpful assistant to the master human" },
 
-    // RGB Control (HSV format from Arduino Cloud)
+    // RGB Control (HSV format from Backend)
     rgb: {
         hue: { type: Number, default: 0, min: 0, max: 360 },
         sat: { type: Number, default: 0, min: 0, max: 100 },
