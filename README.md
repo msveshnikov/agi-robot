@@ -496,8 +496,9 @@ The MCU receives RGB values as a comma-separated string (e.g., "255,128,0") and 
 - [x] Migrate to custom backend & dashboard (React + Node.js + MongoDB)
 - [x] Real-time camera feed integration in the dashboard
 - [x] Settings panel in dashboard
-- [x] Daily blog post (Robot Diary) from cognitive logs
+- [x] Daily blog post (Robot Diary) from the cognitive logs
 - [x] Native webcam, no bricks anymore
+- [x] Broadcast robot speaking to the all web clients
 
 ![alt text](image-5.png)
 

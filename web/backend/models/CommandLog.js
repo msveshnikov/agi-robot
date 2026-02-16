@@ -7,13 +7,7 @@ const commandLogSchema = new mongoose.Schema({
         required: true,
         enum: ["move", "turn", "stop", "agi", "panic", "speak", "rgb", "arm"],
     },
-    command_data: { type: mongoose.Schema.Types.Mixed },
-    llm_response: { type: mongoose.Schema.Types.Mixed },
-    source: {
-        type: String,
-        enum: ["user", "agi", "panic", "api"],
-        default: "user",
-    },
+    command_data: { type: mongoose.Schema.Types.Mixed }
 });
 
 // Create index for efficient time-based queries and filtering

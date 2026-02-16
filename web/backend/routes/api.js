@@ -130,8 +130,7 @@ router.post('/control/move', async (req, res) => {
         // Log command
         await CommandLog.create({
             command_type: direction === 'stop' ? 'stop' : 'move',
-            command_data: { direction, distance_cm, angle_deg },
-            source: 'api'
+            command_data: { direction, distance_cm, angle_deg }
         });
 
         // Update state
@@ -172,8 +171,7 @@ router.post('/control/agi', async (req, res) => {
 
             await CommandLog.create({
                 command_type: 'agi',
-                command_data: { enabled },
-                source: 'api'
+                command_data: { enabled }
             });
         }
 
@@ -197,8 +195,7 @@ router.post('/control/panic', async (req, res) => {
 
             await CommandLog.create({
                 command_type: 'panic',
-                command_data: { enabled },
-                source: 'api'
+                command_data: { enabled }
             });
         }
 
@@ -307,8 +304,7 @@ router.post('/speak', async (req, res) => {
 
         await CommandLog.create({
             command_type: 'speak',
-            command_data: { text, lang },
-            source: 'api'
+            command_data: { text, lang }
         });
 
         // In production, this would call the Python media service
@@ -337,8 +333,7 @@ router.post('/control/rgb', async (req, res) => {
 
             await CommandLog.create({
                 command_type: 'rgb',
-                command_data: { hue, sat, bri, swi },
-                source: 'api'
+                command_data: { hue, sat, bri, swi }
             });
         }
 
@@ -364,8 +359,7 @@ router.post('/control/arm', async (req, res) => {
 
             await CommandLog.create({
                 command_type: 'arm',
-                command_data: { arm1, arm2 },
-                source: 'api'
+                command_data: { arm1, arm2 }
             });
         }
 
@@ -393,8 +387,7 @@ router.post('/control/volume', async (req, res) => {
 
             await CommandLog.create({
                 command_type: 'volume',
-                command_data: { level },
-                source: 'api'
+                command_data: { level }
             });
         }
 

@@ -81,6 +81,4 @@ Historical record of sensor data.
   - `distance` (Number, required): Distance sensor reading.
   - `temperature` (Number)
   - `humidity` (Number)
-  - `position_estimate`:
-    - `x` (Number)
-    - `y` (Number)
+
