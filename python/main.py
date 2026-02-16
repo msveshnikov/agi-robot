@@ -15,6 +15,7 @@ import colorsys
 import wave
 import socketio
 import threading
+import multiprocessing
 
 
 class CameraForwarder:
@@ -498,6 +499,15 @@ def save_memory(new_memory):
 load_memory()
 
 
+def llm_process_target(q, **kwargs):
+    try:
+        res = ask_llm_vision(**kwargs)
+        q.put(res)
+    except Exception as e:
+        logger.error(f"LLM process error: {e}")
+        q.put(None)
+
+
 def agi_loop():
     """Sends distance + subplan to LLM-vision, handles JSON response.
 
@@ -529,46 +539,57 @@ def agi_loop():
         f"AGI loop called with distance: {distance}, temp: {temperature}, hum: {humidity}, plan: {plan}, memory size: {len(memory)}"
     )
 
-    # Run LLM call in a separate thread so we can interrupt it
-    llm_result = [None]  # Use list to share result between threads
-    llm_exception = [None]
+    # Run LLM call in a separate process so we can terminate it
+    queue = multiprocessing.Queue()
 
-    def llm_thread():
-        try:
-            llm_result[0] = ask_llm_vision(
-                distance=distance,
-                temperature=temperature,
-                humidity=humidity,
-                plan=plan,
-                subplan=subplan,
-                movement_history=movement_history,
-                space_map=space_map,
-                memory=memory,
-                arm1=arm1,
-                arm2=arm2,
-            )
-        except Exception as e:
-            llm_exception[0] = e
+    kwargs = {
+        "distance": distance,
+        "temperature": temperature,
+        "humidity": humidity,
+        "plan": plan,
+        "subplan": subplan,
+        "movement_history": movement_history,
+        "space_map": space_map,
+        "memory": memory,
+        "arm1": arm1,
+        "arm2": arm2,
+    }
 
-    thread = threading.Thread(target=llm_thread, daemon=True)
-    thread.start()
+    p = multiprocessing.Process(
+        target=llm_process_target, args=(queue,), kwargs=kwargs, daemon=True
+    )
+    p.start()
 
-    # Poll for completion or manual override every 0.5 seconds
-    while thread.is_alive():
+    # Poll for completion or manual override every 0.1 seconds
+    resp = None
+    while p.is_alive():
         if manual_override_event.is_set() or not agi:
             logger.info(
-                "Manual override or AGI disabled during LLM call, aborting AGI loop"
+                "Manual override or AGI disabled during LLM call, killing LLM process"
             )
-            # Thread will continue but we'll ignore the result
+            p.terminate()
+            p.join(timeout=1.0)
+            if p.is_alive():
+                p.kill()  # Force kill if terminate fails
             return
-        thread.join(timeout=0.5)
 
-    # Check if there was an exception
-    if llm_exception[0]:
-        logger.error(f"LLM call failed: {llm_exception[0]}")
-        return
+        try:
+            # Try to get result with short timeout
+            resp = queue.get(timeout=0.1)
+            break  # Got result, exit loop
+        except Exception:
+            # Queue empty, continue polling
+            pass
 
-    resp = llm_result[0]
+    p.join(timeout=1.0)
+
+    if not resp:
+        # Check queue one last time just in case it finished right before join
+        try:
+            resp = queue.get(block=False)
+        except Exception:
+            pass
+
     if not resp:
         return
 
