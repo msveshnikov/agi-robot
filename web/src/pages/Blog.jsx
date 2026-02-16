@@ -1,10 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Book, Calendar, Zap, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Calendar, Zap, MessageSquare } from 'lucide-react';
 import * as api from '../services/api';
-import './Dashboard.css'; // Reuse some styles
+import './Dashboard.css';
 import './Blog.css';
+
+const BlogPostImage = ({ date }) => {
+    const [hasError, setHasError] = useState(false);
+
+    // Format: YYYYMMDD
+    const formatDateToYYYYMMDD = (dateString) => {
+        try {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}${month}${day}`;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    const imageName = formatDateToYYYYMMDD(date);
+    if (hasError || !imageName) return null;
+
+    return (
+        <motion.div
+            className="blog-post-image"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
+            <img
+                src={`/${imageName}.jpg`}
+                alt={`Experience captured on ${imageName}`}
+                onError={() => setHasError(true)}
+            />
+        </motion.div>
+    );
+};
 
 const Blog = () => {
     const [posts, setPosts] = useState([]);
@@ -57,9 +92,6 @@ const Blog = () => {
                         <span className="gradient-text">Robot</span> Diary
                     </h1>
                 </div>
-                {/* <div className="header-actions">
-                    <Book size={24} className="text-gradient" />
-                </div> */}
             </motion.header>
 
             <div className="container blog-container">
@@ -86,6 +118,7 @@ const Blog = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
                             >
+                                <BlogPostImage date={post.date} />
                                 <div className="blog-post-meta">
                                     <div className="blog-post-date">
                                         <Calendar size={16} style={{ marginRight: '0.5rem' }} />
