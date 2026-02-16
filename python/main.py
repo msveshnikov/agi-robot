@@ -835,7 +835,7 @@ def loop():
             if agi:
                 if not agi_running:
                     logger.info(
-                        f"[STATE] AGI requested and not running, starting AGI thread. {current_state}"
+                        f"[STATE] AGI requested and not running, starting AGI loop. {current_state}"
                     )
                     agi_running = True
                     manual_override_event.clear()  # Ensure event is clear before starting
