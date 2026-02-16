@@ -116,18 +116,28 @@ const RGBSelector = ({ rgb, onUpdate }) => {
         };
     };
 
+    const [updateTimer, setUpdateTimer] = useState(null);
+
+    const debouncedUpdate = (data) => {
+        if (updateTimer) clearTimeout(updateTimer);
+        const timer = setTimeout(() => {
+            onUpdate(data);
+        }, 200);
+        setUpdateTimer(timer);
+    };
+
     const handleColorChange = (e) => {
         const hex = e.target.value;
         setLocalColor(hex);
         const { hue, sat } = hexToHsv(hex);
-        onUpdate({ hue, sat, bri: brightness, swi: isOn });
+        debouncedUpdate({ hue, sat, bri: brightness, swi: isOn });
     };
 
     const handleBrightnessChange = (e) => {
         const bri = parseInt(e.target.value);
         setBrightness(bri);
         const { hue, sat } = hexToHsv(localColor);
-        onUpdate({ hue, sat, bri, swi: isOn });
+        debouncedUpdate({ hue, sat, bri, swi: isOn });
     };
 
     const toggleSwitch = () => {

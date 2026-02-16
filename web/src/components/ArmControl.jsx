@@ -22,16 +22,26 @@ const ArmControl = ({ arm1, arm2, onUpdate }) => {
         return () => clearTimeout(t);
     }, [arm2]);
 
+    const [updateTimer, setUpdateTimer] = useState(null);
+
+    const debouncedUpdate = (data) => {
+        if (updateTimer) clearTimeout(updateTimer);
+        const timer = setTimeout(() => {
+            onUpdate(data);
+        }, 200);
+        setUpdateTimer(timer);
+    };
+
     const handleArm1Change = (e) => {
         const value = parseInt(e.target.value);
         setLocalArm1(value);
-        onUpdate({ arm1: value, arm2: localArm2 });
+        debouncedUpdate({ arm1: value, arm2: localArm2 });
     };
 
     const handleArm2Change = (e) => {
         const value = parseInt(e.target.value);
         setLocalArm2(value);
-        onUpdate({ arm1: localArm1, arm2: value });
+        debouncedUpdate({ arm1: localArm1, arm2: value });
     };
 
     const resetArms = () => {
