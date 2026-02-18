@@ -25,36 +25,36 @@ Welcome to the assembly guide for the **AGI Robot**—a fully autonomous, LLM-po
 
 ## 🖨️ 3D Printing
 
-All models are located in the [/3d](../3d) folder.
+All models are located in the [/3d](https://github.com/msveshnikov/agi-robot/tree/main/3d) folder.
 
 ### Core Components
-- **[Chassis.stl](../3d/Chassis.stl)**: The main body that holds the breadboard and Arduino.
-- **[Cabin.stl](../3d/Cabin.stl)**: The top cover (roof) where the camera and arm are mounted.
-- **[Arduino_Base.stl](../3d/Arduino_Base.stl)**: Mount for the Arduino Uno.
+- **[Chassis.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Chassis.stl)**: The main body that holds the breadboard and Arduino.
+- **[Cabin.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Cabin.stl)**: The top cover (roof) where the camera and arm are mounted.
+- **[Arduino_Base.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Arduino_Base.stl)**: Mount for the Arduino Uno.
 
 ### Drive System
-- **[Parametric_wheel.stl](../3d/Parametric_wheel.stl)**: Two required for the front drive.
-- **[Tire.stl](../3d/Tire.stl)**: Flexible tires for the wheels.
-- **[Rear_wheel.stl](../3d/Rear_wheel.stl)**: Small trailing wheel for stability.
+- **[Parametric_wheel.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Parametric_wheel.stl)**: Two required for the front drive.
+- **[Tire.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Tire.stl)**: Flexible tires for the wheels.
+- **[Rear_wheel.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Rear_wheel.stl)**: Small trailing wheel for stability.
 
 ### Manipulator & Mounts
-- **[Arm1.stl](../3d/Arm1.stl)** & **[Arm2.stl](../3d/Arm2.stl)**: The two segments of the robot arm.
-- **[Servo_Mount.stl](../3d/Servo_Mount.stl)**: Support for the arm servos.
-- **[Webcam_mount.stl](../3d/Webcam_mount.stl)**: Tilting mount for the camera.
+- **[Arm1.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Arm1.stl)** & **[Arm2.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Arm2.stl)**: The two segments of the robot arm.
+- **[Servo_Mount.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Servo_Mount.stl)**: Support for the arm servos.
+- **[Webcam_mount.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Webcam_mount.stl)**: Tilting mount for the camera.
 
 ---
 
 ## 🔧 Mechanical Assembly
 
 ### 1. The Chassis
-1. **Mount the Servos**: Insert the two 360° SG90 servos into the slots on the side of the [Chassis.stl](../3d/Chassis.stl).
-2. **Arduino & Breadboard**: Place the [Arduino_Base.stl](../3d/Arduino_Base.stl) inside the chassis. Slot the breadboard next to it.
-3. **Wheels**: Press-fit the [Parametric_wheel.stl](../3d/Parametric_wheel.stl) onto the servo shafts. Add the [Tire.stl](../3d/Tire.stl) for traction.
+1. **Mount the Servos**: Insert the two 360° SG90 servos into the slots on the side of the [Chassis.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Chassis.stl).
+2. **Arduino & Breadboard**: Place the [Arduino_Base.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Arduino_Base.stl) inside the chassis. Slot the breadboard next to it.
+3. **Wheels**: Press-fit the [Parametric_wheel.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Parametric_wheel.stl) onto the servo shafts. Add the [Tire.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Tire.stl) for traction.
 
 ### 2. The Head & Cabin
-1. **Ultrasonic Sensor**: Snap the HC-SR04 into the two circular holes at the front of the [Cabin.stl](../3d/Cabin.stl).
-2. **Webcam**: Use the [Webcam_mount.stl](../3d/Webcam_mount.stl) to attach the camera to the roof.
-3. **Manipulator Arm**: Assemble [Arm1.stl](../3d/Arm1.stl) and [Arm2.stl](../3d/Arm2.stl) using the 180° servos and mount them on top of the cabin.
+1. **Ultrasonic Sensor**: Snap the HC-SR04 into the two circular holes at the front of the [Cabin.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Cabin.stl).
+2. **Webcam**: Use the [Webcam_mount.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Webcam_mount.stl) to attach the camera to the roof.
+3. **Manipulator Arm**: Assemble [Arm1.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Arm1.stl) and [Arm2.stl](https://github.com/msveshnikov/agi-robot/blob/main/3d/Arm2.stl) using the 180° servos and mount them on top of the cabin.
 
 ---
 
@@ -86,7 +86,7 @@ The heart of the robot is the Arduino Uno Q. Connect the components according to
 - Connect the Arduino Uno Q to your PC.
 - ssh or adb to board
 - cd ~/ArduinoApps
-- git pull https://github.com/mvpgen/agi-robot.git
+- git pull https://github.com/msveshnikov/agi-robot.git
 - Start AppLab and navigate to the agi-robot application
 - Click "Run" and "Set up as default"
 
