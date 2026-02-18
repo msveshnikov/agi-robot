@@ -6,61 +6,61 @@ Welcome to the assembly guide for the **AGI Robot**—a fully autonomous, LLM-po
 
 ## 🛠️ Bill of Materials (BOM)
 
-| Category | Item | Quantity | Approx. Cost |
+| Category | Item | Quantity | Links (AE / AMZ) |
 | :--- | :--- | :---: | :--- |
-| **Microcontroller** | Arduino Uno R4 WiFi (Arduino Uno Q) | 1 | $44 |
-| **Actuators** | SG90 360° Continuous Rotation Servos (Wheels) | 2 | $4 |
-| **Actuators** | SG90 180° Standard Servos (Manipulator Arm) | 2 | $4 |
-| **Vision** | USB Webcam with Microphone | 1 | $3 |
-| **Audio** | Bluetooth Speaker / USB Speaker | 1 | $2.5 |
-| **Sensors** | HC-SR04 Ultrasonic Distance Sensor | 1 | $1.5 |
-| **Sensors** | Modulino Thermo (I2C) | 1 | - |
-| **Lighting** | RGB LED (Common Cathode) | 1 | - |
-| **Power** | 10000 mAh PowerBank | 1 | $10 |
-| **Connectivity** | USB-C to USB-A Hub (Dongle) | 1 | $3 |
-| **Prototyping** | Breadboard & Jumper Wires | - | $5 |
+| **Microcontroller** | Arduino Uno Q)| 1 | [AE](https://www.aliexpress.com/w/wholesale-Arduino-Uno-Q.html) / [AMZ](amazon.com/Arduino-2-GB-ABX00162-microprocessor-Microcontroller/dp/B0FVLQLMSV/ref=sr_1_2?dib=eyJ2IjoiMSJ9.wCPx8spVnJsCoaDKXV6Y_KySTyn4Hi8jrl9-q3Ek4tihCjwKffUmlxrS9cl9yeSRr3noAOUEEW-UZP0QDf4HseKgc8yYq8Rspk1qmX1_sk0STF7St8MEF94nME0-WW3yH0AYtCAwdQxHh-hTH2x1TflnPbV-OaRLxOiGz2kV1HL1eFfCJRUVfZR8SWWpeANraHxrNijAR_LYrJWqghxRu5KT2wOzE3hmZcXlcUgsbF8.ysFFoNQY4csQhMvSE1P5qcII3MzDYdGwWBqFShuw9vo&dib_tag=se&keywords=uno+q&qid=1771419151&sr=8-2) |
+| **Actuators** | SG90 360° Continuous Servo | 2 | [AE](https://www.aliexpress.com/w/wholesale-SG90+360+servo.html) / [AMZ](https://www.amazon.com/s?k=SG90+360+degree+servo) |
+| **Actuators** | SG90 180° Standard Servo | 2 | [AE](https://www.aliexpress.com/w/wholesale-SG90+180+servo.html) / [AMZ](https://www.amazon.com/s?k=SG90+servo) |
+| **Vision** | USB Webcam with Microphone | 1 | [AE](https://www.aliexpress.com/w/wholesale-usb+webcam+microphone.html) / [AMZ](https://www.amazon.com/s?k=usb+webcam+with+microphone) |
+| **Audio** | Mini Bluetooth/USB Speaker | 1 | [AE](https://www.aliexpress.com/w/wholesale-mini+bluetooth+speaker.html) / [AMZ](https://www.amazon.com/s?k=mini+bluetooth+speaker) |
+| **Sensors** | HC-SR04 Ultrasonic Sensor | 1 | [AE](https://www.aliexpress.com/w/wholesale-HC-SR04.html) / [AMZ](https://www.amazon.com/s?k=HC-SR04) |
+| **Sensors** | Modulino Thermo (I2C) | 1 | [Arduino](https://store.arduino.cc/products/arduino-modulino-thermo) / [AMZ](https://www.amazon.com/s?k=Arduino+Modulino+Thermo) |
+| **Lighting** | RGB LED (Common Cathode) | 1 | [AE](https://www.aliexpress.com/w/wholesale-RGB+LED+common+cathode.html) / [AMZ](https://www.amazon.com/s?k=RGB+LED+common+cathode) |
+| **Power** | 10000 mAh PowerBank | 1 | [AE](https://www.aliexpress.com/w/wholesale-Xiaomi+Powerbank+10000.html) / [AMZ](https://www.amazon.com/s?k=10000mAh+Power+Bank) |
+| **Connectivity** | USB-C to USB-A Hub | 1 | [AE](https://www.aliexpress.com/w/wholesale-usb-c+hub+4+usb-a.html) / [AMZ](https://www.amazon.com/s?k=usb-c+hub+to+usb-a) |
+| **Prototyping** | Breadboard & Jumper Wires | - | [AE](https://www.aliexpress.com/w/wholesale-breadboard+wires+kit.html) / [AMZ](https://www.amazon.com/s?k=breadboard+and+jumper+wires+kit) |
 | **Structure** | 3D Printed Parts (PLA/PETG) | ~200g | $3 |
 
 ---
 
 ## 🖨️ 3D Printing
 
-All models are located in the [/3d](file:///c:/My-progs/Python/agi-robot/3d) folder.
+All models are located in the [/3d](../3d) folder.
 
 ### Core Components
-- **[Chassis.stl](file:///c:/My-progs/Python/agi-robot/3d/Chassis.stl)**: The main body that holds the breadboard and Arduino.
-- **[Cabin.stl](file:///c:/My-progs/Python/agi-robot/3d/Cabin.stl)**: The top cover (roof) where the camera and arm are mounted.
-- **[Arduino_Base.stl](file:///c:/My-progs/Python/agi-robot/3d/Arduino_Base.stl)**: Mount for the Arduino Uno.
+- **[Chassis.stl](../3d/Chassis.stl)**: The main body that holds the breadboard and Arduino.
+- **[Cabin.stl](../3d/Cabin.stl)**: The top cover (roof) where the camera and arm are mounted.
+- **[Arduino_Base.stl](../3d/Arduino_Base.stl)**: Mount for the Arduino Uno.
 
 ### Drive System
-- **[Parametric_wheel.stl](file:///c:/My-progs/Python/agi-robot/3d/Parametric_wheel.stl)**: Two required for the front drive.
-- **[Tire.stl](file:///c:/My-progs/Python/agi-robot/3d/Tire.stl)**: Flexible tires for the wheels.
-- **[Rear_wheel.stl](file:///c:/My-progs/Python/agi-robot/3d/Rear_wheel.stl)**: Small trailing wheel for stability.
+- **[Parametric_wheel.stl](../3d/Parametric_wheel.stl)**: Two required for the front drive.
+- **[Tire.stl](../3d/Tire.stl)**: Flexible tires for the wheels.
+- **[Rear_wheel.stl](../3d/Rear_wheel.stl)**: Small trailing wheel for stability.
 
 ### Manipulator & Mounts
-- **[Arm1.stl](file:///c:/My-progs/Python/agi-robot/3d/Arm1.stl)** & **[Arm2.stl](file:///c:/My-progs/Python/agi-robot/3d/Arm2.stl)**: The two segments of the robot arm.
-- **[Servo_Mount.stl](file:///c:/My-progs/Python/agi-robot/3d/Servo_Mount.stl)**: Support for the arm servos.
-- **[Webcam_mount.stl](file:///c:/My-progs/Python/agi-robot/3d/Webcam_mount.stl)**: Tilting mount for the camera.
+- **[Arm1.stl](../3d/Arm1.stl)** & **[Arm2.stl](../3d/Arm2.stl)**: The two segments of the robot arm.
+- **[Servo_Mount.stl](../3d/Servo_Mount.stl)**: Support for the arm servos.
+- **[Webcam_mount.stl](../3d/Webcam_mount.stl)**: Tilting mount for the camera.
 
 ---
 
 ## 🔧 Mechanical Assembly
 
 ### 1. The Chassis
-1. **Mount the Servos**: Insert the two 360° SG90 servos into the slots on the side of the [Chassis.stl](file:///c:/My-progs/Python/agi-robot/3d/Chassis.stl).
-2. **Arduino & Breadboard**: Place the [Arduino_Base.stl](file:///c:/My-progs/Python/agi-robot/3d/Arduino_Base.stl) inside the chassis. Slot the breadboard next to it.
-3. **Wheels**: Press-fit the [Parametric_wheel.stl](file:///c:/My-progs/Python/agi-robot/3d/Parametric_wheel.stl) onto the servo shafts. Add the [Tire.stl](file:///c:/My-progs/Python/agi-robot/3d/Tire.stl) for traction.
+1. **Mount the Servos**: Insert the two 360° SG90 servos into the slots on the side of the [Chassis.stl](../3d/Chassis.stl).
+2. **Arduino & Breadboard**: Place the [Arduino_Base.stl](../3d/Arduino_Base.stl) inside the chassis. Slot the breadboard next to it.
+3. **Wheels**: Press-fit the [Parametric_wheel.stl](../3d/Parametric_wheel.stl) onto the servo shafts. Add the [Tire.stl](../3d/Tire.stl) for traction.
 
 ### 2. The Head & Cabin
-1. **Ultrasonic Sensor**: Snap the HC-SR04 into the two circular holes at the front of the [Cabin.stl](file:///c:/My-progs/Python/agi-robot/3d/Cabin.stl).
-2. **Webcam**: Use the [Webcam_mount.stl](file:///c:/My-progs/Python/agi-robot/3d/Webcam_mount.stl) to attach the camera to the roof.
-3. **Manipulator Arm**: Assemble [Arm1.stl](file:///c:/My-progs/Python/agi-robot/3d/Arm1.stl) and [Arm2.stl](file:///c:/My-progs/Python/agi-robot/3d/Arm2.stl) using the 180° servos and mount them on top of the cabin.
+1. **Ultrasonic Sensor**: Snap the HC-SR04 into the two circular holes at the front of the [Cabin.stl](../3d/Cabin.stl).
+2. **Webcam**: Use the [Webcam_mount.stl](../3d/Webcam_mount.stl) to attach the camera to the roof.
+3. **Manipulator Arm**: Assemble [Arm1.stl](../3d/Arm1.stl) and [Arm2.stl](../3d/Arm2.stl) using the 180° servos and mount them on top of the cabin.
 
 ---
 
 ## ⚡ Electronics & Wiring
 
-The heart of the robot is the Arduino Uno R4 WiFi. Connect the components according to the table below:
+The heart of the robot is the Arduino Uno Q. Connect the components according to the table below:
 
 | Component | Arduino Pin | Wire Color (Typical) |
 | :--- | :---: | :--- |
