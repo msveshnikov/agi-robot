@@ -1,4 +1,6 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
 import RobotState from '../models/RobotState.js';
 import TelemetryLog from '../models/TelemetryLog.js';
 import CommandLog from '../models/CommandLog.js';
@@ -11,6 +13,18 @@ const router = express.Router();
 // Health check
 router.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
+});
+
+// Get assembly guide content
+router.get('/docs/assembly-guide', (req, res) => {
+    try {
+        const guidePath = path.resolve('../../docs/assembly_guide.md');
+        const content = fs.readFileSync(guidePath, 'utf8');
+        res.json({ content });
+    } catch (error) {
+        console.error('Error reading assembly guide:', error);
+        res.status(500).json({ error: 'Failed to read assembly guide' });
+    }
 });
 
 // Get current robot state

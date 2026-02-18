@@ -11,7 +11,8 @@ import {
     Zap,
     Eye,
     MessageSquare,
-    Check
+    Check,
+    FileText
 } from 'lucide-react';
 import './LandingPage.css';
 import './LandingPage-buttons.css';
@@ -152,6 +153,10 @@ const LandingPage = () => {
                             <Link to="/dashboard" className="btn btn-primary">
                                 <span>Open Dashboard</span>
                                 <ArrowRight size={20} />
+                            </Link>
+                            <Link to="/assembly-guide" className="btn btn-secondary">
+                                <FileText size={20} />
+                                <span>Assembly Guide</span>
                             </Link>
                             <Link to="/blog" className="btn btn-secondary">
                                 <MessageSquare size={20} />
@@ -411,7 +416,11 @@ const LandingPage = () => {
                             <ul className="pricing-features">
                                 <li><Check size={18} /> <span>3D Print Files (STL)</span></li>
                                 <li><Check size={18} /> <span>Complete Parts List</span></li>
-                                <li><Check size={18} /> <span>Assembly Guide</span></li>
+                                <li>
+                                    <Link to="/assembly-guide" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'inherit', textDecoration: 'none' }}>
+                                        <Check size={18} /> <span>Assembly Guide</span>
+                                    </Link>
+                                </li>
                                 <li><Check size={18} /> <span>Source Code Access</span></li>
                             </ul>
                             <button
