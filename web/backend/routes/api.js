@@ -18,7 +18,7 @@ router.get('/health', (req, res) => {
 // Get assembly guide content
 router.get('/docs/assembly-guide', (req, res) => {
     try {
-        const guidePath = path.resolve('../../docs/assembly_guide.md');
+        const guidePath = path.resolve('./docs/assembly_guide.md');
         const content = fs.readFileSync(guidePath, 'utf8');
         res.json({ content });
     } catch (error) {
