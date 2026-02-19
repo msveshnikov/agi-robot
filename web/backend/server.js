@@ -53,8 +53,13 @@ mongoose
 io.on("connection", (socket) => {
     console.log(`🔌 Client connected: ${socket.id}`);
 
+    // Broadcast updated client count to all clients
+    io.emit("client_count", io.engine.clientsCount);
+
     socket.on("disconnect", () => {
         console.log(`🔌 Client disconnected: ${socket.id}`);
+        // Broadcast updated client count to all clients
+        io.emit("client_count", io.engine.clientsCount);
     });
 
     // Handle camera feed (if needed)
@@ -109,7 +114,7 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule("0 21 * * *", async () => {
+cron.schedule("0 12 * * *", async () => {
     console.log("🤖 Running daily blog post generation check...");
 
     try {
@@ -152,9 +157,9 @@ cron.schedule("0 21 * * *", async () => {
             const topAuthors = [
                 "Haruki Murakami",
                 "Victor Pelevin",
-                "Kazuo Ishiguro",
+                // "Kazuo Ishiguro",
                 "William Gibson",
-                "Salman Rushdie",
+                // "Salman Rushdie",
                 "J. K. Rowling",
                 "Stephen King",
                 "Leo Tolstoy",

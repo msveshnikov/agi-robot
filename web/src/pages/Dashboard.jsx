@@ -36,6 +36,7 @@ const Dashboard = () => {
     });
     const [lastTelemetryTime, setLastTelemetryTime] = useState(null);
     const [connected, setConnected] = useState(false);
+    const [clientCount, setClientCount] = useState(1);
     const [loading, setLoading] = useState(true);
     const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -90,9 +91,15 @@ const Dashboard = () => {
             setLastTelemetryTime(Date.now());
         });
 
+        // Listen for client count
+        socketService.on("client_count", (count) => {
+            setClientCount(count);
+        });
+
         return () => {
             socketService.off("state");
             socketService.off("telemetry");
+            socketService.off("client_count");
         };
     }, []);
 
@@ -188,6 +195,10 @@ const Dashboard = () => {
                     <span className="text-gradient">AGI Robot</span> Control Dashboard
                 </h1>
                 <div className="header-actions">
+                    <div className="client-count">
+                        <Droplets size={16} className="client-icon" />
+                        <span>{Math.ceil(clientCount / 2)} {Math.ceil(clientCount / 2) === 1 ? "Client" : "Clients"}</span>
+                    </div>
                     <div className="connection-status">
                         <div className={`status-indicator ${connected ? "connected" : "disconnected"}`} />
                         <span>{connected ? "Robot Online" : "Robot Offline"}</span>
