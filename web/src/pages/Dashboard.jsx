@@ -207,7 +207,6 @@ const Dashboard = () => {
                         className="settings-toggle-button"
                         onClick={() => (window.location.href = "/blog")}
                         title="Robot Diary"
-                        style={{ marginRight: "10px" }}
                     >
                         <MessageSquare size={20} />
                     </button>

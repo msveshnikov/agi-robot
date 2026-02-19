@@ -298,7 +298,8 @@
   .header-actions {
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    gap: var(--spacing-sm);
   }
 
   .dashboard-content {
@@ -348,6 +349,11 @@
     font-size: 1.25rem;
   }
   
+  .header-actions {
+    gap: var(--spacing-xs);
+  }
+
+  .client-count,
   .connection-status {
     font-size: 0.75rem;
     padding: var(--spacing-xs) var(--spacing-sm);
