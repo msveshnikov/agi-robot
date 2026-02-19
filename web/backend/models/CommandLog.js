@@ -5,7 +5,7 @@ const commandLogSchema = new mongoose.Schema({
     command_type: {
         type: String,
         required: true,
-        enum: ["move", "turn", "stop", "agi", "panic", "speak", "rgb", "arm"],
+        enum: ["move", "turn", "stop", "agi", "asi", "panic", "speak", "rgb", "arm"],
     },
     command_data: { type: mongoose.Schema.Types.Mixed }
 });

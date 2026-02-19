@@ -462,7 +462,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
         if not LLM_CLIENT:
             raise Exception("LLM_CLIENT is not initialized")
 
-        model_name = "gemini-3-pro-preview" if asi else "gemini-3-flash-preview"
+        model_name = "gemini-3.1-pro-preview" if asi else "gemini-3-flash-preview"
         logger.info(
             f"Sending text+image+audio to Gemini model {model_name} with structured output (lang={lang})..."
         )

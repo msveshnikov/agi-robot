@@ -220,6 +220,30 @@ router.post('/control/panic', async (req, res) => {
     }
 });
 
+// Toggle ASI mode
+router.post('/control/asi', async (req, res) => {
+    try {
+        const { enabled } = req.body;
+
+        const state = await RobotState.findOne().sort({ timestamp: -1 });
+        if (state) {
+            state.asi = enabled;
+            await state.save();
+            req.app.get('io').emit('state', state);
+
+            await CommandLog.create({
+                command_type: 'asi',
+                command_data: { enabled }
+            });
+        }
+
+        res.json({ success: true, asi: enabled });
+    } catch (error) {
+        console.error('Error toggling ASI:', error);
+        res.status(500).json({ error: 'Failed to toggle ASI mode' });
+    }
+});
+
 // Get telemetry history
 router.get('/telemetry', async (req, res) => {
     try {

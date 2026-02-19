@@ -40,6 +40,11 @@ export const togglePanic = async (enabled) => {
     return response.data;
 };
 
+export const toggleASI = async (enabled) => {
+    const response = await api.post("/control/asi", { enabled });
+    return response.data;
+};
+
 export const updateRGB = async (hue, sat, bri, swi) => {
     const response = await api.post("/control/rgb", { hue, sat, bri, swi });
     return response.data;

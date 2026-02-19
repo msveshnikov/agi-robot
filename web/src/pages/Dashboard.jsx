@@ -156,6 +156,15 @@ const Dashboard = () => {
         }
     };
 
+    const toggleASI = async () => {
+        try {
+            const newState = !robotState?.asi;
+            await api.toggleASI(newState);
+        } catch (error) {
+            console.error("ASI toggle failed:", error);
+        }
+    };
+
     const handleRGBUpdate = async (rgbData) => {
         try {
             await api.updateRGB(rgbData.hue, rgbData.sat, rgbData.bri, rgbData.swi);
@@ -324,6 +333,7 @@ const Dashboard = () => {
                             icon={Power}
                             label={`ASI ${robotState?.asi ? "ON" : "OFF"}`}
                             active={robotState?.asi}
+                            onClick={toggleASI}
                             variant={robotState?.asi ? "primary" : "default"}
                         />
                     </div>
