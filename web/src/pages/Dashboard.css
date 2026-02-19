@@ -44,25 +44,29 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  height: 44px;
+  padding: 0 var(--spacing-md);
   background: var(--glass-bg);
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .client-count {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  height: 44px;
+  padding: 0 var(--spacing-md);
   background: var(--glass-bg);
   border: 2px solid var(--glass-border);
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-primary);
+  white-space: nowrap;
 }
 
 .client-icon {
@@ -356,7 +360,8 @@
   .client-count,
   .connection-status {
     font-size: 0.75rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    height: 36px;
+    padding: 0 var(--spacing-sm);
   }
   
   .settings-toggle-button {
@@ -410,9 +415,15 @@
     min-width: 90px;
   }
   
-  .settings-toggle-button {
-    min-width: 48px;
+  .settings-toggle-button,
+  .connection-status,
+  .client-count {
+    height: 48px;
     min-height: 48px;
+  }
+  
+  .settings-toggle-button {
+    width: 48px;
   }
   
   /* Remove hover effects */
