@@ -94,13 +94,12 @@ The heart of the robot is the Arduino Uno Q. Connect the components according to
 - Ensure you have Python 3.12+ installed on the robot's Linux environment.
 - Install dependencies:
   ```bash
-  pip install arduino-app-utils google-genai google-api-python-client python-socketio[client]
+  pip install google-genai google-api-python-client python-socketio opencv-python eventlet
   ```
 - Set your `GEMINI_KEY` and path to `google.json`.
 
 ### 3. Running the Robot
 - Start the media service: `python python/media_service.py`
-- Start the main control loop: `python python/main.py`
 - Open the dashboard at [robot.mvpgen.com](https://robot.mvpgen.com) to take control!
 
 ---

@@ -9,7 +9,7 @@ set "CONTAINER_NAME=agi-robot-mongodb"
 
 echo Starting export of MongoDB collections...
 
-ssh -l %REMOTE_USER% %REMOTE_HOST% "docker exec %CONTAINER_NAME% mongoexport --db %DB_NAME% --collection blogposts --type=csv --fields=_id,title,content,author,slug,isPublished,tags,likes,views > blogposts.csv"
+ssh -l %REMOTE_USER% %REMOTE_HOST% "docker exec %CONTAINER_NAME% mongoexport --db %DB_NAME% --collection blogposts --type=csv --fields=_id,title,content,date,logsCount > blogposts.csv"
 ssh -l %REMOTE_USER% %REMOTE_HOST% "docker exec %CONTAINER_NAME% mongoexport --db %DB_NAME% --collection cognitivelogs --type=csv --fields=_id,timestamp,plan,subplan,memory,goal > cognitivelogs.csv"
 ssh -l %REMOTE_USER% %REMOTE_HOST% "docker exec %CONTAINER_NAME% mongoexport --db %DB_NAME% --collection commandlogs --type=csv --fields=_id,timestamp,command_type,command_data > commandlogs.csv"
 ssh -l %REMOTE_USER% %REMOTE_HOST% "docker exec %CONTAINER_NAME% mongoexport --db %DB_NAME% --collection robotstates --type=csv --fields=_id,agi,asi,speed,panic,forward,back,left,right,lang,goal,rgb.hue,rgb.sat,rgb.bri,rgb.swi,arm1,arm2,distance,temperature,humidity,plan,subplan,space_map,movement_history,memory,alarm,timestamp > robotstates.csv"
