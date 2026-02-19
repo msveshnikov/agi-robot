@@ -142,6 +142,8 @@ cron.schedule("0 21 * * *", async () => {
                 },
             }).sort({ timestamp: 1 });
 
+            // exclude 2 oldest logs
+            logs.splice(0, 2);
             const logsContext = logs
                 .map(
                     (log) =>
