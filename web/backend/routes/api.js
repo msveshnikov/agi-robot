@@ -134,7 +134,7 @@ router.post('/state', async (req, res) => {
 // Movement control
 router.post('/control/move', async (req, res) => {
     try {
-        const { direction, distance_cm, angle_deg } = req.body;
+        const { direction } = req.body;
 
         // Validate command
         if (!['forward', 'back', 'left', 'right', 'stop'].includes(direction)) {
@@ -144,7 +144,7 @@ router.post('/control/move', async (req, res) => {
         // Log command
         await CommandLog.create({
             command_type: direction === 'stop' ? 'stop' : 'move',
-            command_data: { direction, distance_cm, angle_deg }
+            command_data: { direction }
         });
 
         // Update state
@@ -165,7 +165,7 @@ router.post('/control/move', async (req, res) => {
             req.app.get('io').emit('state', state);
         }
 
-        res.json({ success: true, command: { direction, distance_cm, angle_deg } });
+        res.json({ success: true, command: { direction } });
     } catch (error) {
         console.error('Error sending move command:', error);
         res.status(500).json({ error: 'Failed to send move command' });
@@ -315,7 +315,7 @@ router.get('/logs/cognitive', async (req, res) => {
 // Get blog posts
 router.get('/blog', async (req, res) => {
     try {
-        const { limit = 10, skip = 0 } = req.query;
+        const { limit = 50, skip = 0 } = req.query;
 
         const posts = await BlogPost.find()
             .sort({ date: -1 })
@@ -328,29 +328,6 @@ router.get('/blog', async (req, res) => {
     } catch (error) {
         console.error('Error fetching blog posts:', error);
         res.status(500).json({ error: 'Failed to fetch blog posts' });
-    }
-});
-
-// Text-to-speech endpoint (proxy to Python media service)
-router.post('/speak', async (req, res) => {
-    try {
-        const { text, lang = 'en' } = req.body;
-
-        if (!text) {
-            return res.status(400).json({ error: 'Text is required' });
-        }
-
-        await CommandLog.create({
-            command_type: 'speak',
-            command_data: { text, lang }
-        });
-
-        // In production, this would call the Python media service
-        // For now, just acknowledge
-        res.json({ success: true, text, lang });
-    } catch (error) {
-        console.error('Error sending speak command:', error);
-        res.status(500).json({ error: 'Failed to send speak command' });
     }
 });
 
