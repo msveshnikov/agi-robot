@@ -74,7 +74,7 @@ const AssemblyGuide = () => {
 
             <footer className="guide-footer">
                 <div className="container">
-                    <p>&copy; 2026 MaxSoft. Documentation for AGI Robot.</p>
+                    <p>&copy; 2026 MaxSoft.</p>
                 </div>
             </footer>
         </div>

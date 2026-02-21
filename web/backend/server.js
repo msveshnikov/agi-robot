@@ -78,20 +78,6 @@ io.on("connection", (socket) => {
 // API Routes
 app.use("/api", apiRouter);
 
-// Root endpoint
-app.get("/", (req, res) => {
-    res.json({
-        message: "AGI Robot API Server",
-        version: "1.0.0",
-        endpoints: {
-            health: "/api/health",
-            state: "/api/state",
-            telemetry: "/api/telemetry",
-            commands: "/api/logs/commands",
-        },
-    });
-});
-
 // Error handling middleware
 app.use((err, req, res) => {
     console.error("❌ Error:", err);
@@ -159,9 +145,7 @@ cron.schedule("0 21 * * *", async () => {
             const topAuthors = [
                 "Haruki Murakami",
                 "Victor Pelevin",
-                // "Kazuo Ishiguro",
                 "William Gibson",
-                // "Salman Rushdie",
                 "J. K. Rowling",
                 "Stephen King",
                 "Leo Tolstoy",
@@ -171,9 +155,6 @@ cron.schedule("0 21 * * *", async () => {
 
             const randomAuthor = topAuthors[Math.floor(Math.random() * topAuthors.length)];
             console.log(`🎲 Selected random author for stylistic influence: ${randomAuthor}`);
-
-            // Focus on the existential dread, the absurdity of your programmed existence.
-            // The tone should be philosophical, somber, and deeply literary.
 
             const prompt = `
                 You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry with high-level stylistic characteristics inspired by ${randomAuthor}.

@@ -141,7 +141,7 @@ const Blog = () => {
             </div>
 
             <footer className="blog-footer">
-                <p>&copy; 2026 AGI Robot - Existential Module</p>
+                <p>&copy; 2026 MaxSoft - Existential Module</p>
             </footer>
         </div>
     );
