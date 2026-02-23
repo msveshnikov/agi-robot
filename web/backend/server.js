@@ -79,13 +79,13 @@ io.on("connection", (socket) => {
 app.use("/api", apiRouter);
 
 // Error handling middleware
-app.use((err, req, res) => {
-    console.error("❌ Error:", err);
-    res.status(500).json({
-        error: "Internal server error",
-        message: process.env.NODE_ENV === "development" ? err.message : undefined,
-    });
-});
+// app.use((err, req, res) => {
+//     console.error("❌ Error:", err);
+//     res.status(500).json({
+//         error: "Internal server error",
+//         message: process.env.NODE_ENV === "development" ? err.message : undefined,
+//     });
+// });
 
 // 404 handler
 app.use((req, res) => {
@@ -100,7 +100,7 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule("0 21 * * *", async () => {
+cron.schedule("0 10 * * *", async () => {
     console.log("🤖 Running daily blog post generation check...");
 
     try {
