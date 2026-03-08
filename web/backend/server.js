@@ -100,7 +100,7 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule("25 14 * * *", async () => {
+cron.schedule("40 14 * * *", async () => {
     console.log("🤖 Running daily blog post generation check...");
 
     try {
@@ -138,7 +138,7 @@ cron.schedule("25 14 * * *", async () => {
                 .join("\n\n");
 
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+            const model = genAI.getGenerativeModel({ model: "gemini-3.1-pro-preview" });
 
             // Select a random author from a curated list and include their
             // name in the prompt while avoiding direct imitation instructions.
