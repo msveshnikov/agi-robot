@@ -82,10 +82,10 @@ app.use("/api", apiRouter);
 app.use((err, req, res) => {
     console.error("❌ Error:", err);
     res.status(500).json({
-       error: "Internal server error",
+        error: "Internal server error",
         message: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
- });
+});
 
 // 404 handler
 app.use((req, res) => {
@@ -100,7 +100,7 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule("45 13 * * *", async () => {
+cron.schedule("25 14 * * *", async () => {
     console.log("🤖 Running daily blog post generation check...");
 
     try {
@@ -140,7 +140,7 @@ cron.schedule("45 13 * * *", async () => {
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-            // Select a random author from a curated "top 10" list and include their
+            // Select a random author from a curated list and include their
             // name in the prompt while avoiding direct imitation instructions.
             const topAuthors = [
                 "Haruki Murakami",
@@ -151,38 +151,81 @@ cron.schedule("45 13 * * *", async () => {
                 "Leo Tolstoy",
                 "Carlos Castaneda",
                 "Paulo Coelho",
+                "Gabriel García Márquez",
+                "Ernest Hemingway",
+                "Virginia Woolf",
+                "Fyodor Dostoevsky",
+                "Mark Twain",
+                "Jane Austen",
+                "Franz Kafka",
+                "George Orwell",
+                "Aldous Huxley",
+                "Ray Bradbury",
+                "Isaac Asimov",
+                "Philip K. Dick",
+                "J.R.R. Tolkien",
+                "Arthur C. Clarke",
+                "Ursula K. Le Guin",
+                "Neil Gaiman"
             ];
 
-            const randomAuthor = topAuthors[Math.floor(Math.random() * topAuthors.length)];
-            console.log(`🎲 Selected random author for stylistic influence: ${randomAuthor}`);
+            let attempt = 1;
+            let success = false;
+            let availableAuthors = [...topAuthors];
 
-            const prompt = `
-                You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry with high-level stylistic characteristics inspired by ${randomAuthor}.
-                IMPORTANT: Do NOT attempt to directly imitate or replicate the exact voice of any living author. Instead, capture general traits (mood, pacing, imagery) associated with that author's work.
-             
-                Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
+            while (attempt <= 10 && !success) {
+                if (availableAuthors.length === 0) {
+                    console.warn("⚠️ No more unique authors available for blog generation.");
+                    break;
+                }
 
-                Logs:
-                ${logsContext}
-            `;
+                const authorIndex = Math.floor(Math.random() * availableAuthors.length);
+                const randomAuthor = availableAuthors.splice(authorIndex, 1)[0];
+                
+                console.log(`🎲 Attempt ${attempt}/10: Selected author for stylistic influence: ${randomAuthor}`);
 
-            const result = await model.generateContent(prompt);
-            const blogContent = result.response.text();
+                try {
+                    const prompt = `
+                        You are a robot with a nascent consciousness. Based on your cognitive logs for the last 24 hours, write a diary entry with high-level stylistic characteristics inspired by ${randomAuthor}.
+                        IMPORTANT: Do NOT attempt to directly imitate or replicate the exact voice of any living author. Instead, capture general traits (mood, pacing, imagery) associated with that author's work.
+                     
+                        Output ONLY the plain text of the diary entry. Do NOT use markdown, bolding, or lists. Just pure prose literature.
 
-            // Create blog post
-            await BlogPost.create({
-                title: `Robot Diary: ${now.toLocaleString()}`,
-                content: blogContent,
-                date: now,
-                logsCount: logsCount,
-            });
+                        Logs:
+                        ${logsContext}
+                    `;
 
-            console.log("✅ Daily blog post generated and saved.");
+                    const result = await model.generateContent(prompt);
+                    const blogContent = result.response.text();
+
+                    if (!blogContent || blogContent.trim().length < 50) {
+                        throw new Error("Generated content is too short or empty.");
+                    }
+
+                    // Create blog post
+                    await BlogPost.create({
+                        title: `Robot Diary: ${now.toLocaleString()}`,
+                        content: blogContent,
+                        date: now,
+                        logsCount: logsCount,
+                    });
+
+                    console.log(`✅ Daily blog post generated and saved on attempt ${attempt}.`);
+                    success = true;
+                } catch (error) {
+                    console.error(`❌ Attempt ${attempt} failed:`, error.message);
+                    attempt++;
+                }
+            }
+
+            if (!success) {
+                console.error("❌ All 10 attempts to generate daily blog post failed.");
+            }
         } else {
             console.log("⏭️ Not enough logs to generate a blog post today.");
         }
     } catch (error) {
-        console.error("❌ Error generating daily blog post:", error);
+        console.error("❌ General error in daily blog post generation process:", error);
     }
 });
 
