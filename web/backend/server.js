@@ -78,14 +78,7 @@ io.on("connection", (socket) => {
 // API Routes
 app.use("/api", apiRouter);
 
-// Error handling middleware
-app.use((err, req, res) => {
-    console.error("❌ Error:", err);
-    res.status(500).json({
-        error: "Internal server error",
-        message: process.env.NODE_ENV === "development" ? err.message : undefined,
-    });
-});
+
 
 // 404 handler
 app.use((req, res) => {
