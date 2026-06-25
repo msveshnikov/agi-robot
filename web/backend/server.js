@@ -110,7 +110,7 @@ cron.schedule("20 17 * * *", async () => {
 
         console.log(`📊 Last 24h cognitive logs count: ${logsCount}`);
 
-        if (logsCount > 10) {
+        if (logsCount > 5) {
             console.log("✨ Sufficient logs found. Generating blog post...");
 
             // Get logs for last 24h to provide context to Gemini
