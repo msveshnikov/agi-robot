@@ -93,7 +93,7 @@ httpServer.listen(PORT, () => {
 });
 
 // Daily Robot Blog Post Generation
-cron.schedule("50 14 * * *", async () => {
+cron.schedule("50 16 * * *", async () => {
     console.log("🤖 Running daily blog post generation check...");
 
     try {
