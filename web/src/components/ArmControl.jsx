@@ -5,7 +5,7 @@ import "./ArmControl.css";
 
 const ArmControl = ({ arm1, arm2, onUpdate }) => {
     const [localArm1, setLocalArm1] = useState(arm1 || 0);
-    const [localArm2, setLocalArm2] = useState(arm2 || 0);
+    const [localArm2, setLocalArm2] = useState(arm2 ?? 180);
 
     // Sync with prop updates — defer updates to avoid synchronous setState in effect
     useEffect(() => {
@@ -44,10 +44,11 @@ const ArmControl = ({ arm1, arm2, onUpdate }) => {
         debouncedUpdate({ arm1: localArm1, arm2: value });
     };
 
+    // NOVA: parked = upper arm folded back into the roof bay, forearm straight
     const resetArms = () => {
         setLocalArm1(0);
-        setLocalArm2(0);
-        onUpdate({ arm1: 0, arm2: 0 });
+        setLocalArm2(180);
+        onUpdate({ arm1: 0, arm2: 180 });
     };
 
     return (
@@ -57,7 +58,7 @@ const ArmControl = ({ arm1, arm2, onUpdate }) => {
                     <Cpu className="arm-icon" size={24} />
                     <h3 className="arm-title">Manipulator Arms</h3>
                 </div>
-                <button className="arm-reset-button" onClick={resetArms} title="Reset to 0°">
+                <button className="arm-reset-button" onClick={resetArms} title="Park arm (0° / 180°)">
                     <RotateCcw size={18} />
                 </button>
             </div>
@@ -65,7 +66,7 @@ const ArmControl = ({ arm1, arm2, onUpdate }) => {
             <div className="arm-sliders">
                 <div className="arm-slider-group">
                     <div className="slider-labels">
-                        <label>Arm 1 (Base Rotation)</label>
+                        <label>Arm 1 (Shoulder: 0 parked · 90 up · 180 forward)</label>
                         <span className="angle-value">{localArm1}°</span>
                     </div>
                     <input
@@ -85,19 +86,19 @@ const ArmControl = ({ arm1, arm2, onUpdate }) => {
 
                 <div className="arm-slider-group">
                     <div className="slider-labels">
-                        <label>Arm 2 (Tilt Rotation)</label>
+                        <label>Arm 2 (Elbow: 180 straight · 90 right angle)</label>
                         <span className="angle-value">{localArm2}°</span>
                     </div>
                     <input
                         type="range"
-                        min="0"
+                        min="20"
                         max="180"
                         value={localArm2}
                         onChange={handleArm2Change}
                         className="arm-slider"
                     />
                     <div className="slider-ticks">
-                        <span>0°</span>
+                        <span>20°</span>
                         <span>90°</span>
                         <span>180°</span>
                     </div>

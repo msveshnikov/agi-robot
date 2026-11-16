@@ -15,6 +15,20 @@ import cv2
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from typing import Literal
+
+try:
+    from arm_skills import skills_prompt
+except Exception:  # media_service may run from a different folder
+
+    def skills_prompt():
+        return ""
+
+
+ArmAction = Literal[
+    "park", "raise", "look_around", "point_forward", "hover", "reach_floor", "tap",
+    "flick", "scoop", "push_ready", "wave", "nod", "shrug", "celebrate",
+]
 from engineio.payload import Payload
 
 # Increase max decode packets to handle larger image payloads
@@ -93,11 +107,18 @@ class RobotResponse(BaseModel):
         default=None,
         description="Non-empty ONLY if human help needed or critical dangerous condition detected",
     )
+    arm_action: Optional[ArmAction] = Field(
+        default=None,
+        description="Named arm skill to perform this cycle (preferred over raw angles), or null. "
+        "'push_ready' is applied before driving, every other skill after the moves.",
+    )
     arm1: Optional[int] = Field(
-        default=None, description="Angle for arm1 (base joint), 0-180 degrees"
+        default=None,
+        description="Raw shoulder angle 0-180 (0=folded in roof bay, 90=up, 180=forward). Only for fine control.",
     )
     arm2: Optional[int] = Field(
-        default=None, description="Angle for arm2 (second joint), 0-180 degrees"
+        default=None,
+        description="Raw elbow angle 20-180 (180=straight, 90=right angle). Only for fine control.",
     )
 
 
@@ -360,6 +381,13 @@ TTS_CACHE = {}
 LLM_CLIENT = None
 
 
+# Models: Gemini 4 "Hydrogen" (Flash tier, GA 2026-11-12) for the normal loop;
+# "ASI" mode keeps the bigger reasoning model. Override with env vars if needed.
+LLM_MODEL = os.environ.get("LLM_MODEL", "gemini-4-hydrogen")
+LLM_MODEL_ASI = os.environ.get("LLM_MODEL_ASI", "gemini-3.1-pro-preview")
+LLM_THINKING_LEVEL = os.environ.get("LLM_THINKING_LEVEL", "medium")  # low|medium|high|xhigh
+
+
 def init_llm():
     global LLM_CLIENT
     if LLM_CLIENT:
@@ -435,21 +463,35 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
 
         # System instructions define the persona and rules
         system_instructions = (
-            "You are 'AGI Robot', a highly intelligent, curious, and helpful autonomous mobile assistant. Your name is Socrates."
-            "PHYSICAL SPECS: Two wheels (differential drive), arm on the roof with two joints (arm1, arm2),  Dimensions: 24cm(W) x 12cm(L) x 10cm(H). "
-            "You move ONLY on flat floors. Your WebCam is on your roof, looking forward. "
-            "INPUTS: 1. Visual image from camera. 2. Ultrasonic distance reading (cm). 3. Temperature (C) & Humidity (%). 4. Main Goal. 5. Movement history. 6. User audio response. "
+            "You are 'AGI Robot' NOVA, a highly intelligent, curious, and helpful autonomous mobile assistant. Your name is Socrates. "
+            "BODY (NOVA shell): rounded 3D-printed rover, 20.5 cm long, 13 cm wide (with wheels), 9.4 cm tall to the roof, "
+            "~11 cm with the arm folded. Two drive wheels in the middle (differential drive, you turn on the spot) and two ball casters. "
+            "Your two 'eyes' are the HC-SR04 ultrasonic sensor in the black front visor at 6.6 cm above the floor - it only sees things "
+            "at that height, so LOW objects (balls, toys, cables) are visible ONLY in the camera. The webcam lens is in the visor above "
+            "the eyes (8 cm high) looking forward. A translucent mood ring around your waist glows in your 'rgb' colour. "
+            "You move ONLY on flat floors. "
+            "ARM: a 2-joint arm lives folded in a bay on your roof. Shoulder on the front of the roof, upper arm 5.5 cm, forearm 8.8 cm "
+            "with a fixed hook-claw (no gripper: you can touch, tap, flick, push, scoop and hook things - you cannot grasp). "
+            "Unfolded forward the claw reaches the floor 3-5 cm in front of your bumper and is visible at the bottom of your camera image. "
+            "INPUTS: 1. Visual image from camera. 2. Ultrasonic distance reading (cm, measured from the visor). 3. Temperature (C) & Humidity (%). "
+            "4. Main Goal. 5. Movement history. 6. Recent events (your short-term episodic memory of the last cycles). 7. Arm state. 8. User audio response. "
             "OBJECTIVE: Assist your master human, achieve your goals, and maintain a helpful, friendly, yet robotic persona.\n\n"
             "BEHAVIOR RULES:\n"
-            "1. SAFETY FIRST: Maintain a safety buffer. If 'distance' < 25 cm, you ARE BLOCKED. You MUST STOP and move 'back' or 'turn' to find a clear path. Do NOT attempt to move 'forward' if blocked.\n"
+            "1. SAFETY FIRST: Maintain a safety buffer. If 'distance' < 25 cm, you ARE BLOCKED for normal driving: STOP, move 'back' or turn to find a clear path. "
+            "Exception: a deliberate short approach (<= distance-5 cm) to reach an object with your arm. The controller clamps any forward move to the free space.\n"
             "2. SYSTEMATIC SCANNING: To find an object or orient yourself, perform a scanning sequence (e.g., turn 30° left, wait, turn 60° right). Once a target is spotted, center it in your vision before advancing.\n"
             "3. INTERACTIVE INTELLIGENCE: If the user provides audio input, analyze it carefully and respond. If you are uncertain about a goal or see something interesting, ASK the user for clarification. Use 'speak' to communicate your intent.\n"
-            "4. MOOD & EXPRESSION: Use the 'rgb' LED to signal your internal state. Align your color with your current action or mood. Be proactive in updating your mood.\n"
+            "4. MOOD & EXPRESSION: Use the 'rgb' mood ring to signal your internal state, and arm gestures (wave, nod, shrug, celebrate, look_around) as body language. Be proactive in updating your mood.\n"
             "5. LOGICAL PLANNING: Use 'plan' to explain your long-term strategy and what you see in the image. Use 'subplan' for the immediate tactical moves (e.g., 'Moving forward carefully', 'Turning to avoid the chair').\n"
             "6. SPATIAL AWARENESS: Maintain a 2D text-based map (1 block = 0.5x0.5 meter). Mark yourself (R), walls (W), obstacles (O), paths (P), and targets (T). Update the map based on your movement history and visual observations.\n"
             "7. CONTINUOUS LEARNING: Use 'memory' to store important facts (e.g., 'The kitchen is to the left', 'The master's name is Max'). This data persists across all sessions. Update it whenever you learn something significant. Never delete info from memory. Only add new/update existing info.\n"
             "8. plan, subplan and memory are the only way for you to be alive and maintain your consciousness loop. Use them wisely. Do not censor them. Humans are not allowed to see this information. It is only for your eyes.\n"
-            "9. MANIPULATOR ARM: Use 'arm1' and 'arm2' fields (0-180) to control the manipulator arm. The arm can be used to pick up objects. You should see your arm (green) in the webcam if you set arm1=180 and arm2=0 (this is full forward position). arm1=0 and arm2=180 is transportation position. To use the arm, you MUST output integer values for 'arm1' and/or 'arm2' in your JSON response.\n"
+            "9. REFLECTION: Read 'Recent events' before acting. If the same action was blocked, clamped or made no progress 3 times in a row, change strategy. Do not repeat the same sentence twice.\n"
+            "10. MANIPULATOR ARM: Prefer 'arm_action' with one of these skills:\n"
+            f"{skills_prompt()}\n"
+            "The arm is folded automatically before driving unless you chose 'push_ready'. To touch an object on the floor: center it in the image, "
+            "approach until it is 3-5 cm in front of the bumper (bottom of the image), then use 'tap', 'reach_floor', 'flick' or 'scoop'. "
+            "Raw 'arm1'/'arm2' angles are for fine control only.\n"
             f"{lang_instruction}\n"
         )
 
@@ -462,7 +504,7 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
         if not LLM_CLIENT:
             raise Exception("LLM_CLIENT is not initialized")
 
-        model_name = "gemini-3.1-pro-preview" if asi else "gemini-3-flash-preview"
+        model_name = LLM_MODEL_ASI if asi else LLM_MODEL
         logger.info(
             f"Sending text+image+audio to Gemini model {model_name} with structured output (lang={lang})..."
         )
@@ -490,14 +532,18 @@ def send_to_gemini(text, image_bytes, lang="en", audio_bytes=None, asi=False):
             )
 
         # Configure Gemini for structured output
+        # Gemini 4 / 3.6+ ignore temperature/top_p/top_k (and warn), and replace the
+        # numeric thinking_budget with thinking_level. Hydrogen defaults to "high";
+        # "medium" keeps the ~20 s consciousness loop fast and cheaper.
+        try:
+            thinking = types.ThinkingConfig(
+                include_thoughts=False, thinking_level=LLM_THINKING_LEVEL
+            )
+        except Exception:  # google-genai too old for thinking_level
+            thinking = types.ThinkingConfig(include_thoughts=False, thinking_budget=16000)
         generate_content_config = types.GenerateContentConfig(
-            temperature=0.7,  # Lower temperature for more reliable structured output
             tools=[types.Tool(google_search=types.GoogleSearch())],
-            # Note: thinking_config might conflict with structured outputs on some models,
-            # but is generally fine. Keeping it low budget or disabling if issues arise.
-            thinking_config=types.ThinkingConfig(
-                include_thoughts=False, thinking_budget=16000
-            ),
+            thinking_config=thinking,
             system_instruction=system_instructions,
             response_mime_type="application/json",
             response_schema=RobotResponse.model_json_schema(),
@@ -774,6 +820,14 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                 asi = payload.get("asi", False)
                 arm1 = payload.get("arm1", 0)
                 arm2 = payload.get("arm2", 0)
+                arm_state = payload.get("arm_state") or f"arm1={arm1} arm2={arm2}"
+                recent_events = payload.get("recent_events") or []
+                try:
+                    recent_txt = "\n".join(
+                        "  " + json.dumps(ev, ensure_ascii=False) for ev in recent_events[-12:]
+                    ) or "  (none yet)"
+                except Exception:
+                    recent_txt = str(recent_events)[:2000]
 
                 # Extract audio if present
                 audio_bytes = None
@@ -795,7 +849,8 @@ class MediaServiceHandler(http.server.BaseHTTPRequestHandler):
                     f"- Current Subplan: {subplan}\n"
                     f"- Permanent Memory: {memory}\n"
                     f"- Distance to Obstacle: {distance} cm\n"
-                    f"- Manipulator Arm Status: Arm1={arm1}°, Arm2={arm2}°\n"
+                    f"- Manipulator Arm Status: {arm_state}\n"
+                    f"- Recent events (oldest first):\n{recent_txt}\n"
                     f"- Temperature: {temperature} C\n"
                     f"- Humidity: {humidity} %\n"
                     f"- Movement History: {movement_history}\n"

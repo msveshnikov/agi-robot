@@ -1,0 +1,17 @@
+# nova.maxims.top — NOVA robot kit landing page (static)
+server {
+    listen 80;
+    server_name nova.maxims.top;
+    root /var/www/nova;
+    index index.html;
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript image/svg+xml application/json;
+
+    location = /index.html { add_header Cache-Control "no-cache"; }
+    location /img/   { expires 30d; add_header Cache-Control "public"; }
+    location /video/ { expires 30d; add_header Cache-Control "public"; mp4; }
+    location / { try_files $uri $uri/ =404; }
+}

@@ -5,3 +5,8 @@ python/__pycache__/
 mic.wav
 memory.txt
 *.csv
+
+# Blender render output (frames, drafts, blend caches)
+blender/out/
+__pycache__/
+.playwright-mcp/

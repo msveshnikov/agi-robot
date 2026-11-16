@@ -82,7 +82,9 @@ void move(String mvcmd, boolean stop)
             unsigned long startTime = millis();
             while (millis() - startTime < ms)
             {
-                if (getDistance() < 10)
+                // NOVA: eyes sit 9 cm ahead of the body centre; the claw reaches
+                // ~3-5 cm in front of them, so allow close approaches (HC-SR04 min ~2-3 cm)
+                if (getDistance() < 4)
                 {
                     right_servo.write(90);
                     left_servo.write(90);
@@ -163,14 +165,67 @@ void panic(String speedStr)
     }
 }
 
+// ---------------------------------------------------------------------------
+// Manipulator (NOVA shell): arm1 = shoulder, arm2 = elbow
+//   arm1: 0 = folded back into the roof bay, 90 = straight up, 180 = forward
+//   arm2: 180 = straight, 90 = right angle (points at the floor when arm1=180)
+// Moves are interpolated with an ease-in-out profile so the 9 g servos do not
+// jerk the light chassis (and do not brown-out the USB power bank).
+// ---------------------------------------------------------------------------
+const int ARM1_MIN = 0, ARM1_MAX = 180;
+const int ARM2_MIN = 20, ARM2_MAX = 180;   // < 20 the forearm hits the upper arm
+int arm1_pos = 0;
+int arm2_pos = 180;
+
+int clampInt(int v, int lo, int hi)
+{
+    return v < lo ? lo : (v > hi ? hi : v);
+}
+
+// Smoothly move both joints to (a1, a2) in roughly `ms` milliseconds.
+void armTo(int a1, int a2, int ms)
+{
+    a1 = clampInt(a1, ARM1_MIN, ARM1_MAX);
+    a2 = clampInt(a2, ARM2_MIN, ARM2_MAX);
+    int d = max(abs(a1 - arm1_pos), abs(a2 - arm2_pos));
+    if (ms <= 0)
+        ms = d * 8; // default ~125 deg/s
+    ms = clampInt(ms, 0, 4000);
+    int steps = max(1, ms / 15);
+    int s1 = arm1_pos, s2 = arm2_pos;
+    for (int i = 1; i <= steps; i++)
+    {
+        float t = (float)i / steps;
+        float e = t * t * (3.0 - 2.0 * t); // smoothstep
+        arm1_servo.write(s1 + (int)((a1 - s1) * e));
+        arm2_servo.write(s2 + (int)((a2 - s2) * e));
+        delay(15);
+    }
+    arm1_pos = a1;
+    arm2_pos = a2;
+}
+
+// "a1,a2,ms" - used by the Python arm skills layer
+void armPose(String pose)
+{
+    int c1 = pose.indexOf(',');
+    int c2 = pose.indexOf(',', c1 + 1);
+    if (c1 < 0)
+        return;
+    int a1 = pose.substring(0, c1).toInt();
+    int a2 = (c2 < 0) ? pose.substring(c1 + 1).toInt() : pose.substring(c1 + 1, c2).toInt();
+    int ms = (c2 < 0) ? 0 : pose.substring(c2 + 1).toInt();
+    armTo(a1, a2, ms);
+}
+
 void setArm1(int targetAngle)
 {
-    arm1_servo.write(targetAngle);
+    armTo(targetAngle, arm2_pos, 0);
 }
 
 void setArm2(int targetAngle)
 {
-    arm2_servo.write(targetAngle);
+    armTo(arm1_pos, targetAngle, 0);
 }
 
 void setup()
@@ -185,6 +240,7 @@ void setup()
     Bridge.provide("panic", panic);
     Bridge.provide("setArm1", setArm1);
     Bridge.provide("setArm2", setArm2);
+    Bridge.provide("armPose", armPose);
 
     pinMode(right_wheel, OUTPUT);
     pinMode(left_wheel, OUTPUT);
@@ -198,6 +254,8 @@ void setup()
     pinMode(arm2Pin, OUTPUT);
     arm1_servo.attach(arm1Pin);
     arm2_servo.attach(arm2Pin);
+    arm1_servo.write(arm1_pos); // start parked in the roof bay
+    arm2_servo.write(arm2_pos);
 
     // Make rainbow two times using setRGB
     for (int i = 0; i < 2; i++)

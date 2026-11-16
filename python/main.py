@@ -16,6 +16,8 @@ import wave
 import socketio
 import threading
 import multiprocessing
+from collections import deque
+from arm_skills import Arm, SKILLS, DRIVE_SAFE
 
 
 class CameraForwarder:
@@ -102,13 +104,15 @@ alarm = False
 lang = "en"
 rgb = "255,0,255"
 arm1 = 0
-arm2 = 0
+arm2 = 180
 goal = "Be helpful assistant to the master human"
 plan = ""
 subplan = ""
 space_map = ""
 movement_history = []
 memory = ""
+MAX_MOVEMENT_HISTORY = 30          # keep the prompt small - full history used to grow forever
+recent_events = deque(maxlen=12)   # short-term episodic memory: what happened in the last cycles
 
 # Manual override support
 agi_running = False
@@ -206,18 +210,34 @@ def lang_callback(client: object, value: str):
     speak(f"Language changed to {value}")
 
 
+def _arm_synced(a1, a2):
+    global arm1, arm2
+    arm1, arm2 = a1, a2
+
+
+arm = Arm(bridge_call, on_change=_arm_synced)
+
+
+def _push_arm_to_backend():
+    try:
+        backend.arm1 = arm.arm1
+        backend.arm2 = arm.arm2
+    except Exception as e:
+        logger.debug(f"arm sync failed: {e}")
+
+
 def arm1_callback(client, value):
-    global arm1
     logger.info(f"Arm1 value updated from cloud: {value}")
-    arm1 = int(value)
-    bridge_call("setArm1", arm1)
+    if int(value) != arm.arm1:
+        arm.move(int(value), arm.arm2, 0)
+        arm.mode = "manual"
 
 
 def arm2_callback(client, value):
-    global arm2
     logger.info(f"Arm2 value updated from cloud: {value}")
-    arm2 = int(value)
-    bridge_call("setArm2", arm2)
+    if int(value) != arm.arm2:
+        arm.move(arm.arm1, int(value), 0)
+        arm.mode = "manual"
 
 
 def rgb_callback(client: object, value):
@@ -417,6 +437,8 @@ def ask_llm_vision(
     memory: str = "",
     arm1: int = 0,
     arm2: int = 0,
+    arm_state: str = "",
+    recent_events: list = None,
 ) -> dict:
     """Call the /llm_vision endpoint, sending distance, plan, subplan, space_map, and audio if available. Returns parsed JSON dict or {}."""
     try:
@@ -436,6 +458,8 @@ def ask_llm_vision(
             "asi": asi,
             "arm1": arm1,
             "arm2": arm2,
+            "arm_state": arm_state,
+            "recent_events": recent_events or [],
         }
 
         # Include mic.wav if it exists
@@ -527,6 +551,8 @@ def agi_loop():
 
     # Clear any previous override at the start
     manual_override_event.clear()
+    distance, temperature, humidity = None, None, None
+    event = {"t": datetime.now().strftime("%H:%M:%S")}
 
     try:
         distance = bridge_call("getDistance")
@@ -551,8 +577,10 @@ def agi_loop():
         "movement_history": movement_history,
         "space_map": space_map,
         "memory": memory,
-        "arm1": arm1,
-        "arm2": arm2,
+        "arm1": arm.arm1,
+        "arm2": arm.arm2,
+        "arm_state": arm.describe(),
+        "recent_events": list(recent_events),
     }
 
     p = multiprocessing.Process(
@@ -621,21 +649,23 @@ def agi_loop():
     except Exception as e:
         logger.warning("Warning handling rgb: %s", e)
 
-    # Handle Arm
+    # Handle Arm: named skill (preferred) or raw angles
+    arm_action = None
     try:
-        if "arm1" in resp and resp["arm1"] is not None:
-            val = int(resp["arm1"])
-            arm1 = val  # Update global variable
-            backend.arm1 = val
-            bridge_call("setArm1", val)
-            logger.info(f"AGI set Arm1 to: {val}")
-
-        if "arm2" in resp and resp["arm2"] is not None:
-            val = int(resp["arm2"])
-            arm2 = val  # Update global variable
-            backend.arm2 = val
-            bridge_call("setArm2", val)
-            logger.info(f"AGI set Arm2 to: {val}")
+        arm_action = resp.get("arm_action")
+        if arm_action not in SKILLS:
+            arm_action = None
+        if arm_action is None and (resp.get("arm1") is not None or resp.get("arm2") is not None):
+            a1 = int(resp["arm1"]) if resp.get("arm1") is not None else arm.arm1
+            a2 = int(resp["arm2"]) if resp.get("arm2") is not None else arm.arm2
+            if (a1, a2) != (arm.arm1, arm.arm2):
+                arm.move(a1, a2, 600)
+                arm.mode = "manual"
+                event["arm"] = f"{a1},{a2}"
+        # pushing pose has to be set *before* driving
+        if arm_action in DRIVE_SAFE:
+            arm.run(arm_action)
+            event["arm"] = arm_action
     except Exception as e:
         logger.warning("Warning handling arm: %s", e)
 
@@ -651,6 +681,8 @@ def agi_loop():
     try:
         moves = resp.get("moves")
         if moves and isinstance(moves, list):
+            arm.ensure_drive_safe()
+            done_moves = []
             # Process each movement command in sequence
             for idx, mv in enumerate(moves):
                 if not isinstance(mv, dict):
@@ -665,6 +697,25 @@ def agi_loop():
                 angle = mv.get("angle_deg")
                 move_cmd = None
 
+                # Code-level collision guard: never drive further than the free space
+                # in front (minus a 5 cm margin). Short approaches are allowed so the
+                # arm can reach objects on the floor (~2-5 cm in front of the bumper).
+                if (
+                    cmd == "forward"
+                    and mv_distance is not None
+                    and isinstance(distance, (int, float))
+                    and 0 < distance < 400
+                ):
+                    allowed = int(distance) - 5
+                    if allowed < 2:
+                        logger.warning(f"Refusing forward move: obstacle at {distance} cm")
+                        event["blocked"] = f"forward refused, obstacle at {distance} cm"
+                        break
+                    if int(mv_distance) > allowed:
+                        logger.info(f"Clamping forward {mv_distance} -> {allowed} cm (obstacle at {distance} cm)")
+                        event["clamped"] = f"forward {mv_distance}->{allowed} cm"
+                        mv = dict(mv, distance_cm=allowed)
+                        mv_distance = allowed
                 if cmd in ("forward", "back") and mv_distance is not None:
                     # Format: MOVE|direction|distance_cm|speed
                     move_cmd = f"MOVE|{cmd}|{int(mv_distance)}|{speed}"
@@ -678,7 +729,10 @@ def agi_loop():
                 if move_cmd:
                     logger.info(f"Executing move {idx + 1}/{len(moves)}: {move_cmd}")
                     movement_history.append(mv)
+                    del movement_history[:-MAX_MOVEMENT_HISTORY]
+                    done_moves.append(move_cmd)
                     bridge_call("move", move_cmd, True)
+                    distance = bridge_call("getDistance")
 
                     # Check for manual override after move completes
                     if manual_override_event.is_set() or not agi:
@@ -688,14 +742,28 @@ def agi_loop():
                         bridge_call("move", "STOP", True)
                         return
 
+            event["moves"] = done_moves
     except Exception as e:
         logger.warning("Warning handling move: %s", e)
+
+    # Arm gestures / manipulation run after driving (e.g. drive up, then tap)
+    try:
+        if arm_action and arm_action not in DRIVE_SAFE:
+            if manual_override_event.is_set() or not agi:
+                return
+            arm.run(arm_action)
+            event["arm"] = arm_action
+        _push_arm_to_backend()
+    except Exception as e:
+        logger.warning("Warning running arm skill: %s", e)
 
     # Handle speaking
     try:
         sp = resp.get("speak")
         if sp and isinstance(sp, dict):
             text = sp.get("text")
+            if text:
+                event["said"] = text[:160]
             if text and lang != "disabled":
                 speak(text)
 
@@ -789,6 +857,16 @@ def agi_loop():
 
     except Exception as e:
         logger.warning("Warning handling speak: %s", e)
+
+    # Short-term episodic memory for the next cycles
+    try:
+        event["distance"] = distance
+        event["thought"] = (subplan or "")[:200]
+        if resp.get("rgb"):
+            event["mood_rgb"] = resp.get("rgb")
+        recent_events.append(event)
+    except Exception as e:
+        logger.debug(f"event log failed: {e}")
 
     # Sync variables to Backend
     try:

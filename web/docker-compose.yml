@@ -32,7 +32,7 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/agi-robot
       - PORT=3000
-      - CORS_ORIGIN=https://robot.mvpgen.com
+      - CORS_ORIGIN=https://robot.mvpgen.com,https://nova.maxims.top
       - PYTHON_MEDIA_SERVICE_URL=http://host.docker.internal:5000
       - GEMINI_KEY=${GEMINI_KEY}
     depends_on:

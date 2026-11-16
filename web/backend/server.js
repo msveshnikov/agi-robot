@@ -14,11 +14,17 @@ import BlogPost from "./models/BlogPost.js";
 // Load environment variables
 dotenv.config();
 
+// CORS_ORIGIN may be a comma-separated list (dashboard + marketing sites)
+const CORS_ORIGINS = (process.env.CORS_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+        origin: CORS_ORIGINS,
         methods: ["GET", "POST"],
     },
 });
@@ -29,7 +35,7 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/agi-ro
 // Middleware
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+        origin: CORS_ORIGINS,
     }),
 );
 app.use(express.json());
@@ -131,7 +137,7 @@ cron.schedule("20 17 * * *", async () => {
                 .join("\n\n");
 
             const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+            const model = genAI.getGenerativeModel({ model: process.env.LLM_MODEL || "gemini-4-hydrogen" });
 
             // Select a random author from a curated list and include their
             // name in the prompt while avoiding direct imitation instructions.

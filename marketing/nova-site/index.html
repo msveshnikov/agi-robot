@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NOVA — the AGI robot kit you print yourself</title>
+<meta name="description" content="NOVA is a palm-sized, LLM-powered rover. It sees, listens, talks, explores and touches the world with its own arm. The kit includes every 3D-printed part plus an Arduino Uno Q. $300.">
+<meta property="og:title" content="NOVA — the AGI robot kit you print yourself">
+<meta property="og:description" content="A rover with a mind of its own: vision, voice, memory, a mood ring and a robotic arm. 3D-printed shell + Arduino Uno Q, $300.">
+<meta property="og:image" content="https://nova.maxims.top/img/og.jpg">
+<meta property="og:url" content="https://nova.maxims.top/">
+<meta property="og:type" content="product">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#07080c">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Product","name":"NOVA AGI Robot Kit","image":["https://nova.maxims.top/img/hero_dark.jpg"],
+"description":"LLM-powered mobile robot kit: full set of 3D-printed NOVA parts plus Arduino Uno Q.","brand":{"@type":"Brand","name":"AGI Robot"},
+"offers":{"@type":"Offer","priceCurrency":"USD","price":"300","availability":"https://schema.org/PreOrder","url":"https://nova.maxims.top/#reserve"}}
+</script>
+<style>
+:root{
+  --bg:#07080c; --bg2:#0d0f16; --card:#11141d; --card2:#161a26; --line:#232838; --line2:#2f3549;
+  --text:#f2f4fa; --muted:#a6adc2; --dim:#6c738b;
+  --orange:#ff6a1a; --orange2:#ff9a52; --cyan:#22d3ff; --mood:#22d3ff;
+  --radius:22px; --max:1200px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font:17px/1.6 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,video{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;letter-spacing:-.02em;line-height:1.05}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+.eyebrow{font:500 13px/1 "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--orange2)}
+.muted{color:var(--muted)}
+section{padding:120px 0;position:relative}
+.sec-head{max-width:760px;margin-bottom:56px}
+.sec-head h2{font-size:clamp(36px,5.2vw,64px);margin:14px 0 18px}
+.sec-head p{font-size:19px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 16px/1 Inter,sans-serif;padding:17px 26px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s}
+.btn-primary{background:var(--orange);color:#140700;box-shadow:0 10px 40px -10px rgba(255,106,26,.7)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 50px -12px rgba(255,106,26,.9)}
+.btn-ghost{border-color:var(--line2);color:var(--text);background:rgba(255,255,255,.03)}
+.btn-ghost:hover{border-color:var(--muted)}
+
+/* nav */
+nav{position:fixed;inset:0 0 auto 0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+nav.scrolled{background:rgba(7,8,12,.78);backdrop-filter:saturate(1.4) blur(16px);-webkit-backdrop-filter:saturate(1.4) blur(16px);border-color:var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font:700 20px/1 "Space Grotesk",sans-serif;letter-spacing:.02em}
+.logo svg{width:28px;height:28px}
+.nav-links{display:flex;gap:30px;font-size:15px;color:var(--muted)}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{padding:11px 18px;font-size:14px}
+@media(max-width:860px){.nav-links{display:none}}
+
+/* hero */
+.hero{min-height:100svh;display:flex;align-items:flex-end;padding:120px 0 64px;overflow:hidden}
+.hero-media{position:absolute;inset:0 0 0 34%}
+@media(max-width:900px){.hero-media{inset:0 0 35% 0}}
+.hero-media img,.hero-media video{width:100%;height:100%;object-fit:cover;object-position:60% 50%}
+.hero-media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,8,12,.6) 0%,rgba(7,8,12,0) 22%,rgba(7,8,12,0) 60%,var(--bg) 100%),linear-gradient(90deg,var(--bg) 0%,var(--bg) 7%,rgba(7,8,12,.7) 22%,rgba(7,8,12,0) 48%)}
+.hero .wrap{position:relative;width:100%}
+.hero h1{font-size:clamp(44px,6.6vw,104px);max-width:760px}
+.hero h1 .grad{background:linear-gradient(90deg,#fff 0%,#ffd3b6 45%,var(--orange) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:clamp(17px,1.6vw,21px);max-width:540px;margin:24px 0 34px;color:#d5d9e6;text-shadow:0 2px 20px rgba(0,0,0,.6)}
+.hero-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.price-chip{display:inline-flex;align-items:baseline;gap:8px;margin-left:8px;color:var(--muted);font-size:15px}
+.price-chip b{font:700 28px/1 "Space Grotesk";color:var(--text)}
+.hero-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-top:64px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--line)}
+.hero-stats div{background:rgba(13,15,22,.82);backdrop-filter:blur(10px);padding:20px 22px}
+.hero-stats b{display:block;font:600 26px/1.1 "Space Grotesk"}
+.hero-stats span{font-size:13px;color:var(--dim)}
+@media(max-width:720px){.hero-stats{grid-template-columns:repeat(2,1fr)}}
+
+/* marquee */
+.marquee{border-block:1px solid var(--line);overflow:hidden;padding:18px 0;background:var(--bg2)}
+.marquee-track{display:flex;gap:48px;width:max-content;animation:scroll 40s linear infinite;font:500 14px/1 "JetBrains Mono",monospace;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.marquee-track span::before{content:"◆";color:var(--orange);margin-right:48px;font-size:9px;vertical-align:2px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* features */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:var(--radius);padding:30px;position:relative;overflow:hidden;transition:border-color .3s,transform .3s}
+.feat:hover{border-color:var(--line2);transform:translateY(-3px)}
+.feat .ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:rgba(255,106,26,.12);color:var(--orange2);margin-bottom:22px}
+.feat .ico svg{width:24px;height:24px}
+.feat h3{font-size:23px;margin-bottom:10px}
+.feat p{color:var(--muted);font-size:15.5px}
+.feat.wide{grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:center}
+.feat.wide img{border-radius:14px}
+@media(max-width:960px){.features{grid-template-columns:1fr 1fr}.feat.wide{grid-column:span 2}}
+@media(max-width:640px){.features{grid-template-columns:1fr}.feat.wide{grid-column:span 1;grid-template-columns:1fr}}
+
+/* mood */
+.mood{display:grid;grid-template-columns:1.35fr 1fr;gap:48px;align-items:center}
+.mood-stage{position:relative;border-radius:28px;overflow:hidden;aspect-ratio:16/9;border:1px solid var(--line);box-shadow:0 40px 120px -40px var(--mood);transition:box-shadow .6s}
+.mood-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s}
+.mood-stage img.on{opacity:1}
+.mood-list{display:grid;gap:10px}
+.mood-btn{display:flex;align-items:center;gap:16px;width:100%;text-align:left;padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--text);font:500 16px Inter;cursor:pointer;transition:border-color .25s,background .25s}
+.mood-btn i{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 18px currentColor}
+.mood-btn small{display:block;color:var(--dim);font-size:13px;margin-top:2px}
+.mood-btn.active,.mood-btn:hover{border-color:var(--line2);background:var(--card2)}
+.mood-btn.active{border-color:var(--mood)}
+@media(max-width:900px){.mood{grid-template-columns:1fr}}
+
+/* arm lab */
+.arm-lab{display:grid;grid-template-columns:1.25fr 1fr;gap:36px;align-items:stretch}
+.arm-canvas{background:radial-gradient(120% 90% at 30% 100%,#141a2a 0%,var(--card) 60%);border:1px solid var(--line);border-radius:28px;padding:54px 18px 18px;position:relative;display:flex;align-items:center}
+.arm-canvas svg{width:100%;height:auto}
+.arm-readout{position:absolute;top:22px;left:26px;font:500 13px/1.7 "JetBrains Mono",monospace;color:var(--muted)}
+.arm-readout b{color:var(--text)}
+.arm-ctrl{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:30px;display:flex;flex-direction:column;gap:22px}
+.slider label{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:10px}
+.slider label b{font:600 15px "JetBrains Mono";color:var(--text)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;background:var(--line2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 6px rgba(255,106,26,.18);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border:0;border-radius:50%;background:var(--orange);cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 13px "JetBrains Mono",monospace;padding:9px 13px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
+.chip:hover,.chip.active{color:#140700;background:var(--orange);border-color:var(--orange)}
+.arm-note{font-size:14px;color:var(--dim);border-top:1px solid var(--line);padding-top:18px}
+@media(max-width:960px){.arm-lab{grid-template-columns:1fr}}
+
+/* video */
+.vid-wrap{border-radius:28px;overflow:hidden;border:1px solid var(--line);background:#000;aspect-ratio:16/9;position:relative}
+.vid-wrap video{width:100%;height:100%;object-fit:cover}
+.vid-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.vid-tab{flex:1 1 180px;text-align:left;padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;font:600 15px Inter;transition:border-color .2s}
+.vid-tab small{display:block;font-weight:400;color:var(--dim);font-size:13px;margin-top:3px}
+.vid-tab.active{border-color:var(--orange)}
+
+/* gallery */
+.gallery{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:220px;gap:14px}
+.gallery figure{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);cursor:zoom-in;background:var(--card)}
+.gallery img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.gallery figure:hover img{transform:scale(1.04)}
+.gallery figcaption{position:absolute;left:14px;bottom:12px;font:500 12px "JetBrains Mono";letter-spacing:.08em;text-transform:uppercase;background:rgba(7,8,12,.6);backdrop-filter:blur(8px);padding:7px 10px;border-radius:8px}
+.g1{grid-column:span 4;grid-row:span 2}.g2{grid-column:span 2;grid-row:span 1}.g3{grid-column:span 2}
+.g4{grid-column:span 3;grid-row:span 2}.g5{grid-column:span 3;grid-row:span 2}
+.g6{grid-column:span 2}.g7{grid-column:span 2}.g8{grid-column:span 2}
+@media(max-width:860px){.gallery{grid-template-columns:1fr 1fr;grid-auto-rows:180px}.gallery figure{grid-column:span 1!important;grid-row:span 1!important}.gallery .g1{grid-column:span 2!important;grid-row:span 2!important}}
+.lightbox{position:fixed;inset:0;background:rgba(3,4,7,.94);z-index:100;display:none;place-items:center;padding:30px;cursor:zoom-out}
+.lightbox.open{display:grid}
+.lightbox img{max-height:90vh;border-radius:16px}
+
+/* print */
+.print{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+.print img{border-radius:24px;border:1px solid var(--line)}
+.plist{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin:26px 0}
+.plist div{display:flex;gap:10px;align-items:center;font-size:15px;color:var(--muted)}
+.dot{width:12px;height:12px;border-radius:4px;flex:none}
+.kpis{display:flex;gap:28px;flex-wrap:wrap;margin-top:8px}
+.kpis b{display:block;font:600 30px "Space Grotesk"}
+.kpis span{font-size:13px;color:var(--dim)}
+@media(max-width:960px){.print{grid-template-columns:1fr}}
+
+/* loop */
+.loop{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;counter-reset:s}
+.step{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;position:relative}
+.step::before{counter-increment:s;content:"0" counter(s);font:500 13px "JetBrains Mono";color:var(--orange2)}
+.step h3{font-size:19px;margin:14px 0 8px}
+.step p{font-size:14.5px;color:var(--muted)}
+.code{margin-top:22px;background:#0a0c12;border:1px solid var(--line);border-radius:20px;padding:24px 26px;font:500 13.5px/1.75 "JetBrains Mono",monospace;color:#c9cfe0;overflow:auto;white-space:pre}
+.code .k{color:var(--orange2)}.code .s{color:#8ee6a8}.code .c{color:var(--dim)}
+@media(max-width:1000px){.loop{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.loop{grid-template-columns:1fr}}
+
+/* specs */
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:0 48px}
+.spec{display:flex;justify-content:space-between;gap:20px;padding:17px 0;border-bottom:1px solid var(--line);font-size:15.5px}
+.spec span{color:var(--muted)}
+.spec b{font-weight:500;text-align:right}
+@media(max-width:800px){.specs{grid-template-columns:1fr}}
+
+/* pricing */
+.buy{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:start}
+.card-price{background:linear-gradient(160deg,#1a1410 0%,var(--card) 45%);border:1px solid #3a2a1f;border-radius:30px;padding:40px;position:relative;overflow:hidden}
+.card-price::after{content:"";position:absolute;width:380px;height:380px;right:-140px;top:-160px;background:radial-gradient(circle,rgba(255,106,26,.35),transparent 65%)}
+.card-price .tag{display:inline-block;font:500 12px "JetBrains Mono";letter-spacing:.1em;text-transform:uppercase;color:#140700;background:var(--orange2);padding:7px 11px;border-radius:8px}
+.big-price{font:700 84px/1 "Space Grotesk";margin:22px 0 6px;letter-spacing:-.03em}
+.big-price small{font-size:20px;color:var(--muted);font-weight:500;margin-left:6px;letter-spacing:0}
+.incl{list-style:none;margin:26px 0 30px;display:grid;gap:12px}
+.incl li{display:flex;gap:12px;font-size:15.5px}
+.incl li svg{flex:none;width:20px;height:20px;color:var(--orange2);margin-top:2px}
+form.reserve{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
+form.reserve input{flex:1 1 220px;background:#0b0d13;border:1px solid var(--line2);border-radius:999px;padding:16px 20px;color:var(--text);font:16px Inter;outline:none}
+form.reserve input:focus{border-color:var(--orange)}
+.form-msg{margin-top:14px;font-size:14px;color:var(--muted);min-height:20px;position:relative;z-index:1}
+.fine{font-size:13px;color:var(--dim);margin-top:16px;position:relative;z-index:1}
+.need{background:var(--card);border:1px solid var(--line);border-radius:30px;padding:34px}
+.need h3{font-size:22px;margin-bottom:6px}
+.need table{width:100%;border-collapse:collapse;margin-top:18px;font-size:15px}
+.need td{padding:12px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+.need td:last-child{text-align:right;color:var(--text);font-family:"JetBrains Mono";font-size:14px}
+.need tr:last-child td{border:0;color:var(--text);font-weight:600}
+@media(max-width:960px){.buy{grid-template-columns:1fr}}
+
+/* faq */
+.faq{max-width:860px}
+details{border-bottom:1px solid var(--line);padding:22px 0}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font:600 19px "Space Grotesk"}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--orange2);font-size:26px;line-height:1;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--muted);margin-top:12px;font-size:16px}
+
+/* final */
+.final{text-align:center;overflow:hidden}
+.final h2{font-size:clamp(44px,7vw,96px);margin:18px auto 26px;max-width:900px}
+.final img{margin:60px auto 0;max-width:900px;width:100%;border-radius:28px;border:1px solid var(--line);-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent);mask-image:linear-gradient(180deg,#000 60%,transparent)}
+footer{border-top:1px solid var(--line);padding:40px 0 60px;color:var(--dim);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer a:hover{color:var(--text)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.marquee-track{animation:none}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="wrap">
+    <a href="#" class="logo" aria-label="NOVA home">
+      <svg viewBox="0 0 32 32" fill="none"><rect x="3" y="9" width="26" height="17" rx="8" stroke="#f2f4fa" stroke-width="2"/><circle cx="12" cy="17.5" r="3" stroke="#22d3ff" stroke-width="2"/><circle cx="20" cy="17.5" r="3" stroke="#22d3ff" stroke-width="2"/><path d="M16 9V4h6" stroke="#ff6a1a" stroke-width="2" stroke-linecap="round"/></svg>
+      NOVA
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a><a href="#arm">Arm</a><a href="#film">Film</a><a href="#print">Print</a><a href="#specs">Specs</a><a href="#faq">FAQ</a>
+    </div>
+    <a href="#reserve" class="btn btn-primary nav-cta">Reserve · $300</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-media">
+    <video id="heroVid" autoplay muted loop playsinline preload="metadata" poster="img/hero_dark.jpg">
+      <source src="video/nova_neon.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="wrap">
+    <div class="eyebrow rv">AGI Robot · NOVA kit</div>
+    <h1 class="rv">A robot with a <span class="grad">mind of its own.</span></h1>
+    <p class="lead rv">NOVA is a palm-sized rover driven by a large language model. It sees, listens, talks, explores, remembers you, and reaches out with its own arm. You print it yourself, and every part is in the box.</p>
+    <div class="hero-row rv">
+      <a href="#reserve" class="btn btn-primary">Reserve your kit
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#film" class="btn btn-ghost">Watch it move</a>
+      <span class="price-chip"><b>$300</b> parts + Arduino Uno Q</span>
+    </div>
+    <div class="hero-stats rv">
+      <div><b>20.5 cm</b><span>long, fits on a desk</span></div>
+      <div><b>2-joint arm</b><span>folds into the roof</span></div>
+      <div><b>5 languages</b><span>speech in and out</span></div>
+      <div><b>23 parts</b><span>PLA · PETG · TPU</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Gemini 4 Hydrogen</span><span>Voice conversation</span><span>Long-term memory</span><span>Mood ring</span><span>Autonomous exploration</span><span>Robotic arm</span><span>Arduino Uno Q</span><span>Open source</span><span>Live web dashboard</span><span>Robot diary</span>
+    <span>Gemini 4 Hydrogen</span><span>Voice conversation</span><span>Long-term memory</span><span>Mood ring</span><span>Autonomous exploration</span><span>Robotic arm</span><span>Arduino Uno Q</span><span>Open source</span><span>Live web dashboard</span><span>Robot diary</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">What it does</div>
+      <h2>Not a remote-control car.<br>A curious little being.</h2>
+      <p>Every 20 seconds NOVA looks through its camera, measures the space ahead, listens to you, then decides what to do next: speak, explore, change its mood, or use its arm. Nobody scripted it.</p>
+    </div>
+    <div class="features">
+      <div class="feat wide rv">
+        <div>
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>It sees and understands</h3>
+          <p>A webcam behind the gloss visor streams to Gemini 4 Hydrogen, Google's newest Flash-tier multimodal model (switch on "ASI" mode for a bigger reasoning model). NOVA recognises objects, people and rooms, and keeps a 2D map of everything it has explored.</p>
+        </div>
+        <img src="img/macro.jpg" alt="Close-up of NOVA's face: glowing ultrasonic eyes and camera lens" loading="lazy">
+      </div>
+      <div class="feat rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg></div>
+        <h3>It talks back</h3>
+        <p>Natural voice in English, Russian, German, Italian and Czech. It records your answer, keeps listening while you talk, and stops when you pause.</p>
+      </div>
+      <div class="feat rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M8 7h8M8 11h6"/></svg></div>
+        <h3>It remembers</h3>
+        <p>Two kinds of memory. Long-term memory holds facts that survive reboots: your name, where the kitchen is. Short-term memory covers what just happened, so NOVA changes plan instead of repeating a mistake.</p>
+      </div>
+      <div class="feat rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>It's careful</h3>
+        <p>Safety isn't left to the model. The controller trims every forward move to the free space the ultrasonic eyes measure, and folds the arm before driving.</p>
+      </div>
+      <div class="feat rv">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></div>
+        <h3>You can watch live</h3>
+        <p>A web dashboard shows the live camera, telemetry and the robot's thoughts. You can drive it by hand, set it a goal, or just read the diary it writes for itself every day.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOOD -->
+<section id="mood" style="padding-top:40px">
+  <div class="wrap">
+    <div class="mood">
+      <div class="mood-stage rv" id="moodStage">
+        <img src="img/mood_curious.jpg" data-m="curious" class="on" alt="NOVA glowing cyan">
+        <img src="img/mood_happy.jpg" data-m="happy" alt="NOVA glowing green" loading="lazy">
+        <img src="img/mood_cautious.jpg" data-m="cautious" alt="NOVA glowing amber" loading="lazy">
+        <img src="img/mood_excited.jpg" data-m="excited" alt="NOVA glowing magenta" loading="lazy">
+        <img src="img/mood_thinking.jpg" data-m="thinking" alt="NOVA glowing blue" loading="lazy">
+        <img src="img/mood_blocked.jpg" data-m="blocked" alt="NOVA glowing red" loading="lazy">
+      </div>
+      <div class="rv">
+        <div class="eyebrow">Mood ring</div>
+        <h2 style="font-size:clamp(34px,4.4vw,54px);margin:14px 0 16px">You'll know how it feels before it says a word.</h2>
+        <p class="muted" style="margin-bottom:26px">The language model picks the colour every cycle. Tap a mood to see it.</p>
+        <div class="mood-list" id="moodList">
+          <button class="mood-btn active" data-m="curious" data-c="#22d3ff"><i style="color:#22d3ff;background:#22d3ff"></i><span>Curious<small>exploring, scanning the room</small></span></button>
+          <button class="mood-btn" data-m="happy" data-c="#3dff7a"><i style="color:#3dff7a;background:#3dff7a"></i><span>Happy<small>goal reached, a friend recognised</small></span></button>
+          <button class="mood-btn" data-m="cautious" data-c="#ff8a1f"><i style="color:#ff8a1f;background:#ff8a1f"></i><span>Cautious<small>something unknown ahead</small></span></button>
+          <button class="mood-btn" data-m="excited" data-c="#ff2fa0"><i style="color:#ff2fa0;background:#ff2fa0"></i><span>Excited<small>a new toy, a new room</small></span></button>
+          <button class="mood-btn" data-m="thinking" data-c="#5a6bff"><i style="color:#5a6bff;background:#5a6bff"></i><span>Thinking<small>planning a route</small></span></button>
+          <button class="mood-btn" data-m="blocked" data-c="#ff2a1f"><i style="color:#ff2a1f;background:#ff2a1f"></i><span>Blocked<small>wall ahead, finding another way</small></span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARM LAB -->
+<section id="arm">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Arm lab</div>
+      <h2>An arm that lives in the roof.</h2>
+      <p>When NOVA drives, the two-joint arm folds flat into a bay in the roof. When it unfolds, it reaches the floor just in front of the bumper, right where the camera is looking. Move the joints yourself. These are the same angles the firmware uses.</p>
+    </div>
+    <div class="arm-lab">
+      <div class="arm-canvas rv">
+        <div class="arm-readout" id="armRead"></div>
+        <svg id="armSvg" viewBox="-112 -36 384 272" aria-label="Side view of NOVA with interactive arm">
+          <defs>
+            <linearGradient id="canopyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef0f5"/><stop offset="1" stop-color="#c9cdd8"/></linearGradient>
+            <linearGradient id="tubG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2e3a"/><stop offset="1" stop-color="#121520"/></linearGradient>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <g transform="scale(1,-1) translate(0,-220)">
+            <line x1="-112" y1="0" x2="272" y2="0" stroke="#2f3549" stroke-width="1.2"/>
+            <g stroke="#232838" stroke-width=".6">
+              <line x1="100" y1="0" x2="100" y2="210" stroke-dasharray="3 4"/>
+            </g>
+            <!-- reach zone (claw tip envelope) -->
+            <path id="reach" d="" fill="none" stroke="rgba(255,154,82,.4)" stroke-dasharray="3 4" stroke-width=".8"/>
+            <!-- tub -->
+            <path d="M-84 5 H88 Q100 5 100 17 V48 H-96 V17 Q-96 5 -84 5Z" fill="url(#tubG)"/>
+            <!-- ring -->
+            <rect x="-95" y="48" width="194" height="4" rx="2" id="svgRing" fill="#22d3ff" filter="url(#glow)"/>
+            <!-- canopy -->
+            <path d="M-96 52 H100 L82 80 Q75 92 62 94 H-70 Q-90 94 -95 80Z" fill="url(#canopyG)"/>
+            <!-- visor -->
+            <path d="M98 56 L80 84 Q77 88 72 88 L66 88 L84 56Z" fill="#05060a"/>
+            <circle cx="89" cy="66" r="4" fill="none" stroke="#22d3ff" stroke-width="1.6" id="svgEye" filter="url(#glow)"/>
+            <!-- bay -->
+            <rect x="-90" y="88" width="150" height="6" fill="#2a2e3a"/>
+            <!-- pod -->
+            <rect x="44" y="84" width="27" height="18" rx="6" fill="#e6e8ee"/>
+            <circle cx="58" cy="102" r="12.5" fill="#e6e8ee"/>
+            <!-- wheel -->
+            <circle cx="0" cy="36" r="36" fill="#15171e"/>
+            <circle cx="0" cy="36" r="28" fill="#dfe2ea"/>
+            <g fill="#15171e" id="spokes"></g>
+            <circle cx="0" cy="36" r="7" fill="#ff6a1a"/>
+            <!-- arm -->
+            <g id="armG">
+              <line id="l1" stroke="#f2f4fa" stroke-width="20" stroke-linecap="round"/>
+              <line id="l2" stroke="#eceff5" stroke-width="15" stroke-linecap="round"/>
+              <path id="claw" fill="none" stroke="#2a2e3a" stroke-width="5" stroke-linecap="round"/>
+              <circle id="j1" r="6.5" fill="#ff6a1a"/>
+              <circle id="j2" r="5.5" fill="#ff6a1a"/>
+              <circle id="tipDot" r="3" fill="#22d3ff" filter="url(#glow)"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="arm-ctrl rv">
+        <div class="slider">
+          <label>Shoulder · arm1 <b id="v1">0°</b></label>
+          <input type="range" id="a1" min="0" max="180" value="0" aria-label="Shoulder angle">
+        </div>
+        <div class="slider">
+          <label>Elbow · arm2 <b id="v2">180°</b></label>
+          <input type="range" id="a2" min="20" max="180" value="180" aria-label="Elbow angle">
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:12px">Built-in skills</div>
+          <div class="chips" id="chips">
+            <button class="chip" data-k="park">park</button>
+            <button class="chip" data-k="raise">raise</button>
+            <button class="chip" data-k="point_forward">point_forward</button>
+            <button class="chip" data-k="hover">hover</button>
+            <button class="chip" data-k="reach_floor">reach_floor</button>
+            <button class="chip" data-k="tap">tap</button>
+            <button class="chip" data-k="flick">flick</button>
+            <button class="chip" data-k="wave">wave</button>
+            <button class="chip" data-k="nod">nod</button>
+            <button class="chip" data-k="celebrate">celebrate</button>
+          </div>
+        </div>
+        <p class="arm-note">The model chooses from 14 skills, including tap, flick, scoop, push and wave. Every move is eased on the microcontroller, and checked with forward kinematics so the claw never hits the body or the floor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILM -->
+<section id="film" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Film</div>
+      <h2>See it in motion.</h2>
+    </div>
+    <div class="vid-wrap rv">
+      <video id="filmVid" controls playsinline preload="none" poster="img/livingroom.jpg">
+        <source src="video/nova_livingroom.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="vid-tabs rv" id="vidTabs">
+      <button class="vid-tab active" data-v="nova_livingroom" data-p="livingroom">Playtime<small>finds a ball, flicks it, celebrates</small></button>
+      <button class="vid-tab" data-v="nova_neon" data-p="neon">Wake up<small>first boot in a neon alley</small></button>
+      <button class="vid-tab" data-v="nova_studio" data-p="studio_34">Turntable<small>the arm unfolds</small></button>
+      <button class="vid-tab" data-v="nova_mars" data-p="mars">Explorer<small>a drive across red sand</small></button>
+      <button class="vid-tab" data-v="nova_exploded" data-p="exploded">Inside<small>every part, exploded</small></button>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery" style="padding-top:40px">
+  <div class="wrap">
+    <div class="gallery">
+      <figure class="g1 rv"><img src="img/hero_dark.jpg" alt="NOVA with arm raised, studio" loading="lazy"><figcaption>Studio</figcaption></figure>
+      <figure class="g2 rv"><img src="img/neon.jpg" alt="NOVA in neon light" loading="lazy"><figcaption>Neon</figcaption></figure>
+      <figure class="g3 rv"><img src="img/mars.jpg" alt="NOVA on red sand" loading="lazy"><figcaption>Explorer</figcaption></figure>
+      <figure class="g4 rv"><img src="img/livingroom.jpg" alt="NOVA touching a ball with its arm" loading="lazy"><figcaption>Living room</figcaption></figure>
+      <figure class="g5 rv"><img src="img/studio_front.jpg" alt="NOVA front view" loading="lazy"><figcaption>Face</figcaption></figure>
+      <figure class="g6 rv"><img src="img/studio_34.jpg" alt="NOVA three quarter view" loading="lazy"><figcaption>Parked</figcaption></figure>
+      <figure class="g7 rv"><img src="img/exploded.jpg" alt="Exploded view of NOVA" loading="lazy"><figcaption>Exploded</figcaption></figure>
+      <figure class="g8 rv"><img src="img/printbed_low.jpg" alt="Printed parts on a cutting mat" loading="lazy"><figcaption>Parts</figcaption></figure>
+    </div>
+  </div>
+</section>
+<div class="lightbox" id="lb"><img alt=""></div>
+
+<!-- PRINT -->
+<section id="print">
+  <div class="wrap print">
+    <img class="rv" src="img/printbed_top.jpg" alt="All 23 printed parts of the NOVA kit laid out" loading="lazy">
+    <div class="rv">
+      <div class="eyebrow">Designed to be printed</div>
+      <h2 style="font-size:clamp(34px,4.4vw,54px);margin:14px 0 16px">23 parts. Four materials. Built around real hardware.</h2>
+      <p class="muted">The shell is designed around the real components. There are pockets for all four SG90 servos, horn recesses in the rims and arm links, M3 bosses that hold the halves together, Uno Q standoffs under the matrix window, ball casters, a breadboard deck and battery rails.</p>
+      <div class="plist">
+        <div><i class="dot" style="background:#e9ebf0"></i>Pearl-white PLA canopy & arm</div>
+        <div><i class="dot" style="background:#2a2e3a"></i>Graphite PLA tub & deck</div>
+        <div><i class="dot" style="background:#9ff0ff;box-shadow:0 0 10px #22d3ff"></i>Translucent PETG mood ring</div>
+        <div><i class="dot" style="background:#05060a;border:1px solid #444"></i>Gloss-black PETG visor</div>
+        <div><i class="dot" style="background:#ff6a1a"></i>Orange PLA caps & inlays</div>
+        <div><i class="dot" style="background:#1b1c20;border:1px solid #444"></i>TPU 95A chevron tires</div>
+      </div>
+      <div class="kpis">
+        <div><b>~250 g</b><span>of filament</span></div>
+        <div><b>~1 hour</b><span>to assemble</span></div>
+        <div><b>STL + source</b><span>reprint or remix</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT THINKS -->
+<section id="loop" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">How it thinks</div>
+      <h2>A consciousness loop, every 20 seconds.</h2>
+    </div>
+    <div class="loop">
+      <div class="step rv"><h3>Sense</h3><p>Camera frame, ultrasonic distance, temperature, humidity, and your voice.</p></div>
+      <div class="step rv"><h3>Recall</h3><p>Goal, plan, map, long-term memory and the last 12 events.</p></div>
+      <div class="step rv"><h3>Reason</h3><p>Gemini 4 Hydrogen thinks it over and returns structured JSON.</p></div>
+      <div class="step rv"><h3>Act</h3><p>Drive, turn, run an arm skill, speak, play a sound, change mood.</p></div>
+      <div class="step rv"><h3>Reflect</h3><p>Write the outcome to memory. Change strategy if something keeps failing.</p></div>
+    </div>
+<div class="code rv"><span class="c">// what one decision looks like (example, abridged)</span>
+{
+  <span class="k">"speak"</span>: { <span class="k">"text"</span>: <span class="s">"Found your red ball! Let me give it a little flick."</span> },
+  <span class="k">"rgb"</span>: <span class="s">"255,165,0"</span>,
+  <span class="k">"moves"</span>: [ { <span class="k">"command"</span>: <span class="s">"left"</span>, <span class="k">"angle_deg"</span>: 15 }, { <span class="k">"command"</span>: <span class="s">"forward"</span>, <span class="k">"distance_cm"</span>: 12 } ],
+  <span class="k">"arm_action"</span>: <span class="s">"flick"</span>,
+  <span class="k">"plan"</span>: <span class="s">"Master asked me to play. Ball is 15 cm ahead, slightly left."</span>,
+  <span class="k">"memory"</span>: <span class="s">"My human likes when I play with the red ball in the living room."</span>
+}</div>
+  </div>
+</section>
+
+<!-- SPECS -->
+<section id="specs">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Specifications</div>
+      <h2>Small body. Serious hardware.</h2>
+    </div>
+    <div class="specs rv">
+      <div>
+        <div class="spec"><span>Size (parked)</span><b>205 × 132 × 112 mm</b></div>
+        <div class="spec"><span>Brain</span><b>Arduino Uno Q: Linux MPU + real-time MCU</b></div>
+        <div class="spec"><span>AI</span><b>Gemini 4 Hydrogen, structured output</b></div>
+        <div class="spec"><span>Drive</span><b>Differential, turns on the spot, 2 ball casters</b></div>
+        <div class="spec"><span>Wheels</span><b>72 mm, TPU chevron tires</b></div>
+        <div class="spec"><span>Arm</span><b>2 DOF, 55 + 88 mm, hook-claw, 14 skills</b></div>
+        <div class="spec"><span>Arm reach</span><b>floor, 2–5 cm ahead of the bumper</b></div>
+      </div>
+      <div>
+        <div class="spec"><span>Vision</span><b>USB webcam with mic, in the visor</b></div>
+        <div class="spec"><span>Ranging</span><b>HC-SR04 ultrasonic "eyes"</b></div>
+        <div class="spec"><span>Environment</span><b>Modulino Thermo: °C and humidity</b></div>
+        <div class="spec"><span>Expression</span><b>RGB mood ring, 13×8 LED matrix window</b></div>
+        <div class="spec"><span>Voice</span><b>EN · RU · DE · IT · CZ</b></div>
+        <div class="spec"><span>Power</span><b>10 000 mAh USB power bank</b></div>
+        <div class="spec"><span>Software</span><b>Python, Arduino C++, React dashboard</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUY -->
+<section id="reserve">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Founders batch</div>
+      <h2>Bring NOVA home.</h2>
+      <p>Reserve a kit from the first batch. You pay nothing now. We'll email you to confirm before anything ships.</p>
+    </div>
+    <div class="buy">
+      <div class="card-price rv">
+        <span class="tag">Pre-order</span>
+        <div class="big-price">$300<small>USD</small></div>
+        <div class="muted" style="position:relative;z-index:1">NOVA kit: every printed part + Arduino Uno Q</div>
+        <ul class="incl">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>Arduino Uno Q (2 GB): Linux + microcontroller on one board</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>All 23 printed parts in their final colours, including TPU tires and the translucent mood ring</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>Firmware, AGI software and web dashboard (open source)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>Illustrated assembly guide, plus STL files so you can reprint any part</li>
+        </ul>
+        <form class="reserve" id="reserveForm">
+          <input type="email" name="email" required placeholder="you@email.com" aria-label="Email" autocomplete="email">
+          <button class="btn btn-primary" type="submit">Reserve my kit</button>
+        </form>
+        <div class="form-msg" id="formMsg" role="status"></div>
+        <p class="fine">No payment is taken on this page. We only use your email to contact you about your reservation.</p>
+      </div>
+      <div class="need rv">
+        <h3>You'll also need</h3>
+        <p class="muted" style="font-size:15px">These are cheap, standard parts available anywhere. The guide links to tested ones.</p>
+        <table>
+          <tr><td>2 × SG90 360° servo (wheels)</td><td>~$4</td></tr>
+          <tr><td>2 × SG90 180° servo (arm)</td><td>~$4</td></tr>
+          <tr><td>HC-SR04 ultrasonic sensor</td><td>~$1.5</td></tr>
+          <tr><td>USB webcam with microphone</td><td>~$3</td></tr>
+          <tr><td>Mini speaker + USB-C hub</td><td>~$5.5</td></tr>
+          <tr><td>RGB LED, breadboard, jumper wires</td><td>~$5</td></tr>
+          <tr><td>10 000 mAh power bank</td><td>~$10</td></tr>
+          <tr><td>2 × 12 mm steel balls, M3/M2 screws</td><td>~$2</td></tr>
+          <tr><td>Total</td><td>~$35</td></tr>
+        </table>
+        <p class="muted" style="font-size:14px;margin-top:18px">The AI runs on your own Gemini API key. The free tier covers light use. Non-stop autonomy on the paid tier costs roughly a few dollars an hour, and nothing while NOVA is idle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:40px">
+  <div class="wrap">
+    <div class="sec-head rv"><div class="eyebrow">FAQ</div><h2>Questions, answered.</h2></div>
+    <div class="faq rv">
+      <details><summary>Do I need a 3D printer?</summary><p>No. Every part comes printed in its final colour. The STL files are included too, so if you have a printer you can reprint, repair or remix anything.</p></details>
+      <details><summary>Is it really autonomous?</summary><p>Yes. With AGI mode on, NOVA runs its own sense, think, act loop. It decides where to go, what to say and what to do with its arm, all toward a goal you give it in plain language. You can take manual control from the dashboard at any moment.</p></details>
+      <details><summary>Can the arm pick things up?</summary><p>The arm has two joints and a fixed hook-claw. It can touch, tap, flick, push, scoop and hook light objects, but it doesn't grip. The design leaves room to upgrade to a gripper later.</p></details>
+      <details><summary>How hard is the assembly?</summary><p>If you can use a screwdriver and plug in jumper wires, you can build NOVA. There's no soldering. Plan on about an hour, following the illustrated guide.</p></details>
+      <details><summary>What are the running costs?</summary><p>NOVA thinks with Google's Gemini 4 Hydrogen through your own Gemini API key. The free tier is enough to play with. On the paid tier, a thinking cycle costs roughly one to two cents, which is a few dollars per hour of non-stop autonomy. When AGI mode is off, it costs nothing.</p></details>
+      <details><summary>Is the software open source?</summary><p>Yes. The firmware, the Python brain, the web dashboard and the full Blender and STL sources of the NOVA shell are all open. Hack it, extend it, teach it new skills.</p></details>
+      <details><summary>When will it ship?</summary><p>The founders batch is being prepared now. Reserve with your email and we'll write to you with the exact date and payment details before anything ships. You can cancel any time.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <div class="eyebrow rv">NOVA · AGI Robot</div>
+    <h2 class="rv">Give your desk a mind of its own.</h2>
+    <a href="#reserve" class="btn btn-primary rv">Reserve for $300</a>
+    <img class="rv" src="img/studio_34.jpg" alt="NOVA parked, arm folded" loading="lazy">
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 AGI Robot · NOVA. Product images are renders of the final production design.</div>
+    <div style="display:flex;gap:22px"><a href="https://robot.mvpgen.com" target="_blank" rel="noopener">Live robot</a><a href="https://maxims.top" target="_blank" rel="noopener">maxims.top</a></div>
+  </div>
+</footer>
+
+<script>
+// nav state
+const nav=document.getElementById('nav');
+const onScroll=()=>nav.classList.toggle('scrolled',scrollY>30);onScroll();addEventListener('scroll',onScroll,{passive:true});
+
+// reveal on scroll
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=(i%4)*70+'ms';io.observe(el)});
+
+// hero video: fall back to poster if it can't play
+const hv=document.getElementById('heroVid');
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){hv.removeAttribute('autoplay');hv.pause()}
+
+// mood ring
+const stage=document.getElementById('moodStage');
+document.querySelectorAll('.mood-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mood-btn').forEach(x=>x.classList.toggle('active',x===b));
+  stage.querySelectorAll('img').forEach(im=>im.classList.toggle('on',im.dataset.m===b.dataset.m));
+  document.documentElement.style.setProperty('--mood',b.dataset.c);
+  document.getElementById('svgRing').setAttribute('fill',b.dataset.c);
+  document.getElementById('svgEye').setAttribute('stroke',b.dataset.c);
+}));
+
+// arm lab: same forward kinematics as python/arm_skills.py
+const SH=[58,102],L1=55,L2=88;
+const d=p=>{p=p*Math.PI/180;return[-Math.cos(p),Math.sin(p)]};
+function fk(a1,a2){const e=[SH[0]+L1*d(a1)[0],SH[1]+L1*d(a1)[1]];const v=d(a1+180-a2);return{e,t:[e[0]+L2*v[0],e[1]+L2*v[1]],v}}
+const $=id=>document.getElementById(id);
+const A1=$('a1'),A2=$('a2');
+// spokes
+(function(){let g='';for(let i=0;i<5;i++){const a=i*72;g+=`<rect x="-3.2" y="9" width="6.4" height="15" rx="3" transform="translate(0 36) rotate(${a})"/>`}$('spokes').innerHTML=g})();
+// reach envelope (claw tip) for display
+(function(){const pts=[];for(let a1=0;a1<=180;a1+=6)pts.push(fk(a1,180).t);for(let a2=180;a2>=20;a2-=6)pts.push(fk(180,a2).t);
+  $('reach').setAttribute('d','M'+pts.map(p=>p[0].toFixed(1)+' '+Math.max(0,p[1]).toFixed(1)).join(' L')+'Z')})();
+function draw(){
+  const a1=+A1.value,a2=+A2.value;const {e,t,v}=fk(a1,a2);
+  const set=(id,o)=>{for(const k in o)$(id).setAttribute(k,o[k])};
+  set('l1',{x1:SH[0],y1:SH[1],x2:e[0],y2:e[1]});
+  const tb=[t[0]-v[0]*14,t[1]-v[1]*14];
+  set('l2',{x1:e[0],y1:e[1],x2:tb[0],y2:tb[1]});
+  // claw: curls towards the palm side
+  const n=[-v[1],v[0]];
+  const c1=[tb[0]+v[0]*12+n[0]*-4,tb[1]+v[1]*12+n[1]*-4], c2=[t[0]+v[0]*6+n[0]*-12,t[1]+v[1]*6+n[1]*-12];
+  set('claw',{d:`M${tb[0]} ${tb[1]} Q${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]}`});
+  set('j1',{cx:SH[0],cy:SH[1]});set('j2',{cx:e[0],cy:e[1]});set('tipDot',{cx:t[0],cy:t[1]});
+  $('v1').textContent=a1+'°';$('v2').textContent=a2+'°';
+  const ahead=t[0]-100, floor=t[1]-14;
+  $('armRead').innerHTML=`claw tip <b>${ahead>=0?ahead.toFixed(0)+' mm ahead':Math.abs(ahead).toFixed(0)+' mm behind'}</b> of bumper<br>height <b>${Math.max(0,t[1]).toFixed(0)} mm</b>`+(floor<12&&ahead>-2?' · <b style="color:#ff9a52">touching the floor</b>':'');
+}
+A1.oninput=A2.oninput=()=>{anim++;playTok++;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));draw()};
+draw();
+const SK={park:[[0,180,900]],raise:[[90,180,900]],point_forward:[[150,165,800]],hover:[[178,120,1000]],
+  reach_floor:[[178,120,900],[180,95,600]],tap:[[178,120,900],[180,92,300],[178,120,300],[0,180,1000]],
+  flick:[[178,110,900],[180,95,250],[178,150,160],[150,160,500],[0,180,900]],
+  wave:[[110,120,700],[110,165,250],[110,120,250],[110,165,250],[110,120,250],[0,180,900]],
+  nod:[[30,170,400],[10,180,300],[30,170,300],[0,180,400]],
+  celebrate:[[120,150,500],[140,120,200],[120,150,200],[140,120,200],[0,180,900]]};
+let anim=0,playTok=0;
+function tween(a,b,ms){return new Promise(res=>{const t0=performance.now(),id=++anim;(function f(now){if(id!==anim)return res(false);let k=Math.min(1,(now-t0)/ms);k=k*k*(3-2*k);
+  A1.value=Math.round(a[0]+(b[0]-a[0])*k);A2.value=Math.round(a[1]+(b[1]-a[1])*k);draw();k<1?requestAnimationFrame(f):res(true)})(t0)})}
+async function play(name,btn){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c===btn));const tok=++playTok;
+  for(const [a1,a2,ms] of SK[name]){const ok=await tween([+A1.value,+A2.value],[a1,a2],ms);if(!ok||tok!==playTok)return}}
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>play(c.dataset.k,c)));
+// demo once when the lab scrolls into view
+const armIO=new IntersectionObserver(es=>{if(es[0].isIntersecting){armIO.disconnect();setTimeout(()=>play('wave',document.querySelector('[data-k=wave]')),500)}},{threshold:.5});
+armIO.observe($('armSvg'));
+
+// film tabs (tabs whose video isn't published yet hide themselves)
+const film=$('filmVid');
+function selectTab(b,autoplay){
+  document.querySelectorAll('.vid-tab').forEach(x=>x.classList.toggle('active',x===b));
+  film.poster='img/'+b.dataset.p+'.jpg';film.querySelector('source').src='video/'+b.dataset.v+'.mp4';film.load();
+  if(autoplay)film.play().catch(()=>{});
+}
+document.querySelectorAll('.vid-tab').forEach(b=>b.addEventListener('click',()=>selectTab(b,true)));
+Promise.all([...document.querySelectorAll('.vid-tab')].map(b=>fetch('video/'+b.dataset.v+'.mp4',{method:'HEAD'})
+  .then(r=>{if(!r.ok)b.remove()}).catch(()=>b.remove()))).then(()=>{
+  const first=document.querySelector('.vid-tab');if(first&&!document.querySelector('.vid-tab.active'))selectTab(first,false);
+});
+
+// lightbox
+const lb=$('lb');
+document.querySelectorAll('.gallery figure').forEach(f=>f.addEventListener('click',()=>{lb.querySelector('img').src=f.querySelector('img').src;lb.classList.add('open')}));
+lb.addEventListener('click',()=>lb.classList.remove('open'));
+addEventListener('keydown',e=>{if(e.key==='Escape')lb.classList.remove('open')});
+
+// reservation -> robot backend waitlist
+$('reserveForm').addEventListener('submit',async e=>{
+  e.preventDefault();const msg=$('formMsg');const email=e.target.email.value.trim();
+  const btn=e.target.querySelector('button');btn.disabled=true;msg.textContent='Reserving…';
+  try{
+    const r=await fetch('https://robot.mvpgen.com/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,plan:'$300'})});
+    if(!r.ok)throw new Error(r.status);
+    msg.innerHTML='<span style="color:#3dff7a">You\'re on the list.</span> We\'ll email you before the founders batch ships.';e.target.reset();
+  }catch(err){msg.textContent='We couldn\'t reach the reservation server just now. Please try again in a minute.'}
+  finally{btn.disabled=false}
+});
+</script>
+</body>
+</html>

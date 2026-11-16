@@ -1,10 +1,16 @@
 # AGI Robot
 
-This project creates a **fully autonomous, LLM-powered mobile robot** that uses **Google Gemini 3 Flash** for real-time decision-making, navigation, and human interaction. The robot combines computer vision, distance sensing, and multi-modal AI to explore environments, accomplish goals, and engage in natural conversations.
+This project creates a **fully autonomous, LLM-powered mobile robot** that uses **Google Gemini 4 Hydrogen** (Flash tier) for real-time decision-making, navigation, and human interaction. The robot combines computer vision, distance sensing, and multi-modal AI to explore environments, accomplish goals, and engage in natural conversations.
 
 [robot.mvpgen.com](https://robot.mvpgen.com)
 
 ![alt text](image-1.png)
+
+## ✨ NEW: NOVA body (v2)
+
+The robot has a new body. It has a rounded two-tone 3D-printed shell, ultrasonic "eyes" in a gloss visor, a glowing mood ring, and a 2-DOF arm that folds into a bay in the roof. The model, the renders, the animations and the printable STLs are all generated procedurally in Blender. See **[docs/NOVA.md](docs/NOVA.md)** for the design, print/assembly guide, renders and videos. The STLs are in [`3d/nova`](3d/nova).
+
+![NOVA](docs/nova/hero_dark.jpg)
 
 ## Key Features
 
@@ -33,7 +39,7 @@ This project creates a **fully autonomous, LLM-powered mobile robot** that uses 
     -   **Modulino Thermo** (Temperature & Humidity) - Connected via I2C/Qwiic
     -   RGB LED for mood expression
 -   **Power:** PowerBank 10000 mAh
--   **Software Stack:** Python 3.12+, Node.js 20+, React 18, MongoDB, Google Cloud Vertex AI (Gemini 3 Flash / Gemini 3 Pro), Pydantic (Structured Outputs)
+-   **Software Stack:** Python 3.12+, Node.js 20+, React 18, MongoDB, Gemini API (Gemini 4 Hydrogen / Gemini 3.1 Pro), Pydantic (Structured Outputs)
 -   **Connectivity:** WiFi required for API and Dashboard access
 
 **Functionality:** The robot operates autonomously using an AGI loop: captures images, measures distance, consults the LLM, speaks responses, records user audio, and executes movement commands. All decisions are made by the AI model based on visual input, sensor data, goals, and conversation context.
@@ -91,7 +97,7 @@ The robot's consciousness operates in an autonomous loop, which incurs API costs
 ### 2. Software Architecture and Code Structure
 
 -   **Python Logic (`main.py`):**
-    -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, records audio responses, and consults the Gemini 3 Flash model via `media_service.py` to decide on actions.
+    -   **AGI Loop**: Implements an autonomous loop (`agi_loop`) where the robot captures an image, checks distance, records audio responses, and consults the Gemini 4 Hydrogen model via `media_service.py` to decide on actions.
     -   **Audio Recording**: After the robot speaks, it records user audio with **dynamic duration** (3 to 15 seconds). It monitors noise levels (dB) to extend recording if the user is speaking, and stops early on silence. During recording, the RGB LED displays a **rainbow effect**.
     -   **Object Detection**: Uses `VideoObjectDetection` to identify objects in real-time and announce them (`send_detections_to_ui`).
     -   **Backend API / Custom Backend**: Synchronizes state variables (`speed`, `agi`, `goal`, `lang`, `rgb`) and telemetry (`distance`, `temperature`, `humidity`) with our Node.js backend and web dashboard.
@@ -115,8 +121,8 @@ The robot's consciousness operates in an autonomous loop, which incurs API costs
             - Requires `TELEGRAM_KEY` and `ADMIN_ID` environment variables
         -   **POST `/llm_vision`**: Sends image, distance, plan, subplan, map, movement history, **and audio** to Gemini LLM
             - Parameters: `asi` (bool) - to select model:
-                - `false` (default): **Gemini 3 Flash ** (Fast, low latency)
-                - `true`: **Gemini 3 Pro** (High reasoning, slower)
+                - `false` (default): **Gemini 4 Hydrogen** (`gemini-4-hydrogen`, Flash tier: fast, low latency)
+                - `true`: **Gemini 3.1 Pro** (High reasoning, slower)
             - Returns JSON with: `speak`, `sound`, `move`, `rgb`, `plan`, `subplan`, `map`, `memory`, `alarm`
             - Receives images via Socket.IO from the webcam service (default: `http://localhost:4912`)
             - **Image Logging**: Saves all incoming images to `/home/arduino/google-drive/robot` with timestamps for debugging/dataset creation
@@ -218,7 +224,7 @@ The following variables are synchronized with the project's backend API and web 
 -   **Read/Write (Controls):**
 
     -   `agi` (bool): Master switch to enable/disable the autonomous AGI loop.
-    -   `asi` (bool): Toggle to use **Gemini 3 Pro** (Smarter) instead of Flash (Faster).
+    -   `asi` (bool): Toggle to use **Gemini 3.1 Pro** (Smarter) instead of Hydrogen (Faster).
     -   `goal` (str): Current main goal for the robot (retrieved from cloud).
     -   `speed` (int): Controls the speed of the robot (0-90, where 45 is baseline).
     -   `back` (bool): Command to move backward.
